@@ -51,8 +51,9 @@ export default async function Home({
           >
             {ru ? "EN" : "RU"} <span>↗</span>
           </a>
-          <a className="button dark small" href={app}>
-            {t.open}
+          <a className="button dark small" href={app} aria-label={t.open}>
+            <span className="wide-label">{t.open}</span>
+            <span className="short-label">{ru ? "Открыть" : "Open"}</span>
             <ArrowUpRight size={16} />
           </a>
         </nav>

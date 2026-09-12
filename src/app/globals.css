@@ -216,6 +216,9 @@ input[type="range"] {
   align-items: center;
   gap: 24px;
 }
+.short-label {
+  display: none;
+}
 .hero {
   max-width: 1440px;
   margin: 15px auto 0;
@@ -1314,7 +1317,20 @@ input[type="range"] {
 @media (max-width: 760px) {
   .site-header {
     height: 78px;
-    padding: 0 22px;
+    padding: 0 16px;
+  }
+  .site-header .brand {
+    font-size: 18px;
+    gap: 5px;
+  }
+  .site-header .brand > svg {
+    width: 25px;
+  }
+  .site-header .wide-label {
+    display: none;
+  }
+  .site-header .short-label {
+    display: inline;
   }
   .brand {
     font-size: 21px;
