@@ -2087,3 +2087,31 @@ html[lang="ru"] {
 .route-note-popup {
   z-index: 5;
 }
+
+.download-menu > div {
+  min-width: 220px;
+  max-width: calc(100vw - 32px);
+}
+.download-menu a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+.download-menu a.recommended-format {
+  background: #eaf3ed;
+  color: #214c3b;
+  font-weight: 700;
+}
+.download-menu a.recommended-format:hover {
+  background: #dcebe1;
+}
+.format-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #d3e7d9;
+  white-space: nowrap;
+}

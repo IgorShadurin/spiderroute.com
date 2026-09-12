@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Maximize, Minimize, Scan } from "lucide-react";
+import { Maximize2, Minimize2, Route } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import type { Map as MapType, Marker, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -449,7 +449,7 @@ export default function RouteMap({
       )}
       <div className="map-actions">
         <button className="map-action" onClick={fit}>
-          <Scan size={17} aria-hidden="true" />
+          <Route size={17} aria-hidden="true" />
           <span>{locale === "ru" ? "Весь маршрут" : "Fit route"}</span>
         </button>
         <button
@@ -459,9 +459,9 @@ export default function RouteMap({
           }
         >
           {fullscreenView ? (
-            <Minimize size={17} aria-hidden="true" />
+            <Minimize2 size={17} aria-hidden="true" />
           ) : (
-            <Maximize size={17} aria-hidden="true" />
+            <Maximize2 size={17} aria-hidden="true" />
           )}
           <span>
             {fullscreenView

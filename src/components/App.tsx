@@ -373,8 +373,15 @@ function Workspace({ token, initialLocale }: AppProps) {
       </summary>
       <div>
         {["gpx", "kml", "geojson", "csv"].map((f) => (
-          <a key={f} href={exportLink(f)}>
-            {f.toUpperCase()}
+          <a
+            key={f}
+            href={exportLink(f)}
+            className={f === "gpx" ? "recommended-format" : undefined}
+          >
+            <span>{f === "geojson" ? "GeoJSON" : f.toUpperCase()}</span>
+            {f === "gpx" && (
+              <span className="format-badge">{t.recommended}</span>
+            )}
           </a>
         ))}
       </div>
