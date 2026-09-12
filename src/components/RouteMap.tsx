@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Maximize, Minimize, Scan } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import type { Map as MapType, Marker, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -8,6 +10,8 @@ import { privacyCircle } from "@/lib/geo";
 maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
 export type MapMode = "view" | "select" | "move" | "insert" | "draw";
 export default function RouteMap({
+  fullscreenView = false,
+  onExitFullscreen,
   geometry,
   annotations = [],
   privacyPreview,
@@ -21,6 +25,8 @@ export default function RouteMap({
   errorLabel = "Map background unavailable",
   locale = "en",
 }: {
+  fullscreenView?: boolean;
+  onExitFullscreen?: () => void;
   geometry: Geometry;
   privacyPreview?: {
     original: Geometry;
@@ -40,6 +46,7 @@ export default function RouteMap({
   errorLabel?: string;
   locale?: "en" | "ru";
 }) {
+  const [fullscreen, setFullscreen] = useState(false);
   const container = useRef<HTMLDivElement>(null),
     map = useRef<MapType | null>(null),
     marker = useRef<Marker | null>(null),
@@ -413,14 +420,96 @@ export default function RouteMap({
           {errorLabel}
         </div>
       )}
-      <button
-        className="fit-map"
-        title={locale === "ru" ? "Показать весь маршрут" : "Fit route"}
-        aria-label={locale === "ru" ? "Показать весь маршрут" : "Fit route"}
-        onClick={fit}
-      >
-        ⊙
-      </button>
+      <div className="map-actions">
+        <button className="map-action" onClick={fit}>
+          <Scan size={17} aria-hidden="true" />
+          <span>{locale === "ru" ? "Весь маршрут" : "Fit route"}</span>
+        </button>
+        <button
+          className="map-action"
+          onClick={() =>
+            fullscreenView ? onExitFullscreen?.() : setFullscreen(true)
+          }
+        >
+          {fullscreenView ? (
+            <Minimize size={17} aria-hidden="true" />
+          ) : (
+            <Maximize size={17} aria-hidden="true" />
+          )}
+          <span>
+            {fullscreenView
+              ? locale === "ru"
+                ? "Закрыть"
+                : "Exit fullscreen"
+              : locale === "ru"
+                ? "На весь экран"
+                : "Fullscreen"}
+          </span>
+        </button>
+      </div>
+      {fullscreen &&
+        createPortal(
+          <FullscreenMapDialog
+            locale={locale}
+            onClose={() => setFullscreen(false)}
+          >
+            <RouteMap
+              geometry={geometry}
+              annotations={annotations}
+              privacyPreview={privacyPreview}
+              focusAnnotation={focusAnnotation}
+              selected={selected}
+              endSelected={endSelected}
+              mode={mode}
+              onSelect={onSelect}
+              onCoordinate={onCoordinate}
+              fitKey={fitKey}
+              errorLabel={errorLabel}
+              locale={locale}
+              fullscreenView
+              onExitFullscreen={() => setFullscreen(false)}
+            />
+          </FullscreenMapDialog>,
+          document.body,
+        )}
     </div>
+  );
+}
+
+function FullscreenMapDialog({
+  children,
+  locale,
+  onClose,
+}: {
+  children: React.ReactNode;
+  locale: "en" | "ru";
+  onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const element = dialog.current!;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    element.showModal();
+    return () => {
+      element.close();
+      document.body.style.overflow = overflow;
+    };
+  }, []);
+  return (
+    <dialog
+      ref={dialog}
+      className="fullscreen-map-dialog"
+      aria-label={locale === "ru" ? "Карта на весь экран" : "Fullscreen map"}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") event.stopPropagation();
+      }}
+    >
+      {children}
+    </dialog>
   );
 }

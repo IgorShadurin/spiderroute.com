@@ -563,17 +563,50 @@ input[type="range"] {
   border-radius: 6px;
   line-height: 1.6;
 }
-.fit-map {
+.map-actions {
   position: absolute;
-  bottom: 37px;
+  bottom: 34px;
   right: 10px;
-  height: 32px;
-  width: 32px;
-  border-radius: 5px;
-  background: #fff;
-  box-shadow: 0 1px 5px #0003;
-  font-size: 24px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
 }
+.map-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5cc;
+  border-radius: 7px;
+  background: #fff;
+  color: #173b32;
+  box-shadow: 0 1px 5px #0003;
+  font-size: 12px;
+  font-weight: 700;
+}
+.fullscreen-map-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #e9ede4;
+  overflow: hidden;
+}
+.fullscreen-map-dialog::backdrop {
+  background: #173b32;
+}
+.fullscreen-map-dialog .map-actions {
+  bottom: max(34px, env(safe-area-inset-bottom));
+  right: max(10px, env(safe-area-inset-right));
+}
+
 .map-error {
   position: absolute;
   bottom: 38px;
