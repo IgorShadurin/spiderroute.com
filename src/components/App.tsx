@@ -376,6 +376,13 @@ function Workspace({ token, initialLocale }: AppProps) {
       </div>
     </details>
   );
+  const workspaceHref =
+    "/workspace?lang=" +
+    locale +
+    (!session && token
+      ? "&returnTo=" + encodeURIComponent(sharePath(token, locale))
+      : "");
+  const workspaceLabel = session ? t.myRoutes : t.signInAction;
   const languageButton = (
     <button
       className="language-link"
@@ -403,9 +410,8 @@ function Workspace({ token, initialLocale }: AppProps) {
           </a>
           <div>
             {languageButton}
-            <a className="button dark small" href={"/workspace?lang=" + locale}>
-              {t.open}
-              <ArrowUpRight size={16} />
+            <a className="button dark small" href={workspaceHref}>
+              {workspaceLabel}
             </a>
           </div>
         </header>
@@ -414,8 +420,8 @@ function Workspace({ token, initialLocale }: AppProps) {
             <ShieldCheck size={42} />
             <h1>{t.unavailable}</h1>
             <p>{t.unavailableText}</p>
-            <a href="/workspace" className="button dark">
-              {t.open}
+            <a href={workspaceHref} className="button dark">
+              {workspaceLabel}
             </a>
           </div>
         ) : !publicRoute ? (
