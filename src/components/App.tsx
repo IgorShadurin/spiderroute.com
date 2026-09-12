@@ -32,6 +32,7 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import { sharePath } from "@/lib/sharing";
 import { Brand } from "./Brand";
 import { Illustration } from "./Illustration";
 import { messages, type TextKey } from "@/lib/i18n";
@@ -63,16 +64,17 @@ async function api(path: string, method = "GET", data?: unknown) {
   if (!r.ok) throw Error(value.error || "error");
   return value;
 }
-export default function App({ token }: { token?: string }) {
+type AppProps = { token?: string; initialLocale?: Locale };
+export default function App({ token, initialLocale }: AppProps) {
   return (
     <SessionProvider>
-      <Workspace token={token} />
+      <Workspace token={token} initialLocale={initialLocale} />
     </SessionProvider>
   );
 }
-function Workspace({ token }: { token?: string }) {
+function Workspace({ token, initialLocale }: AppProps) {
   const { data: session, status } = useSession();
-  const [locale, setLocale] = useState<Locale>("en"),
+  const [locale, setLocale] = useState<Locale>(initialLocale ?? "en"),
     [routes, setRoutes] = useState<any[]>([]),
     [favorites, setFavorites] = useState<any[]>([]),
     [tab, setTab] = useState<"routes" | "favorites">("routes"),
@@ -106,7 +108,10 @@ function Workspace({ token }: { token?: string }) {
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("lang"),
       stored = localStorage.getItem("spiderroute-language");
-    setLocale(q === "ru" || q === "en" ? q : stored === "ru" ? "ru" : "en");
+    setLocale(
+      initialLocale ??
+        (q === "ru" || q === "en" ? q : stored === "ru" ? "ru" : "en"),
+    );
     getProviders().then(setProviders);
   }, []);
   useEffect(() => {
@@ -135,7 +140,7 @@ function Workspace({ token }: { token?: string }) {
       refresh().catch((e) => notify(e.message));
       api("me")
         .then((u) => {
-          if (!new URLSearchParams(location.search).get("lang"))
+          if (!token && !new URLSearchParams(location.search).get("lang"))
             setLocale(u.locale === "ru" ? "ru" : "en");
         })
         .catch(() => {});
@@ -194,6 +199,10 @@ function Workspace({ token }: { token?: string }) {
   }, [shareOpen, noteOpen]);
   const changeLocale = () => {
     const l = locale === "en" ? "ru" : "en";
+    if (token) {
+      location.assign(sharePath(token, l));
+      return;
+    }
     setLocale(l);
     if (session) api("me", "PATCH", { locale: l }).catch(() => {});
   };
@@ -338,7 +347,7 @@ function Workspace({ token }: { token?: string }) {
           "/workspace?lang=" +
           locale +
           "&returnTo=" +
-          encodeURIComponent("/s/" + token);
+          encodeURIComponent(sharePath(token!, locale));
         return;
       }
       const r = await api("public/" + token + "/" + action, "POST", {});
@@ -710,7 +719,7 @@ function Workspace({ token }: { token?: string }) {
               : favorites.map((f) => (
                   <div key={f.id} className="favorite-row">
                     {f.available ? (
-                      <a href={"/s/" + f.token}>
+                      <a href={sharePath(f.token, locale)}>
                         <Heart size={17} />
                         {f.title}
                       </a>
@@ -1149,7 +1158,7 @@ function Workspace({ token }: { token?: string }) {
                   value={
                     typeof location === "undefined"
                       ? ""
-                      : location.origin + "/s/" + route.shareToken
+                      : location.origin + sharePath(route.shareToken!, locale)
                   }
                 />
                 <button
@@ -1157,7 +1166,7 @@ function Workspace({ token }: { token?: string }) {
                   onClick={() =>
                     run(async () => {
                       await navigator.clipboard.writeText(
-                        location.origin + "/s/" + route.shareToken,
+                        location.origin + sharePath(route.shareToken!, locale),
                       );
                       notify("copied");
                     })

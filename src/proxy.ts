@@ -21,6 +21,17 @@ export function proxy(req: NextRequest) {
     if (host.startsWith("ru.")) target.searchParams.set("lang", "ru");
     return NextResponse.redirect(target, 307);
   }
-  return NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set(
+    "x-spiderroute-locale",
+    req.nextUrl.pathname.startsWith("/s/")
+      ? req.nextUrl.searchParams.get("lang") === "ru"
+        ? "ru"
+        : "en"
+      : host.startsWith("ru.")
+        ? "ru"
+        : "en",
+  );
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 export const config = { matcher: ["/((?!api|_next|icon.svg).*)"] };

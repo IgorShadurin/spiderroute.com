@@ -16,7 +16,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const h = await headers();
-  const locale = h.get("host")?.startsWith("ru.") ? "ru" : "en";
+  const locale =
+    h.get("x-spiderroute-locale") === "ru" || h.get("host")?.startsWith("ru.")
+      ? "ru"
+      : "en";
   return (
     <html lang={locale}>
       <body>{children}</body>
