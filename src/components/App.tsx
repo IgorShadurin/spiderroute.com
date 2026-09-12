@@ -450,12 +450,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                   <span>
                     {publicRoute.stats.segments} {t.segments.toLowerCase()}
                   </span>
-                  {publicRoute.protected && (
-                    <span>
-                      <ShieldCheck size={14} />
-                      {t.protected}
-                    </span>
-                  )}
                 </div>
               </div>
               <div className="action-row">
