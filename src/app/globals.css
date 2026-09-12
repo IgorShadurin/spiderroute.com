@@ -2074,3 +2074,16 @@ html[lang="ru"] {
   margin-top: 22px;
   justify-content: flex-end;
 }
+
+.note-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.route-note-popup {
+  z-index: 5;
+}

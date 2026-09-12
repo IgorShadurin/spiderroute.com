@@ -361,6 +361,7 @@ export default function RouteMap({
     if (!ready || !m) return;
     for (const marker of noteMarkers.current.values()) marker.remove();
     noteMarkers.current.clear();
+    const popupResizeHandlers: (() => void)[] = [];
     annotations.forEach((annotation, index) => {
       const segment = geometry.find((s) =>
         s.some((p) => p.id === annotation.startId),
@@ -388,6 +389,12 @@ export default function RouteMap({
       body.className = "annotation-popup-body";
       body.textContent = annotation.text;
       body.tabIndex = 0;
+      const sizeBody = () => {
+        body.style.maxHeight = `${Math.max(64, Math.min(240, m.getContainer().clientHeight / 2 - 90))}px`;
+      };
+      sizeBody();
+      popupResizeHandlers.push(sizeBody);
+      m.on("resize", sizeBody);
       content.append(heading, body);
       const popup = new maplibregl.Popup({
         offset: 20,
@@ -415,6 +422,7 @@ export default function RouteMap({
       noteMarkers.current.set(annotation.id, pin);
     });
     return () => {
+      for (const handler of popupResizeHandlers) m.off("resize", handler);
       for (const marker of noteMarkers.current.values()) marker.remove();
       noteMarkers.current.clear();
     };
