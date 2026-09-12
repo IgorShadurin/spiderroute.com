@@ -18,7 +18,7 @@ export const messages = {
     signin: "Your routes, in one place.",
     signinText:
       "Sign in to save, edit and share. Public links are open to everyone.",
-    demo: "Private demo access",
+    demo: "Demo access",
     demoText:
       "For invited testers only. There is no email/password registration.",
     email: "Email",
@@ -29,7 +29,7 @@ export const messages = {
     oauthSoon: "Google and Apple sign-in will be available soon.",
     logout: "Sign out",
     loading: "Loading…",
-    save: "Save changes",
+    save: "Save",
     saved: "Saved",
     cancel: "Cancel",
     delete: "Delete route",
@@ -68,13 +68,11 @@ export const messages = {
     characters: "characters",
     recommended: "Recommended",
     color: "Color",
-    saveNote: "Save note",
     deleteNote: "Delete note",
     noNotes:
       "A viewpoint? A tricky turn? Select a point or section to add a note.",
     share: "Share route",
     shared: "Shared by link",
-    privateLabel: "Private",
     shareIntro: "Choose which parts appear in the shared route.",
     start: "Hide around start",
     end: "Hide around finish",
@@ -109,7 +107,6 @@ export const messages = {
     unavailableText: "The owner may have made it private or deleted it.",
     back: "Back to routes",
     backSite: "Back to SpiderRoute",
-    protected: "Start & finish protected",
     signForCopy: "Sign in to save a copy",
     editedWarning:
       "Changed points no longer carry recorded elevation, time, or speed.",
@@ -143,7 +140,6 @@ export const messages = {
     saveBeforeShare: "Save your changes before sharing.",
     removeFavorite: "Remove favorite",
     language: "Language",
-    ownerOnly: "Only you can edit this route.",
     newRoute: "Untitled route",
     publishWarning:
       "This link makes the preview public. Notes and route names can also reveal personal information.",
@@ -180,7 +176,7 @@ export const messages = {
     oauthSoon: "Вход через Google и Apple скоро появится.",
     logout: "Выйти",
     loading: "Загрузка…",
-    save: "Сохранить изменения",
+    save: "Сохранить",
     saved: "Сохранено",
     cancel: "Отмена",
     delete: "Удалить маршрут",
@@ -219,13 +215,11 @@ export const messages = {
     characters: "символов",
     recommended: "Рекомендуем",
     color: "Цвет",
-    saveNote: "Сохранить заметку",
     deleteNote: "Удалить заметку",
     noNotes:
       "Смотровая площадка? Сложный поворот? Выберите точку или участок и добавьте заметку.",
     share: "Поделиться",
     shared: "Доступ по ссылке",
-    privateLabel: "Приватный",
     shareIntro: "Выберите, какие части маршрута будут видны по ссылке.",
     start: "Скрыть вокруг начала",
     end: "Скрыть вокруг конца",
@@ -260,13 +254,12 @@ export const messages = {
     unavailableText: "Владелец мог закрыть доступ или удалить маршрут.",
     back: "К маршрутам",
     backSite: "На главную",
-    protected: "Начало и конец скрыты",
     signForCopy: "Войдите, чтобы сохранить копию",
     editedWarning:
       "Изменённые точки больше не содержат записанные высоту, время и скорость.",
     anchorWarning:
       "Изменение удалит точки с заметками. Сначала перенесите или удалите эти заметки.",
-    unsaved: "Есть несохранённые изменения",
+    unsaved: "Не сохранено",
     discard: "Отменить несохранённые изменения?",
     mapUnavailable: "Подложка карты недоступна. Ваш маршрут на месте.",
     error: "Что-то пошло не так. Попробуйте ещё раз.",
@@ -294,7 +287,6 @@ export const messages = {
     saveBeforeShare: "Сохраните изменения перед публикацией.",
     removeFavorite: "Убрать из избранного",
     language: "Язык",
-    ownerOnly: "Только вы можете редактировать маршрут.",
     newRoute: "Новый маршрут",
     publishWarning:
       "По этой ссылке предпросмотр станет публичным. Заметки и название тоже могут раскрывать личную информацию.",

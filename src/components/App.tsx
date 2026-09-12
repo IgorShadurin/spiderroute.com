@@ -10,6 +10,7 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
+  Save,
   CircleAlert,
   TriangleAlert,
   LoaderCircle,
@@ -992,8 +993,13 @@ function Workspace({ token, initialLocale }: AppProps) {
                       <strong>{r.title}</strong>
                       <span>
                         {(r.stats.distance / 1000).toFixed(1)}{" "}
-                        {locale === "ru" ? "км" : "km"} <i>·</i>{" "}
-                        {r.shared ? t.shared : t.privateLabel}
+                        {locale === "ru" ? "км" : "km"}
+                        {r.shared && (
+                          <>
+                            {" "}
+                            <i>·</i> {t.shared}
+                          </>
+                        )}
                       </span>
                     </div>
                     <ChevronRight size={15} />
@@ -1068,11 +1074,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                       update({ ...route, title: e.target.value })
                     }
                   />
-                  <span className="route-status">
-                    <ShieldCheck size={13} />
-                    {route.shared ? t.shared : t.privateLabel}
-                    {dirty && <b> · {t.unsaved}</b>}
-                  </span>
+                  {dirty && <span className="route-status">{t.unsaved}</span>}
                 </div>
                 <div className="action-row">
                   {route.id !== "new" && downloadMenu}
@@ -1082,6 +1084,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                       disabled={busy || !canSave}
                       onClick={() => run(() => save())}
                     >
+                      <Save size={16} aria-hidden="true" />
                       {t.save}
                     </button>
                   )}
@@ -1304,7 +1307,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                   )}
                 </section>
                 <div className="route-bottom">
-                  <span>{t.ownerOnly}</span>
                   {route.id !== "new" && (
                     <button
                       className="danger-link"
@@ -1508,6 +1510,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                     })
                   }
                 >
+                  <Save size={16} aria-hidden="true" />
                   {t.save}
                 </button>
               ) : !route.shared ? (
@@ -1669,7 +1672,8 @@ function Workspace({ token, initialLocale }: AppProps) {
                 setNoteOpen(false);
               }}
             >
-              {t.saveNote}
+              <Save size={16} aria-hidden="true" />
+              {t.save}
             </button>
             {noteId && (
               <button

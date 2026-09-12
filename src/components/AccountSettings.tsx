@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Settings, X } from "lucide-react";
+import { Save, Settings, X } from "lucide-react";
 import type { Theme } from "@/lib/theme";
 import type { Locale } from "@/lib/types";
 export function AccountSettings({
@@ -147,6 +147,7 @@ export function AccountSettings({
                   {ru ? "Отмена" : "Cancel"}
                 </button>
                 <button className="button dark" type="submit" disabled={saving}>
+                  <Save size={16} aria-hidden="true" />
                   {saving
                     ? ru
                       ? "Сохранение…"
