@@ -41,14 +41,18 @@ export async function processOutbox() {
               plain_body: r.body,
               tag: "spiderroute",
               headers: {
-                "Message-ID": `<${r.id.replace(/[^a-zA-Z0-9-]/g, "-")}@spiderroute.com>`,
+                "X-SpiderRoute-Outbox-ID": r.id,
               },
             }),
             signal: AbortSignal.timeout(15000),
           },
         );
         const result = await response.json();
-        if (!response.ok || result.status !== "success")
+        if (
+          !response.ok ||
+          result.status !== "success" ||
+          typeof result.data?.message_id !== "string"
+        )
           throw Error("deliveryFailed");
         sql
           .prepare(
@@ -88,10 +92,18 @@ export function postalWebhook(raw: string, signature: string | null) {
     const e = JSON.parse(raw);
     if (typeof e.uuid !== "string" || typeof e.event !== "string") return false;
     const m = e.payload?.original_message || e.payload?.message || {};
+    if (e.event === "DomainDNSError") {
+      if (e.payload?.domain !== "spiderroute.com") return false;
+    } else if (m.tag !== "spiderroute") return false;
     sql.transaction(() => {
       sql
         .prepare("INSERT OR IGNORE INTO delivery_events VALUES(?,?,?,?)")
-        .run(e.uuid, e.event, String(m.id || ""), new Date().toISOString());
+        .run(
+          e.uuid,
+          e.event,
+          String(m.message_id || m.id || ""),
+          new Date().toISOString(),
+        );
       if (
         ["MessageBounced", "MessageDeliveryFailed"].includes(e.event) &&
         typeof m.to === "string"

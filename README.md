@@ -24,7 +24,9 @@ Use the repository Dockerfile and one application instance, port 3000. Attach a 
 
 Configure `NEXTAUTH_URL=https://app.spiderroute.com`, a strong `NEXTAUTH_SECRET`, and the enabled OAuth/Postal variables. Attach `https://spiderroute.com`, `https://www.spiderroute.com`, `https://ru.spiderroute.com` and `https://app.spiderroute.com`. DNS web records point to the application server; Cloudflare uses Full (strict) with a valid origin certificate and HTTP-to-HTTPS redirects. The apex serves the landing and app host redirects `/` to `/workspace`.
 
-Health endpoint: `/api/health`. Exclude authenticated and `/api/public/*` responses from Cloudflare cache rules. Never use Cache Everything on the app host. Build static assets may be cached normally.
+Health endpoint: `/api/health`. Exclude authenticated and `/api/public/*` responses from Cloudflare cache rules. Never use Cache Everything on the app host. Build static assets may be cached normally. MapLibre workers are copied from the installed package by `prebuild`; the Docker build and CI verify that native SQLite loads inside the production image.
+
+On the current shared proxy, Certbot handles the four SpiderRoute hostnames through a scoped HTTP challenge router. Its deploy hook atomically updates the Traefik certificate files; `certbot.timer` renews them. Keep this hook and the challenge router when changing Coolify labels, and avoid assigning a second certificate resolver to the same hostnames. Test renewal with `certbot renew --cert-name spiderroute.com --dry-run`.
 
 Production admin commands inside the app container:
 
@@ -40,7 +42,7 @@ A backup is produced using SQLite's consistent backup API. Route geometry, origi
 
 Set `POSTAL_API_URL`, `POSTAL_API_KEY`, `POSTAL_FROM_EMAIL`, and `POSTAL_WEBHOOK_PUBLIC_KEY` (PEM or base64 PEM). Use a dedicated SpiderRoute credential. Add domain-specific DKIM, one SPF policy, and an aligned return path using Postal's exact values. Preserve existing MX records. Start DMARC in monitoring mode.
 
-Webhook: `https://app.spiderroute.com/api/postal/webhook`. The receiver checks `x-postal-signature-256` using RSA-SHA256. The outbox retries failures with backoff, records provider IDs and suppresses bounced recipients. Delivery attempts are at-least-once: a network timeout after provider acceptance can cause a repeat; stable Message-ID aids diagnosis. No marketing automation is included.
+Webhook: `https://app.spiderroute.com/api/postal/webhook`. The receiver checks `x-postal-signature-256` using RSA-SHA256. The outbox retries failures with backoff, records provider IDs and suppresses bounced recipients. Delivery attempts are at-least-once: a network timeout after provider acceptance can cause a repeat; a stable X-SpiderRoute-Outbox-ID header aids diagnosis. No marketing automation is included.
 
 Verify actual delivery to a controlled mailbox and inspect SPF/DKIM/DMARC, Postal delivery status and signed webhook events. An API success alone does not prove delivery. Never expose route data in test emails.
 

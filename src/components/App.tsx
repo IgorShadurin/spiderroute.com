@@ -1231,6 +1231,20 @@ function Workspace({ token }: { token?: string }) {
                 onChange={(e) => setNoteColor(e.target.value)}
               />
             </label>
+            <div className="color-presets" role="group" aria-label={t.color}>
+              {["#ed704c", "#287b5d", "#4777c5", "#9860ac", "#c69a2d"].map(
+                (color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={`${t.color} ${color}`}
+                    aria-pressed={noteColor === color}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setNoteColor(color)}
+                  />
+                ),
+              )}
+            </div>
             <button
               className="button dark full"
               disabled={!selected || !noteText.trim()}
