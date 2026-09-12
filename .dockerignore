@@ -1,0 +1,12 @@
+.git
+node_modules
+.next
+.env*
+data
+private
+artifacts
+*.db*
+*.sqlite*
+*.pmtiles
+*.mbtiles
+*.log

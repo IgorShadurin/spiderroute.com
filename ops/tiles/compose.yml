@@ -1,0 +1,23 @@
+services:
+  tiles:
+    image: ${PMTILES_IMAGE:-ghcr.io/protomaps/go-pmtiles:v1.31.2}
+    command: [serve, /maps, --port, "8080"]
+    restart: unless-stopped
+    volumes:
+      - ${MAP_DATA_DIR:-/srv/spiderroute-maps}:/maps:ro
+    expose: ["8080"]
+  web:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    environment:
+      TILES_HOST: ${TILES_HOST:-tiles.spiderroute.com}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./www:/www:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [tiles]
+volumes:
+  caddy-data:
+  caddy-config:

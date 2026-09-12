@@ -1,0 +1,23 @@
+services:
+  spiderroute:
+    build: .
+    restart: unless-stopped
+    environment:
+      NEXTAUTH_URL: https://app.spiderroute.com
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      MAP_PROVIDER: ${MAP_PROVIDER:-osm-standard}
+      MAP_STYLE_URL: ${MAP_STYLE_URL:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      APPLE_CLIENT_SECRET: ${APPLE_CLIENT_SECRET:-}
+      POSTAL_API_URL: ${POSTAL_API_URL:-}
+      POSTAL_API_KEY: ${POSTAL_API_KEY:-}
+      POSTAL_FROM_EMAIL: ${POSTAL_FROM_EMAIL:-SpiderRoute <hello@spiderroute.com>}
+      POSTAL_WEBHOOK_PUBLIC_KEY: ${POSTAL_WEBHOOK_PUBLIC_KEY:-}
+    volumes:
+      - spiderroute-data:/data
+    expose:
+      - "3000"
+volumes:
+  spiderroute-data:

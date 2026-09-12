@@ -1,0 +1,17 @@
+{$TILES_HOST} {
+  encode gzip zstd
+  header Access-Control-Allow-Origin "https://app.spiderroute.com"
+  header X-Content-Type-Options nosniff
+  handle /health {
+    respond "ok" 200
+  }
+  handle_path /tiles/* {
+    header Cache-Control "public, max-age=86400"
+    reverse_proxy tiles:8080
+  }
+  handle {
+    root * /www
+    header Cache-Control "public, max-age=3600"
+    file_server
+  }
+}

@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.env*
+!.env.example
+/data/
+/private/
+/artifacts/
+*.db
+*.db-*
+*.sqlite*
+*.pmtiles
+*.mbtiles
+*.log
+*.tsbuildinfo
+.DS_Store
+ops/tiles/www/assets/
