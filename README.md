@@ -20,6 +20,8 @@ Uploads are limited to 25 MB/200,000 points. XML external entities/DTDs are reje
 
 ## Production on Coolify
 
+The existing Coolify application is connected to the installed GitHub App for this public repository, with automatic deployment enabled for `main`. Pushes trigger the App's signed webhook; no separate repository webhook or deployment credential belongs in the source tree. After a push, confirm that Coolify's webhook-triggered deployment matches the commit, finishes successfully, and serves `/api/health` over HTTPS. Also verify that account routes survive the rollout on the persistent volume. GitHub Actions checks run separately; automatic deployment does not wait for CI, so run the required checks and review outgoing commits before pushing to `main`.
+
 Use the repository Dockerfile and one application instance, port 3000. Attach a persistent writable directory volume to `/data`, owned by UID 1000. It contains SQLite and its WAL/SHM files; mount the directory, never just the database file. Do not scale this SQLite writer across hosts.
 
 Configure `NEXTAUTH_URL=https://app.spiderroute.com`, a strong `NEXTAUTH_SECRET`, and the enabled OAuth/Postal variables. Attach `https://spiderroute.com`, `https://www.spiderroute.com`, `https://ru.spiderroute.com` and `https://app.spiderroute.com`. DNS web records point to the application server; Cloudflare uses Full (strict) with a valid origin certificate and HTTP-to-HTTPS redirects. The apex serves the landing and app host redirects `/` to `/workspace`.
