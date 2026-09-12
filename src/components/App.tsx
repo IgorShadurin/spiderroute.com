@@ -414,7 +414,8 @@ function Workspace({ token }: { token?: string }) {
                 <h1>{publicRoute.title}</h1>
                 <div className="public-stats">
                   <span>
-                    {(publicRoute.stats.distance / 1000).toFixed(1)} km
+                    {(publicRoute.stats.distance / 1000).toFixed(1)}{" "}
+                    {locale === "ru" ? "км" : "km"}
                   </span>
                   <span>
                     {publicRoute.stats.segments} {t.segments.toLowerCase()}
@@ -449,6 +450,7 @@ function Workspace({ token }: { token?: string }) {
             </div>
             <div className="public-map">
               <RouteMap
+                locale={locale}
                 geometry={publicRoute.geometry}
                 annotations={publicRoute.annotations}
                 fitKey={token}
@@ -697,7 +699,8 @@ function Workspace({ token }: { token?: string }) {
                     <div>
                       <strong>{r.title}</strong>
                       <span>
-                        {(r.stats.distance / 1000).toFixed(1)} km <i>·</i>{" "}
+                        {(r.stats.distance / 1000).toFixed(1)}{" "}
+                        {locale === "ru" ? "км" : "km"} <i>·</i>{" "}
                         {r.shared ? t.shared : t.privateLabel}
                       </span>
                     </div>
@@ -802,6 +805,7 @@ function Workspace({ token }: { token?: string }) {
               </div>
               <div className="editor-map">
                 <RouteMap
+                  locale={locale}
                   geometry={shownGeometry}
                   annotations={route.annotations}
                   selected={selected}
@@ -972,7 +976,8 @@ function Workspace({ token }: { token?: string }) {
                   {[
                     [
                       t.distance,
-                      (route.stats.distance / 1000).toFixed(2) + " km",
+                      (route.stats.distance / 1000).toFixed(2) +
+                        (locale === "ru" ? " км" : " km"),
                     ],
                     [t.points, route.stats.points.toLocaleString(locale)],
                     [t.segments, route.stats.segments],
@@ -980,7 +985,7 @@ function Workspace({ token }: { token?: string }) {
                       t.ascent,
                       route.stats.ascent === null
                         ? "—"
-                        : Math.round(route.stats.ascent) + " m",
+                        : Math.round(route.stats.ascent) + " " + t.meters,
                     ],
                   ].map(([label, value]) => (
                     <div key={label}>
@@ -1104,6 +1109,7 @@ function Workspace({ token }: { token?: string }) {
               <>
                 <div className="share-preview-map">
                   <RouteMap
+                    locale={locale}
                     geometry={preview.geometry}
                     annotations={preview.annotations}
                     fitKey={JSON.stringify([
@@ -1113,8 +1119,8 @@ function Workspace({ token }: { token?: string }) {
                   />
                 </div>
                 <p className="subtle">
-                  {(preview.stats.distance / 1000).toFixed(2)} km ·{" "}
-                  {t.publishWarning}
+                  {(preview.stats.distance / 1000).toFixed(2)}{" "}
+                  {locale === "ru" ? "км" : "km"} · {t.publishWarning}
                 </p>
               </>
             )}

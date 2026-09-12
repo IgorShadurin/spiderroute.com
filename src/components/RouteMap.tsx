@@ -17,6 +17,7 @@ export default function RouteMap({
   onCoordinate,
   fitKey = "",
   errorLabel = "Map background unavailable",
+  locale = "en",
 }: {
   geometry: Geometry;
   annotations?: Annotation[];
@@ -27,6 +28,7 @@ export default function RouteMap({
   onCoordinate?: (lat: number, lon: number) => void;
   fitKey?: string;
   errorLabel?: string;
+  locale?: "en" | "ru";
 }) {
   const container = useRef<HTMLDivElement>(null),
     map = useRef<MapType | null>(null),
@@ -62,6 +64,7 @@ export default function RouteMap({
   };
   useEffect(() => {
     let cancelled = false;
+    setReady(false);
     fetch("/api/map-config")
       .then((r) => r.json())
       .then((cfg: MapConfig) => {
@@ -82,6 +85,15 @@ export default function RouteMap({
         };
         const m = new maplibregl.Map({
           container: container.current,
+          locale:
+            locale === "ru"
+              ? {
+                  "Map.Title": "Карта",
+                  "NavigationControl.ZoomIn": "Приблизить",
+                  "NavigationControl.ZoomOut": "Отдалить",
+                  "AttributionControl.ToggleAttribution": "Источники карты",
+                }
+              : undefined,
           style:
             cfg.provider === "self-hosted-vector" && cfg.styleUrl
               ? cfg.styleUrl
@@ -129,7 +141,7 @@ export default function RouteMap({
       map.current?.remove();
       map.current = null;
     };
-  }, []);
+  }, [locale]);
   useEffect(() => {
     const m = map.current;
     if (!ready || !m) return;
@@ -221,7 +233,10 @@ export default function RouteMap({
     if (p) {
       const el = document.createElement("div");
       el.className = "selected-marker";
-      el.setAttribute("aria-label", "Selected route point");
+      el.setAttribute(
+        "aria-label",
+        locale === "ru" ? "Выбранная точка маршрута" : "Selected route point",
+      );
       marker.current = new maplibregl.Marker({
         element: el,
         draggable: mode === "move",
@@ -252,8 +267,8 @@ export default function RouteMap({
       )}
       <button
         className="fit-map"
-        title="Fit route"
-        aria-label="Fit route"
+        title={locale === "ru" ? "Показать весь маршрут" : "Fit route"}
+        aria-label={locale === "ru" ? "Показать весь маршрут" : "Fit route"}
         onClick={fit}
       >
         ⊙
