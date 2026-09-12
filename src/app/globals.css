@@ -1928,3 +1928,47 @@ html[lang="ru"] {
   border-color: #9333ea;
   background: #9333ea29;
 }
+
+.annotation-list {
+  position: relative;
+}
+.annotation-list.scrollable {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+}
+.annotation-number,
+.annotation-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 3px solid;
+  border-radius: 50%;
+  background: white;
+  font: 700 12px var(--font);
+}
+.annotation-pin {
+  cursor: pointer;
+  box-shadow: 0 2px 7px #0005;
+  padding: 0;
+}
+.annotation-pin:focus-visible {
+  outline: 3px solid #173b32;
+  outline-offset: 3px;
+}
+.annotation-popup {
+  font: 13px/1.5 var(--font);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 10px 14px 4px 0;
+  color: #173b32;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.annotation-kind {
+  font-size: 14px;
+  color: var(--muted);
+}

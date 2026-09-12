@@ -11,6 +11,7 @@ export default function RouteMap({
   geometry,
   annotations = [],
   privacyPreview,
+  focusAnnotation,
   selected,
   endSelected,
   mode = "view",
@@ -29,6 +30,7 @@ export default function RouteMap({
     endRadius: number;
   };
   annotations?: Annotation[];
+  focusAnnotation?: string;
   selected?: string;
   endSelected?: string;
   mode?: MapMode;
@@ -61,6 +63,7 @@ export default function RouteMap({
     onSelect,
     onCoordinate,
   };
+  const noteMarkers = useRef<Map<string, maplibregl.Marker>>(new Map());
   const [ready, setReady] = useState(false),
     [failed, setFailed] = useState(false);
   const fit = () => {
@@ -346,6 +349,55 @@ export default function RouteMap({
     mode,
     privacyPreview,
   ]);
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    for (const marker of noteMarkers.current.values()) marker.remove();
+    noteMarkers.current.clear();
+    annotations.forEach((annotation, index) => {
+      const segment = geometry.find((s) =>
+        s.some((p) => p.id === annotation.startId),
+      );
+      if (!segment) return;
+      const start = segment.findIndex((p) => p.id === annotation.startId),
+        end = segment.findIndex((p) => p.id === annotation.endId);
+      if (end < 0) return;
+      const point = segment[Math.floor((start + end) / 2)];
+      const button = document.createElement("button");
+      button.className = "annotation-pin";
+      button.style.borderColor = annotation.color;
+      button.style.color = annotation.color;
+      button.textContent = String(index + 1);
+      button.title = annotation.text;
+      button.setAttribute("aria-label", `${index + 1}. ${annotation.text}`);
+      const content = document.createElement("div");
+      content.className = "annotation-popup";
+      content.textContent = annotation.text;
+      const popup = new maplibregl.Popup({
+        offset: 20,
+        maxWidth: "280px",
+        closeButton: true,
+      }).setDOMContent(content);
+      const pin = new maplibregl.Marker({ element: button })
+        .setLngLat([point.lon, point.lat])
+        .setPopup(popup)
+        .addTo(m);
+      noteMarkers.current.set(annotation.id, pin);
+    });
+    return () => {
+      for (const marker of noteMarkers.current.values()) marker.remove();
+      noteMarkers.current.clear();
+    };
+  }, [ready, geometry, annotations]);
+  useEffect(() => {
+    if (!focusAnnotation) return;
+    const marker = noteMarkers.current.get(focusAnnotation);
+    if (!marker || !map.current) return;
+    for (const other of noteMarkers.current.values())
+      if (other.getPopup()?.isOpen()) other.togglePopup();
+    marker.togglePopup();
+    map.current.easeTo({ center: marker.getLngLat(), duration: 500 });
+  }, [focusAnnotation, ready, annotations]);
   useEffect(() => {
     if (ready) fit();
   }, [ready, fitKey]);

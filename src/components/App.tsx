@@ -32,6 +32,7 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import AnnotationList from "./AnnotationList";
 import { sharePath } from "@/lib/sharing";
 import { Brand } from "./Brand";
 import { Illustration } from "./Illustration";
@@ -80,6 +81,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     [tab, setTab] = useState<"routes" | "favorites">("routes"),
     [route, setRoute] = useState<RouteData | null>(null),
     [publicRoute, setPublicRoute] = useState<PublicRoute | null>(null),
+    [focusedAnnotation, setFocusedAnnotation] = useState<string>(),
     [publicError, setPublicError] = useState(false),
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(""),
@@ -102,6 +104,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     [noteColor, setNoteColor] = useState("#ed704c"),
     [providers, setProviders] = useState<any>({});
   const uploadRef = useRef<HTMLInputElement>(null);
+  const publicMapRef = useRef<HTMLDivElement>(null);
   const t = messages[locale];
   const text = (key: string) => t[key as TextKey] || t.error;
   const notify = (key: string) => setToast(text(key));
@@ -458,11 +461,12 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </button>
               </div>
             </div>
-            <div className="public-map">
+            <div className="public-map" ref={publicMapRef}>
               <RouteMap
                 locale={locale}
                 geometry={publicRoute.geometry}
                 annotations={publicRoute.annotations}
+                focusAnnotation={focusedAnnotation}
                 fitKey={token}
                 errorLabel={t.mapUnavailable}
               />
@@ -470,15 +474,18 @@ function Workspace({ token, initialLocale }: AppProps) {
             {publicRoute.annotations.length > 0 && (
               <section className="public-notes">
                 <h2>{t.annotations}</h2>
-                {publicRoute.annotations.map((a) => (
-                  <div className="note-card" key={a.id}>
-                    <span
-                      className="color-dot"
-                      style={{ background: a.color }}
-                    />
-                    <p>{a.text}</p>
-                  </div>
-                ))}
+                <AnnotationList
+                  locale={locale}
+                  annotations={publicRoute.annotations}
+                  label={t.annotations}
+                  onSelect={(a) => {
+                    setFocusedAnnotation(a.id);
+                    publicMapRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+                  }}
+                />
               </section>
             )}
           </>
@@ -1003,20 +1010,12 @@ function Workspace({ token, initialLocale }: AppProps) {
                     <span>{route.annotations.length}</span>
                   </div>
                   {route.annotations.length ? (
-                    route.annotations.map((a) => (
-                      <button
-                        className="note-card"
-                        key={a.id}
-                        onClick={() => openNote(a)}
-                      >
-                        <span
-                          className="color-dot"
-                          style={{ background: a.color }}
-                        />
-                        <p>{a.text}</p>
-                        <ChevronRight size={15} />
-                      </button>
-                    ))
+                    <AnnotationList
+                      locale={locale}
+                      annotations={route.annotations}
+                      label={t.annotations}
+                      onSelect={openNote}
+                    />
                   ) : (
                     <p className="subtle">{t.noNotes}</p>
                   )}
