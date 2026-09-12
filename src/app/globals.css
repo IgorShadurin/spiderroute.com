@@ -426,7 +426,6 @@ input[type="range"] {
   display: grid;
   place-items: center;
   margin-bottom: 10px;
-  transform: rotate(-6deg);
   color: #7d956b;
 }
 .empty-state h1 {
