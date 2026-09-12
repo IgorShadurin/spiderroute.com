@@ -5,6 +5,7 @@ import type { Map as MapType, Marker, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Annotation, Geometry, MapConfig, Point } from "@/lib/types";
 import { distance } from "@/lib/geo";
+maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
 export type MapMode = "view" | "select" | "move" | "insert" | "draw";
 export default function RouteMap({
   geometry,

@@ -3,6 +3,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci
+RUN node -e "const d = new (require('better-sqlite3'))(':memory:'); d.prepare('SELECT 1').get(); d.close()"
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build

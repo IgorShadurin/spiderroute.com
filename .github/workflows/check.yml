@@ -14,3 +14,5 @@ jobs:
       - run: npm run test
       - run: npm run build
       - run: npm run typecheck
+      - run: docker build -t spiderroute-check .
+      - run: docker run --rm --entrypoint node spiderroute-check -e "const d = new (require('better-sqlite3'))(':memory:'); d.prepare('SELECT 1').get(); d.close()"
