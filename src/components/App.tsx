@@ -106,6 +106,27 @@ function Workspace({ token, initialLocale }: AppProps) {
     [noteText, setNoteText] = useState(""),
     [noteColor, setNoteColor] = useState("#ed704c"),
     [providers, setProviders] = useState<any>({});
+  const downloadRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const outside = (event: PointerEvent) => {
+      const menu = downloadRef.current;
+      if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+    };
+    const escape = (event: KeyboardEvent) => {
+      const menu = downloadRef.current;
+      if (event.key === "Escape" && menu?.open) {
+        menu.open = false;
+        menu.querySelector("summary")?.focus();
+        event.preventDefault();
+      }
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, []);
   const uploadRef = useRef<HTMLInputElement>(null);
   const publicMapRef = useRef<HTMLDivElement>(null);
   const t = messages[locale];
@@ -367,7 +388,7 @@ function Workspace({ token, initialLocale }: AppProps) {
       ? `/api/public/${token}/export?format=${format}`
       : `/api/routes/${route?.id}/export?format=${format}`;
   const downloadMenu = (
-    <details className="download-menu">
+    <details ref={downloadRef} className="download-menu">
       <summary className={token ? "button light" : "button light small"}>
         <Download size={token ? 17 : 16} />
         {t.export}
@@ -377,6 +398,9 @@ function Workspace({ token, initialLocale }: AppProps) {
           <a
             key={f}
             href={exportLink(f)}
+            onClick={() => {
+              if (downloadRef.current) downloadRef.current.open = false;
+            }}
             className={f === "gpx" ? "recommended-format" : undefined}
           >
             <span>{f === "geojson" ? "GeoJSON" : f.toUpperCase()}</span>
