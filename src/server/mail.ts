@@ -92,6 +92,9 @@ export function postalWebhook(raw: string, signature: string | null) {
     const e = JSON.parse(raw);
     if (typeof e.uuid !== "string" || typeof e.event !== "string") return false;
     const m = e.payload?.original_message || e.payload?.message || {};
+    // Contact-address forwarding shares this Postal server, but must not
+    // modify transactional delivery tracking or recipient suppressions.
+    if (m.direction === "incoming") return true;
     if (e.event === "DomainDNSError") {
       if (e.payload?.domain !== "spiderroute.com") return false;
     } else if (m.tag !== "spiderroute") return false;

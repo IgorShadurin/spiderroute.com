@@ -55,6 +55,15 @@ test("Postal verifies signatures, isolates applications, deduplicates events and
       },
     });
     assert.equal(postalWebhook(unrelated.raw, unrelated.signature), false);
+    const incoming = signed({
+      ...event,
+      payload: { message: { direction: "incoming", to: "owner@example.test" } },
+    });
+    assert.equal(postalWebhook(incoming.raw, incoming.signature), true);
+    assert.deepEqual(
+      sql.prepare("SELECT count(*) AS n FROM delivery_events").get(),
+      { n: 0 },
+    );
     assert.equal(postalWebhook(valid.raw, valid.signature), true);
     assert.equal(postalWebhook(valid.raw, valid.signature), true);
     assert.deepEqual(
