@@ -2898,3 +2898,99 @@ html[data-theme="light"] .route-title > input:not(:focus) {
 html[data-theme="light"] .overview-launch[aria-pressed="true"] {
   border-color: #387018;
 }
+
+.import-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(8px);
+}
+.import-card {
+  width: min(100%, 420px);
+  padding: 36px;
+  border-radius: 24px;
+  background: var(--white);
+  color: var(--ink, #183c2e);
+  box-shadow: 0 20px 80px #0002;
+}
+.import-symbol {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
+  border-radius: 20px;
+  background: #d4ff38;
+  color: #163c2f;
+}
+.import-card h2 {
+  font-family: inherit;
+  font-size: clamp(22px, 5vw, 28px);
+  line-height: 1.2;
+  margin: 12px 0;
+}
+.import-filename {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  opacity: 0.65;
+  max-height: 72px;
+  overflow: auto;
+}
+.import-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #78947c30;
+  margin-top: 28px;
+}
+.import-track span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: #76ad24;
+  border-radius: inherit;
+  animation: import-travel 1.15s ease-in-out infinite;
+}
+.import-steps {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+.import-steps .active {
+  font-weight: 700;
+  opacity: 1;
+}
+.route-reveal {
+  animation: route-reveal 180ms ease-out;
+}
+@keyframes import-travel {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(350%);
+  }
+}
+@keyframes route-reveal {
+  from {
+    opacity: 0.35;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .import-track span,
+  .route-reveal {
+    animation: none;
+  }
+}

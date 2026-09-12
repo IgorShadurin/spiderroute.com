@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { flushSync } from "react-dom";
 import {
   SessionProvider,
   signIn,
@@ -136,6 +137,12 @@ function Workspace({ token, initialLocale }: AppProps) {
       document.removeEventListener("keydown", escape);
     };
   }, []);
+  const [importProgress, setImportProgress] = useState<{
+    filename: string;
+    stage: "reading" | "importing" | "preparing";
+  } | null>(null);
+  const importWorker = useRef<Worker | null>(null);
+  useEffect(() => () => importWorker.current?.terminate(), []);
   const uploadRef = useRef<HTMLInputElement>(null);
   const publicMapRef = useRef<HTMLDivElement>(null);
   const t = messages[locale];
@@ -392,15 +399,46 @@ function Workspace({ token, initialLocale }: AppProps) {
       return;
     }
     if (dirty && !confirm(t.discard)) return;
-    await run(async () => {
-      accept(
-        await api("routes/import", "POST", {
-          filename: file.name,
-          content: await file.text(),
-        }),
-      );
-      await refresh();
+    if (busy || importWorker.current) return;
+    flushSync(() => {
+      setBusy(true);
+      setMobileNav(false);
+      setImportProgress({ filename: file.name, stage: "reading" });
     });
+    // Paint feedback before starting any work, even for small files.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => setTimeout(resolve, 0)),
+    );
+    try {
+      const imported = await new Promise<RouteData>((resolve, reject) => {
+        const worker = new Worker(
+          new URL("../lib/import-route.worker.ts", import.meta.url),
+        );
+        importWorker.current = worker;
+        worker.onmessage = ({ data }) => {
+          if (data.error) reject(new Error(data.error));
+          else {
+            setImportProgress({ filename: file.name, stage: data.stage });
+            if (data.route) resolve(data.route);
+          }
+        };
+        worker.onerror = () => reject(new Error("error"));
+        worker.postMessage(file);
+      });
+      flushSync(() => accept(imported));
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => setTimeout(resolve, 0)),
+      );
+      // The import is already saved; a library refresh must not hold up the map.
+      void refresh().catch(() => notify("error"));
+    } catch (error) {
+      notify((error as Error).message);
+    } finally {
+      (importWorker.current as Worker | null)?.terminate();
+      importWorker.current = null;
+      setImportProgress(null);
+      setBusy(false);
+    }
   };
   const previewShare = async () => {
     if (!route) return;
@@ -793,6 +831,62 @@ function Workspace({ token, initialLocale }: AppProps) {
           </button>
         </div>
       </header>
+      {importProgress && (
+        <div
+          className="import-overlay"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="import-card">
+            <div className="import-symbol">
+              <Route size={32} />
+            </div>
+            <span className="eyebrow">
+              {locale === "ru" ? "ИМПОРТ МАРШРУТА" : "IMPORTING ROUTE"}
+            </span>
+            <h2>
+              {
+                (locale === "ru"
+                  ? {
+                      reading: "Читаем файл",
+                      importing: "Обрабатываем маршрут",
+                      preparing: "Открываем карту",
+                    }
+                  : {
+                      reading: "Reading your file",
+                      importing: "Processing your route",
+                      preparing: "Opening the map",
+                    })[importProgress.stage]
+              }
+            </h2>
+            <p className="import-filename">{importProgress.filename}</p>
+            <div className="import-track" aria-hidden="true">
+              <span />
+            </div>
+            <div className="import-steps" aria-hidden="true">
+              {(locale === "ru"
+                ? ["Файл", "Маршрут", "Карта"]
+                : ["File", "Route", "Map"]
+              ).map((label, index) => (
+                <span
+                  key={label}
+                  className={
+                    index <=
+                    ["reading", "importing", "preparing"].indexOf(
+                      importProgress.stage,
+                    )
+                      ? "active"
+                      : ""
+                  }
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="workspace-body">
         <aside className={"library " + (mobileNav ? "mobile-open" : "")}>
           <div className="library-top">
@@ -904,7 +998,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                 ))}
           </div>
         </aside>
-        <main className="editor">
+        <main className="editor" aria-busy={!!importProgress}>
           {overviewOpen ? (
             <RoutesOverview
               routes={routes}
@@ -972,7 +1066,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   )}
                 </div>
               </div>
-              <div className="editor-map">
+              <div className="editor-map route-reveal" key={route.id}>
                 <RouteMap
                   locale={locale}
                   geometry={shownGeometry}
