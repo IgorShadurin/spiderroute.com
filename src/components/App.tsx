@@ -81,7 +81,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     [tab, setTab] = useState<"routes" | "favorites">("routes"),
     [route, setRoute] = useState<RouteData | null>(null),
     [publicRoute, setPublicRoute] = useState<PublicRoute | null>(null),
-    [focusedAnnotation, setFocusedAnnotation] = useState<string>(),
+    [focusedAnnotation, setFocusedAnnotation] = useState<{ id: string }>(),
     [publicError, setPublicError] = useState(false),
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(""),
@@ -479,7 +479,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   annotations={publicRoute.annotations}
                   label={t.annotations}
                   onSelect={(a) => {
-                    setFocusedAnnotation(a.id);
+                    setFocusedAnnotation({ id: a.id });
                     publicMapRef.current?.scrollIntoView({
                       behavior: "smooth",
                       block: "center",

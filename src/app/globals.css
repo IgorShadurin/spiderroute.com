@@ -1972,3 +1972,7 @@ html[lang="ru"] {
   font-size: 14px;
   color: var(--muted);
 }
+
+.annotation-pin.segment-pin {
+  border-radius: 7px;
+}

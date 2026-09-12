@@ -30,7 +30,7 @@ export default function RouteMap({
     endRadius: number;
   };
   annotations?: Annotation[];
-  focusAnnotation?: string;
+  focusAnnotation?: { id: string };
   selected?: string;
   endSelected?: string;
   mode?: MapMode;
@@ -364,7 +364,8 @@ export default function RouteMap({
       if (end < 0) return;
       const point = segment[Math.floor((start + end) / 2)];
       const button = document.createElement("button");
-      button.className = "annotation-pin";
+      button.className =
+        "annotation-pin" + (start === end ? "" : " segment-pin");
       button.style.borderColor = annotation.color;
       button.style.color = annotation.color;
       button.textContent = String(index + 1);
@@ -378,7 +379,10 @@ export default function RouteMap({
         maxWidth: "280px",
         closeButton: true,
       }).setDOMContent(content);
-      const pin = new maplibregl.Marker({ element: button })
+      const pin = new maplibregl.Marker({
+        element: button,
+        offset: start === end ? [0, 0] : [0, -28],
+      })
         .setLngLat([point.lon, point.lat])
         .setPopup(popup)
         .addTo(m);
@@ -391,7 +395,7 @@ export default function RouteMap({
   }, [ready, geometry, annotations]);
   useEffect(() => {
     if (!focusAnnotation) return;
-    const marker = noteMarkers.current.get(focusAnnotation);
+    const marker = noteMarkers.current.get(focusAnnotation.id);
     if (!marker || !map.current) return;
     for (const other of noteMarkers.current.values())
       if (other.getPopup()?.isOpen()) other.togglePopup();
