@@ -93,12 +93,12 @@ export default function FavoriteButton({
       type="button"
       className={`button light favorite-button${active ? " is-favorite" : ""}${animated ? " favorite-pop" : ""}`}
       aria-pressed={active}
+      aria-label={active ? t.removeFavorite : t.favorite}
       title={active ? t.removeFavorite : t.favorite}
       onClick={toggle}
       onAnimationEnd={() => setAnimated(false)}
     >
       <Heart size={17} aria-hidden="true" />
-      <span>{active ? t.inFavorites : t.favorite}</span>
     </button>
   );
 }

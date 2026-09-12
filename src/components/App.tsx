@@ -530,7 +530,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     return (
       <div className="public-shell">
         <header className="app-header">
-          <a href="https://spiderroute.com">
+          <a href={"/workspace?lang=" + locale}>
             <Brand />
           </a>
           <div>
@@ -681,7 +681,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     return (
       <div className="signin-shell">
         <header className="site-header">
-          <a href="https://spiderroute.com">
+          <a href={"/workspace?lang=" + locale}>
             <Brand />
           </a>
           <ThemeToggle locale={locale} account={!!session} />
@@ -809,7 +809,7 @@ function Workspace({ token, initialLocale }: AppProps) {
         >
           <Menu size={22} />
         </button>
-        <a href="https://spiderroute.com">
+        <a href={"/workspace?lang=" + locale}>
           <Brand />
         </a>
         <div>
