@@ -3071,3 +3071,48 @@ html[data-theme="light"] .overview-launch[aria-pressed="true"] {
 .sharing-help {
   margin: 6px 0 16px;
 }
+
+.button.share-publishing:disabled {
+  opacity: 1;
+  cursor: progress;
+  position: relative;
+  overflow: hidden;
+}
+.share-publishing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    #ffffff50 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  animation: share-shimmer 1.3s ease-in-out infinite;
+  pointer-events: none;
+}
+.share-spinner {
+  animation: share-spin 0.85s linear infinite;
+  flex-shrink: 0;
+}
+.share-link-reveal {
+  animation: route-reveal 180ms ease-out;
+}
+@keyframes share-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes share-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .share-spinner,
+  .share-publishing::after,
+  .share-link-reveal {
+    animation: none;
+  }
+}

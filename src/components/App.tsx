@@ -10,6 +10,7 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
+  LoaderCircle,
   CircleHelp,
   ArrowLeft,
   ArrowUpRight,
@@ -107,6 +108,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     [history, setHistory] = useState<RouteData[]>([]),
     [future, setFuture] = useState<RouteData[]>([]),
     [shareOpen, setShareOpen] = useState(false),
+    [publishing, setPublishing] = useState(false),
     [cloneOpen, setCloneOpen] = useState(false),
     [preview, setPreview] = useState<PublicRoute | null>(null),
     [transform, setTransform] = useState<"smooth" | "simplify" | null>(null),
@@ -1445,7 +1447,7 @@ function Workspace({ token, initialLocale }: AppProps) {
               {route.shared && <p>{t.liveShare}</p>}
             </details>
             {route.shared && (
-              <div className="share-link">
+              <div className="share-link share-link-reveal">
                 <input
                   aria-label="Share URL"
                   readOnly
@@ -1486,20 +1488,60 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </button>
               ) : !route.shared ? (
                 <button
-                  className="button coral full"
+                  className={
+                    "button coral full " +
+                    (publishing ? "share-publishing" : "")
+                  }
                   disabled={busy || !preview}
+                  aria-busy={publishing}
+                  aria-label={
+                    publishing
+                      ? locale === "ru"
+                        ? "Создаём ссылку…"
+                        : "Creating link…"
+                      : t.publish
+                  }
                   onClick={() =>
                     run(async () => {
-                      await api("routes/" + route.id + "/share", "POST", {
-                        confirm: true,
-                        revision: route.revision,
-                      });
-                      setRoute(await api("routes/" + route.id));
-                      await refresh();
+                      flushSync(() => setPublishing(true));
+                      try {
+                        await new Promise<void>((resolve) =>
+                          requestAnimationFrame(() => setTimeout(resolve, 0)),
+                        );
+                        const result = await api(
+                          "routes/" + route.id + "/share",
+                          "POST",
+                          {
+                            confirm: true,
+                            revision: route.revision,
+                          },
+                        );
+                        setRoute({
+                          ...route,
+                          shared: true,
+                          shareToken: result.token,
+                        });
+                        void refresh().catch(() => notify("error"));
+                      } finally {
+                        setPublishing(false);
+                      }
                     })
                   }
                 >
-                  {t.publish}
+                  {publishing && (
+                    <LoaderCircle
+                      size={18}
+                      className="share-spinner"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span role="status" aria-live="polite">
+                    {publishing
+                      ? locale === "ru"
+                        ? "Создаём ссылку…"
+                        : "Creating link…"
+                      : t.publish}
+                  </span>
                 </button>
               ) : null}
               {route.shared && (
