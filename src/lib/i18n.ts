@@ -77,7 +77,13 @@ export const messages = {
     meters: "m",
     privacyHelp:
       "Areas are centered on the imported start and finish. All route sections inside them are hidden. This reduces location exposure but cannot guarantee anonymity.",
-    publicPreview: "Public preview",
+    publicPreview: "Update sharing preview",
+    originalRoute: "Original route (dashed)",
+    sharedSection: "Visible in shared link",
+    hiddenStart: "Start hiding area",
+    hiddenFinish: "Finish hiding area",
+    ownerPreview:
+      "Only you see the original route and circles here. The shared link includes only the solid route. Update the preview after changing a distance.",
     publish: "Create share link",
     copy: "Copy link",
     copied: "Link copied",
@@ -212,7 +218,13 @@ export const messages = {
     meters: "м",
     privacyHelp:
       "Центры зон — начало и конец исходного маршрута. Все участки внутри них скрыты. Это уменьшает раскрытие местоположения, но не гарантирует анонимность.",
-    publicPreview: "Публичный предпросмотр",
+    publicPreview: "Обновить предпросмотр",
+    originalRoute: "Исходный маршрут (пунктир)",
+    sharedSection: "Виден по ссылке",
+    hiddenStart: "Скрытая зона начала",
+    hiddenFinish: "Скрытая зона конца",
+    ownerPreview:
+      "Исходный маршрут и круги видны здесь только вам. По ссылке будет видна только сплошная линия. После изменения расстояния обновите предпросмотр.",
     publish: "Создать ссылку",
     copy: "Копировать ссылку",
     copied: "Ссылка скопирована",

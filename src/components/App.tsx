@@ -1096,24 +1096,50 @@ function Workspace({ token }: { token?: string }) {
               <ShieldCheck size={16} />
               {t.publicPreview}
             </button>
+            <div className="share-preview-map">
+              <RouteMap
+                locale={locale}
+                geometry={preview?.geometry ?? []}
+                annotations={preview?.annotations ?? []}
+                privacyPreview={{
+                  original: route.geometry,
+                  start: route.privacyCenters?.start ?? route.geometry[0][0],
+                  end:
+                    route.privacyCenters?.end ?? route.geometry.at(-1)!.at(-1)!,
+                  startRadius: route.privacyStart,
+                  endRadius: route.privacyEnd,
+                }}
+                fitKey={JSON.stringify([
+                  route.id,
+                  route.privacyStart,
+                  route.privacyEnd,
+                ])}
+              />
+            </div>
+            <div className="privacy-legend">
+              <span>
+                <i className="legend-original" />
+                {t.originalRoute}
+              </span>
+              <span>
+                <i className="legend-shared" />
+                {t.sharedSection}
+              </span>
+              <span>
+                <i className="legend-start" />
+                {t.hiddenStart}
+              </span>
+              <span>
+                <i className="legend-finish" />
+                {t.hiddenFinish}
+              </span>
+            </div>
+            <p className="subtle">{t.ownerPreview}</p>
             {preview && (
-              <>
-                <div className="share-preview-map">
-                  <RouteMap
-                    locale={locale}
-                    geometry={preview.geometry}
-                    annotations={preview.annotations}
-                    fitKey={JSON.stringify([
-                      preview.revision,
-                      preview.stats.distance,
-                    ])}
-                  />
-                </div>
-                <p className="subtle">
-                  {(preview.stats.distance / 1000).toFixed(2)}{" "}
-                  {locale === "ru" ? "км" : "km"} · {t.publishWarning}
-                </p>
-              </>
+              <p className="subtle">
+                {(preview.stats.distance / 1000).toFixed(2)}{" "}
+                {locale === "ru" ? "км" : "km"} · {t.publishWarning}
+              </p>
             )}
             {route.shared && (
               <div className="share-link">

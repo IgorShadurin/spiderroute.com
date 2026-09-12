@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   distance,
+  privacyCircle,
   publicSnapshot,
   smoothSection,
   simplifySection,
@@ -118,6 +119,7 @@ test("share isolation, atomic updates, conflict detection, revocation and indepe
         .prepare("INSERT INTO users(id,email,name,created_at) VALUES(?,?,?,?)")
         .run(id, id + "@example.test", id, new Date().toISOString());
     const r = service.createRoute("a", "Private", g);
+    assert.deepEqual(r.privacyCenters, { start: g[0][0], end: g[0].at(-1) });
     assert.throws(() => service.owned(r.id, "b"), /notFound/);
     assert.equal(
       (sql.prepare("SELECT count(*) n FROM shares").get() as any).n,
@@ -126,11 +128,20 @@ test("share isolation, atomic updates, conflict detection, revocation and indepe
     const token = service.publishRoute(r.id, "a", 1);
     assert.equal(token.length, 32);
     const p = service.readShare(token).payload;
+    assert.equal("privacyCenters" in p, false);
     const clone = service.cloneRoute(token, "b");
     assert.deepEqual(clone.geometry, p.geometry);
     assert.equal(clone.shared, false);
     const changed = service.saveRoute(r.id, "a", { ...r, title: "Updated" });
     assert.equal(service.readShare(token).payload.title, "Updated");
+    const edited = {
+      ...service.owned(r.id, "a"),
+      geometry: JSON.stringify([g[0].slice(10, 90)]),
+    };
+    assert.deepEqual(
+      service.routeView(edited).privacyCenters,
+      r.privacyCenters,
+    );
     assert.throws(
       () => service.saveRoute(r.id, "a", { ...r, title: "Stale" }),
       /conflict/,
@@ -168,4 +179,18 @@ test("privacy preserves long hand-drawn edges outside endpoint zones", () => {
       assert.ok(distance(route[0][0], point) >= 500);
       assert.ok(distance(route[0][2], point) >= 500);
     }
+});
+
+test("privacy circles match meter radii at different latitudes and close exactly", () => {
+  for (const lat of [0, 51.5, 80])
+    for (const radius of [50, 500, 10000]) {
+      const center = { id: "center", lat, lon: -0.12 };
+      const ring = privacyCircle(center, radius);
+      assert.deepEqual(ring[0], ring.at(-1));
+      for (const [lon, lat] of ring)
+        assert.ok(
+          Math.abs(distance(center, { id: "edge", lon, lat }) - radius) < 0.001,
+        );
+    }
+  assert.deepEqual(privacyCircle(g[0][0], 0), []);
 });

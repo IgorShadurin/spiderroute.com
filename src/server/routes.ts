@@ -15,6 +15,7 @@ export function owned(id: string, user: string) {
   return row;
 }
 export function routeView(row: any) {
+  const original: Geometry = JSON.parse(row.original);
   const share = sql
     .prepare("SELECT token FROM shares WHERE route_id=?")
     .get(row.id) as any;
@@ -27,6 +28,7 @@ export function routeView(row: any) {
     revision: row.revision,
     privacyStart: row.privacy_start,
     privacyEnd: row.privacy_end,
+    privacyCenters: { start: original[0][0], end: original.at(-1)!.at(-1)! },
     shared: !!share,
     shareToken: share?.token,
     updatedAt: row.updated_at,

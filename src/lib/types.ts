@@ -30,6 +30,7 @@ export type RouteData = {
   revision: number;
   privacyStart: number;
   privacyEnd: number;
+  privacyCenters?: { start: Point; end: Point };
   shared: boolean;
   shareToken?: string;
   updatedAt: string;

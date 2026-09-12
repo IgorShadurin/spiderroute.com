@@ -1892,3 +1892,39 @@ html[lang="ru"] {
     scroll-behavior: smooth;
   }
 }
+
+.privacy-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.privacy-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.privacy-legend i {
+  display: inline-block;
+  width: 22px;
+  flex-shrink: 0;
+}
+.legend-original {
+  border-top: 3px dashed #475569;
+}
+.legend-shared {
+  border-top: 4px solid #ed704c;
+}
+.privacy-legend .legend-start,
+.privacy-legend .legend-finish {
+  width: 14px;
+  height: 14px;
+  border: 2px dashed #2563eb;
+  border-radius: 50%;
+  background: #2563eb29;
+}
+.privacy-legend .legend-finish {
+  border-color: #9333ea;
+  background: #9333ea29;
+}

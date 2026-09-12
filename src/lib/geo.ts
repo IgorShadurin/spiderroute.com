@@ -331,3 +331,25 @@ export function simplifySection(points: Point[], tolerance = 10): Point[] {
   }
   return points.filter((_, i) => keep.has(i));
 }
+
+// Geodesic circle in meters, using the same Earth radius as privacy clipping.
+export function privacyCircle(center: Point, radius: number): number[][] {
+  if (!Number.isFinite(radius) || radius <= 0) return [];
+  const angular = radius / R,
+    lat = center.lat * rad,
+    lon = center.lon * rad;
+  return Array.from({ length: 129 }, (_, i) => {
+    const bearing = ((i % 128) * 2 * Math.PI) / 128;
+    const phi = Math.asin(
+      Math.sin(lat) * Math.cos(angular) +
+        Math.cos(lat) * Math.sin(angular) * Math.cos(bearing),
+    );
+    const lambda =
+      lon +
+      Math.atan2(
+        Math.sin(bearing) * Math.sin(angular) * Math.cos(lat),
+        Math.cos(angular) - Math.sin(lat) * Math.sin(phi),
+      );
+    return [lambda / rad, phi / rad];
+  });
+}

@@ -4,12 +4,13 @@ import * as maplibregl from "maplibre-gl";
 import type { Map as MapType, Marker, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Annotation, Geometry, MapConfig, Point } from "@/lib/types";
-import { distance } from "@/lib/geo";
+import { privacyCircle } from "@/lib/geo";
 maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
 export type MapMode = "view" | "select" | "move" | "insert" | "draw";
 export default function RouteMap({
   geometry,
   annotations = [],
+  privacyPreview,
   selected,
   endSelected,
   mode = "view",
@@ -20,6 +21,13 @@ export default function RouteMap({
   locale = "en",
 }: {
   geometry: Geometry;
+  privacyPreview?: {
+    original: Geometry;
+    start: Point;
+    end: Point;
+    startRadius: number;
+    endRadius: number;
+  };
   annotations?: Annotation[];
   selected?: string;
   endSelected?: string;
@@ -34,6 +42,7 @@ export default function RouteMap({
     map = useRef<MapType | null>(null),
     marker = useRef<Marker | null>(null),
     props = useRef({
+      privacyPreview,
       geometry,
       annotations,
       selected,
@@ -43,6 +52,7 @@ export default function RouteMap({
       onCoordinate,
     });
   props.current = {
+    privacyPreview,
     geometry,
     annotations,
     selected,
@@ -55,11 +65,19 @@ export default function RouteMap({
     [failed, setFailed] = useState(false);
   const fit = () => {
     const m = map.current,
-      g = props.current.geometry;
+      g = props.current.privacyPreview?.original ?? props.current.geometry;
     if (!m || !g.flat().length) return;
     const b = new maplibregl.LngLatBounds();
     for (const s of g)
       for (const p of s) b.extend([p.lon, Math.max(-85, Math.min(85, p.lat))]);
+    const privacy = props.current.privacyPreview;
+    if (privacy)
+      for (const [c, r] of [
+        [privacy.start, privacy.startRadius],
+        [privacy.end, privacy.endRadius],
+      ] as [Point, number][])
+        for (const coordinate of privacyCircle(c, r))
+          b.extend(coordinate as [number, number]);
     m.fitBounds(b, { padding: 65, maxZoom: 16, duration: 500 });
   };
   useEffect(() => {
@@ -146,6 +164,35 @@ export default function RouteMap({
     const m = map.current;
     if (!ready || !m) return;
     const features: any[] = [];
+    if (privacyPreview) {
+      for (const segment of privacyPreview.original)
+        if (segment.length > 1)
+          features.push({
+            type: "Feature",
+            properties: { kind: "original" },
+            geometry: {
+              type: "LineString",
+              coordinates: segment.map((p) => [p.lon, p.lat]),
+            },
+          });
+      for (const [center, radius, color] of [
+        [privacyPreview.start, privacyPreview.startRadius, "#2563eb"],
+        [privacyPreview.end, privacyPreview.endRadius, "#9333ea"],
+      ] as [Point, number, string][]) {
+        const ring = privacyCircle(center, radius);
+        if (ring.length)
+          features.push({
+            type: "Feature",
+            properties: { kind: "zone", color },
+            geometry: { type: "Polygon", coordinates: [ring] },
+          });
+        features.push({
+          type: "Feature",
+          properties: { kind: "endpoint", color },
+          geometry: { type: "Point", coordinates: [center.lon, center.lat] },
+        });
+      }
+    }
     for (const [i, s] of geometry.entries())
       if (s.length > 1)
         features.push({
@@ -200,10 +247,43 @@ export default function RouteMap({
     else {
       m.addSource("route", { type: "geojson", data });
       m.addLayer({
+        id: "privacy-fill",
+        type: "fill",
+        source: "route",
+        filter: ["==", ["get", "kind"], "zone"],
+        paint: { "fill-color": ["get", "color"], "fill-opacity": 0.16 },
+      });
+      m.addLayer({
+        id: "privacy-outline",
+        type: "line",
+        source: "route",
+        filter: ["==", ["get", "kind"], "zone"],
+        paint: {
+          "line-color": ["get", "color"],
+          "line-width": 2,
+          "line-dasharray": [3, 2],
+        },
+      });
+      m.addLayer({
+        id: "original-route",
+        type: "line",
+        source: "route",
+        filter: ["==", ["get", "kind"], "original"],
+        paint: {
+          "line-color": "#475569",
+          "line-width": 4,
+          "line-dasharray": [2, 2],
+        },
+      });
+      m.addLayer({
         id: "route-casing",
         type: "line",
         source: "route",
-        filter: ["==", ["geometry-type"], "LineString"],
+        filter: [
+          "all",
+          ["==", ["geometry-type"], "LineString"],
+          ["!=", ["get", "kind"], "original"],
+        ],
         paint: { "line-color": "#fff", "line-width": 9 },
         layout: { "line-join": "round", "line-cap": "round" },
       });
@@ -211,7 +291,11 @@ export default function RouteMap({
         id: "route-line",
         type: "line",
         source: "route",
-        filter: ["==", ["geometry-type"], "LineString"],
+        filter: [
+          "all",
+          ["==", ["geometry-type"], "LineString"],
+          ["!=", ["get", "kind"], "original"],
+        ],
         paint: { "line-color": ["get", "color"], "line-width": 5 },
         layout: { "line-join": "round", "line-cap": "round" },
       });
@@ -253,7 +337,15 @@ export default function RouteMap({
       : mode === "view"
         ? "grab"
         : "pointer";
-  }, [ready, geometry, annotations, selected, endSelected, mode]);
+  }, [
+    ready,
+    geometry,
+    annotations,
+    selected,
+    endSelected,
+    mode,
+    privacyPreview,
+  ]);
   useEffect(() => {
     if (ready) fit();
   }, [ready, fitKey]);
