@@ -4,5 +4,5 @@ export function validTheme(value: unknown): value is Theme {
   return value === "light" || value === "dark";
 }
 export function resolveTheme(value: unknown): Theme {
-  return validTheme(value) ? value : "dark";
+  return validTheme(value) ? value : "light";
 }

@@ -5,7 +5,7 @@ import { THEME_KEY, type Theme } from "@/lib/theme";
 const ThemeContext = createContext<{
   theme: Theme;
   applyTheme: (theme: Theme) => void;
-}>({ theme: "dark", applyTheme: () => {} });
+}>({ theme: "light", applyTheme: () => {} });
 export function ThemeProvider({
   initialTheme,
   children,

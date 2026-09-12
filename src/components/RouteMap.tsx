@@ -14,6 +14,7 @@ export default function RouteMap({
   onExitFullscreen,
   geometry,
   annotations = [],
+  segmentColors,
   privacyPreview,
   focusAnnotation,
   selected,
@@ -36,6 +37,7 @@ export default function RouteMap({
     endRadius: number;
   };
   annotations?: Annotation[];
+  segmentColors?: string[];
   focusAnnotation?: { id: string };
   selected?: string;
   endSelected?: string;
@@ -213,7 +215,7 @@ export default function RouteMap({
       if (s.length > 1)
         features.push({
           type: "Feature",
-          properties: { color: "#d5ff39", kind: "route" },
+          properties: { color: segmentColors?.[i] || "#d5ff39", kind: "route" },
           geometry: {
             type: "LineString",
             coordinates: s.map((p) => [p.lon, p.lat]),
@@ -354,6 +356,7 @@ export default function RouteMap({
         ? "grab"
         : "pointer";
   }, [
+    segmentColors,
     ready,
     geometry,
     annotations,
@@ -488,6 +491,7 @@ export default function RouteMap({
           >
             <RouteMap
               geometry={geometry}
+              segmentColors={segmentColors}
               annotations={annotations}
               privacyPreview={privacyPreview}
               focusAnnotation={focusAnnotation}

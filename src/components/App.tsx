@@ -35,6 +35,7 @@ import {
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
 import { useTheme, ThemeToggle } from "./ThemeProvider";
 import { resolveTheme, type Theme } from "@/lib/theme";
+import { RoutesOverview } from "./RoutesOverview";
 import { AccountSettings } from "./AccountSettings";
 import { rememberLanguage, storedLanguage, validLocale } from "@/lib/language";
 import FavoriteButton from "./FavoriteButton";
@@ -85,6 +86,7 @@ function Workspace({ token, initialLocale }: AppProps) {
   const [locale, setLocale] = useState<Locale>(initialLocale ?? "en"),
     [languageReady, setLanguageReady] = useState(false),
     [accountLocale, setAccountLocale] = useState<Locale>("en"),
+    [overviewOpen, setOverviewOpen] = useState(false),
     [routes, setRoutes] = useState<any[]>([]),
     [favorites, setFavorites] = useState<any[]>([]),
     [tab, setTab] = useState<"routes" | "favorites">("routes"),
@@ -291,6 +293,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     }
   };
   const accept = (r: RouteData) => {
+    setOverviewOpen(false);
     setRoute(r);
     setDirty(false);
     setHistory([]);
@@ -809,6 +812,20 @@ function Workspace({ token, initialLocale }: AppProps) {
               <PenLine size={16} />
               {t.draw}
             </button>
+            <button
+              className="button light full overview-launch"
+              aria-pressed={overviewOpen}
+              disabled={!routes.length}
+              onClick={() => {
+                setOverviewOpen(!overviewOpen);
+                setMobileNav(false);
+              }}
+            >
+              <Route size={17} />
+              {locale === "ru"
+                ? "Маршруты на одной карте"
+                : "View routes together"}
+            </button>
             <input
               ref={uploadRef}
               type="file"
@@ -888,7 +905,14 @@ function Workspace({ token, initialLocale }: AppProps) {
           </div>
         </aside>
         <main className="editor">
-          {!route ? (
+          {overviewOpen ? (
+            <RoutesOverview
+              routes={routes}
+              locale={locale}
+              onClose={() => setOverviewOpen(false)}
+              onOpen={openRoute}
+            />
+          ) : !route ? (
             <div
               className="empty-state"
               onDragOver={(e) => e.preventDefault()}

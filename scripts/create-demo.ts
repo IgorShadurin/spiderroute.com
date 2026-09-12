@@ -9,7 +9,7 @@ const password =
 if (password.length < 16) throw Error("Use at least 16 characters");
 sql
   .prepare(
-    "INSERT INTO users(id,email,name,password_hash,is_demo,created_at) VALUES(?,?,?,?,1,?)",
+    "INSERT INTO users(id,email,name,password_hash,is_demo,created_at,theme) VALUES(?,?,?,?,1,?,'light')",
   )
   .run(
     randomUUID(),

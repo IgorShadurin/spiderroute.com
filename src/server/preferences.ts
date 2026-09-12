@@ -8,7 +8,7 @@ export function migratePreferences(db: Database.Database) {
     }[];
     if (!columns.some((column) => column.name === "theme"))
       db.exec(
-        "ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'dark' CHECK(theme IN ('light','dark'))",
+        "ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'light' CHECK(theme IN ('light','dark'))",
       );
   }).immediate();
 }

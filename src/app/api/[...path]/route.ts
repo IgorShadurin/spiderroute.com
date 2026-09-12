@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
+import { routeOverview } from "@/server/overview";
 import { updatePreferences } from "@/server/preferences";
 import { sql, rateLimit } from "@/server/db";
 import {
@@ -153,6 +154,14 @@ async function handler(
       }
     }
     if (p[0] === "routes") {
+      if (p[1] === "overview" && method === "GET")
+        return json(
+          routeOverview(
+            sql,
+            user,
+            (req.nextUrl.searchParams.get("ids") || "").split(","),
+          ),
+        );
       if (p.length === 1) {
         if (method === "GET")
           return json(

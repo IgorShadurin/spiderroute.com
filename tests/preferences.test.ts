@@ -15,7 +15,7 @@ test("theme migration preserves existing accounts and preference updates validat
     migratePreferences(db);
     const user = (id = "a") =>
       db.prepare("SELECT locale,theme FROM users WHERE id=?").get(id);
-    assert.deepEqual(user(), { locale: "ru", theme: "dark" });
+    assert.deepEqual(user(), { locale: "ru", theme: "light" });
     updatePreferences(db, "a", { theme: "light" });
     assert.deepEqual(user(), { locale: "ru", theme: "light" });
     updatePreferences(db, "a", { locale: "en" });
@@ -34,7 +34,9 @@ test("theme migration preserves existing accounts and preference updates validat
     }
     updatePreferences(db, "a", { locale: "ru", theme: "dark" });
     assert.deepEqual(user(), { locale: "ru", theme: "dark" });
-    assert.deepEqual(user("b"), { locale: "en", theme: "dark" });
+    assert.deepEqual(user("b"), { locale: "en", theme: "light" });
+    migratePreferences(db);
+    assert.deepEqual(user(), { locale: "ru", theme: "dark" });
   } finally {
     db.close();
   }
