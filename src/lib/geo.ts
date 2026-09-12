@@ -1,3 +1,4 @@
+import { validNoteText } from "./note-limits";
 import type { Annotation, Geometry, Point, PublicRoute, Stats } from "./types";
 export const uid = () => crypto.randomUUID();
 const R = 6371008.8;
@@ -79,6 +80,7 @@ export function validateAnnotations(value: unknown, g: Geometry): Annotation[] {
   );
   const ids = new Set();
   return value.map((a) => {
+    if (!a || typeof a !== "object") throw Error("invalidAnnotations");
     const start = index.get(a.startId),
       end = index.get(a.endId);
     if (
@@ -88,8 +90,7 @@ export function validateAnnotations(value: unknown, g: Geometry): Annotation[] {
       typeof a.id !== "string" ||
       a.id.length > 80 ||
       ids.has(a.id) ||
-      typeof a.text !== "string" ||
-      a.text.length > 2000 ||
+      !validNoteText(a.text) ||
       !/^#[0-9a-f]{6}$/i.test(a.color)
     )
       throw Error("invalidAnnotations");

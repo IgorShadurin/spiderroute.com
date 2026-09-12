@@ -32,6 +32,7 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
 import AnnotationList from "./AnnotationList";
 import { sharePath, shareUrl, safeShareReturn } from "@/lib/sharing";
 import { Brand } from "./Brand";
@@ -1305,12 +1306,17 @@ function Workspace({ token, initialLocale }: AppProps) {
             <label>
               {t.note}
               <textarea
-                maxLength={2000}
+                maxLength={NOTE_MAX_LENGTH}
+                aria-describedby="note-length"
+                aria-invalid={noteText.length > NOTE_MAX_LENGTH}
                 rows={5}
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
               />
             </label>
+            <p id="note-length" className="note-length">
+              {noteText.length} / {NOTE_MAX_LENGTH} {t.characters}
+            </p>
             <label className="color-field">
               {t.color}
               <input
@@ -1335,8 +1341,9 @@ function Workspace({ token, initialLocale }: AppProps) {
             </div>
             <button
               className="button dark full"
-              disabled={!selected || !noteText.trim()}
+              disabled={!selected || !validNoteText(noteText)}
               onClick={() => {
+                if (!selected || !validNoteText(noteText)) return;
                 const a = {
                   id: noteId || uid(),
                   startId: selected!,

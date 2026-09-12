@@ -1992,14 +1992,62 @@ html[lang="ru"] {
   outline: 3px solid #173b32;
   outline-offset: 3px;
 }
+/* Keep the close control outside the scrollable comment. */
+.route-note-popup .maplibregl-popup-content {
+  padding: 0;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px #173b3229;
+  overflow: hidden;
+}
+.route-note-popup .maplibregl-popup-close-button {
+  top: 7px;
+  right: 7px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font: 24px/1 var(--font);
+  color: #29483e;
+  background: #f1f5f2;
+  border: 0;
+}
+.route-note-popup .maplibregl-popup-close-button:hover {
+  background: #e2ebe5;
+}
+.route-note-popup .maplibregl-popup-close-button:focus {
+  outline: none;
+}
+.route-note-popup .maplibregl-popup-close-button:focus-visible {
+  box-shadow: inset 0 0 0 2px #287b5d;
+}
 .annotation-popup {
-  font: 13px/1.5 var(--font);
+  color: #173b32;
+  font: 14px/1.6 var(--font);
+}
+.annotation-popup-heading {
+  padding: 17px 52px 13px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  border-bottom: 1px solid #e7ede8;
+  box-shadow: inset 4px 0 var(--note-color);
+}
+.annotation-popup-body {
+  padding: 14px 18px 18px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  padding: 10px 14px 4px 0;
-  color: #173b32;
-  max-height: 200px;
+  max-height: min(240px, 32dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.annotation-popup-body:focus-visible {
+  outline: 2px solid #287b5d;
+  outline-offset: -3px;
+}
+.note-length {
+  margin: 6px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
 }
 .annotation-kind {
   font-size: 14px;

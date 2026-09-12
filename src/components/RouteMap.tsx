@@ -380,12 +380,31 @@ export default function RouteMap({
       button.setAttribute("aria-label", `${index + 1}. ${annotation.text}`);
       const content = document.createElement("div");
       content.className = "annotation-popup";
-      content.textContent = annotation.text;
+      const heading = document.createElement("div");
+      heading.className = "annotation-popup-heading";
+      heading.style.setProperty("--note-color", annotation.color);
+      heading.textContent = `${index + 1} · ${locale === "ru" ? (start === end ? "Точка маршрута" : "Участок маршрута") : start === end ? "Route point" : "Route section"}`;
+      const body = document.createElement("div");
+      body.className = "annotation-popup-body";
+      body.textContent = annotation.text;
+      body.tabIndex = 0;
+      content.append(heading, body);
       const popup = new maplibregl.Popup({
         offset: 20,
-        maxWidth: "280px",
+        maxWidth: "min(340px, calc(100vw - 48px))",
+        className: "route-note-popup",
+        focusAfterOpen: false,
         closeButton: true,
       }).setDOMContent(content);
+      popup.on("open", () => {
+        const close = popup
+          .getElement()
+          ?.querySelector(".maplibregl-popup-close-button");
+        close?.setAttribute(
+          "aria-label",
+          locale === "ru" ? "Закрыть заметку" : "Close note",
+        );
+      });
       const pin = new maplibregl.Marker({
         element: button,
         offset: start === end ? [0, 0] : [0, -28],
@@ -399,7 +418,7 @@ export default function RouteMap({
       for (const marker of noteMarkers.current.values()) marker.remove();
       noteMarkers.current.clear();
     };
-  }, [ready, geometry, annotations]);
+  }, [ready, geometry, annotations, locale]);
   useEffect(() => {
     if (!focusAnnotation) return;
     const marker = noteMarkers.current.get(focusAnnotation.id);
