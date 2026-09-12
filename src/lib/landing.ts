@@ -6,12 +6,9 @@ export const landingCopy = {
     eyebrow: "FOR BIKES, E-BIKES & SCOOTERS",
     hero: ["Your rides.", "On one map."],
     intro:
-      "Upload a ride from your GPS app. Adjust the track, mark useful stops, and send friends a route they can open on their phone.",
+      "SpiderRoute is an open-source route editor. Upload a ride from your GPS app, adjust the track, mark useful stops and share a map that opens on any phone.",
     open: "Open route editor",
     shortOpen: "Open app",
-    seeTools: "What can I do here?",
-    access:
-      "Early access for invited accounts. Shared routes open without signing in.",
     mapTitle: "Along the Thames",
     mapLocation: "London · Cycleway 3",
     mapDistance: "2.1 km",
@@ -43,6 +40,10 @@ export const landingCopy = {
         text: "Favorite a shared route or save your own editable copy. A saved copy stays in your account if the original owner removes theirs.",
       },
     ],
+    sourceTitle: "Open source on GitHub",
+    sourceText:
+      "Explore how SpiderRoute works, report an issue or contribute an improvement. The project’s source code is public.",
+    sourceLink: "View the source on GitHub",
     formatsTitle: "Use the track you already recorded.",
     formatsIntro:
       "Export your ride from Speedometer GPS or another recording app, then upload the file to SpiderRoute. You can download your edited route in these formats too.",
@@ -84,7 +85,7 @@ export const landingCopy = {
       {
         question: "Do my friends need an account?",
         answer:
-          "They can open and download a route you share by link without signing in. Saving favorites or an independent copy requires an account. Account access is currently limited to invited testers.",
+          "They can open and download a route you share by link without signing in. Saving favorites or an independent copy requires an account.",
       },
     ],
     cta: "Open a track. Edit the ride.",
@@ -98,11 +99,9 @@ export const landingCopy = {
     eyebrow: "ВЕЛОСИПЕДЫ, ЭЛЕКТРОВЕЛОСИПЕДЫ И САМОКАТЫ",
     hero: ["Ваши поездки.", "На одной карте."],
     intro:
-      "Загрузите поездку из GPS-приложения. Исправьте трек, отметьте полезные остановки и отправьте друзьям маршрут, который откроется на телефоне.",
+      "SpiderRoute — редактор маршрутов с открытым исходным кодом. Загрузите поездку из GPS-приложения, исправьте трек, отметьте полезные остановки и поделитесь картой, которая откроется на любом телефоне.",
     open: "Открыть редактор",
     shortOpen: "Открыть",
-    seeTools: "Что здесь можно сделать?",
-    access: "Пока вход по приглашениям. Маршруты по ссылке доступны без входа.",
     mapTitle: "Вдоль Темзы",
     mapLocation: "Лондон · Cycleway 3",
     mapDistance: "2,1 км",
@@ -134,6 +133,10 @@ export const landingCopy = {
         text: "Добавьте чужой маршрут в избранное или создайте свою редактируемую копию. Копия останется у вас, даже если автор удалит оригинал.",
       },
     ],
+    sourceTitle: "Открытый исходный код на GitHub",
+    sourceText:
+      "Посмотрите, как устроен SpiderRoute, сообщите об ошибке или предложите улучшение. Исходный код проекта доступен всем.",
+    sourceLink: "Посмотреть код на GitHub",
     formatsTitle: "Используйте уже записанный трек.",
     formatsIntro:
       "Экспортируйте поездку из Speedometer GPS или другого приложения для записи маршрутов и загрузите файл в SpiderRoute. Отредактированный маршрут можно скачать в этих же форматах.",
@@ -175,7 +178,7 @@ export const landingCopy = {
       {
         question: "Друзьям понадобится аккаунт?",
         answer:
-          "Маршрут по вашей ссылке можно открыть и скачать без входа. Для избранного и сохранения отдельной копии нужен аккаунт. Пока доступ к аккаунтам есть только у приглашённых тестировщиков.",
+          "Маршрут по вашей ссылке можно открыть и скачать без входа. Для избранного и сохранения отдельной копии нужен аккаунт.",
       },
     ],
     cta: "Откройте трек. Уточните маршрут.",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import {
   ArrowUpRight,
+  Github,
   ArrowRight,
   Bike,
   MapPin,
@@ -99,7 +100,7 @@ export default async function Home({ searchParams }: Props) {
         applicationCategory: "TravelApplication",
         operatingSystem: "Web browser",
         inLanguage: ["en", "ru"],
-        featureList: t.tools.map((item) => item.title),
+        featureList: [...t.tools.map((item) => item.title), t.sourceTitle],
       },
     ],
   };
@@ -153,12 +154,7 @@ export default async function Home({ searchParams }: Props) {
                 {t.open}
                 <ArrowUpRight size={19} />
               </a>
-              <a className="text-link" href="#tools">
-                {t.seeTools}
-                <ArrowRight size={16} />
-              </a>
             </div>
-            <p className="access-note">{t.access}</p>
           </div>
           <figure className="london-preview">
             <div className="london-map">
@@ -226,6 +222,24 @@ export default async function Home({ searchParams }: Props) {
                 </article>
               );
             })}
+            <article>
+              <span className="tool-icon">
+                <Github size={22} />
+              </span>
+              <div>
+                <h3>{t.sourceTitle}</h3>
+                <p>{t.sourceText}</p>
+                <a
+                  className="text-link"
+                  href="https://github.com/IgorShadurin/spiderroute.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t.sourceLink}
+                  <ArrowUpRight size={16} />
+                </a>
+              </div>
+            </article>
           </div>
         </section>
         <section className="ride-formats" id="formats">
