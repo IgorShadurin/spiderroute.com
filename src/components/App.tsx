@@ -10,6 +10,8 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
+  CircleAlert,
+  TriangleAlert,
   LoaderCircle,
   CircleHelp,
   ArrowLeft,
@@ -98,7 +100,10 @@ function Workspace({ token, initialLocale }: AppProps) {
     [focusedAnnotation, setFocusedAnnotation] = useState<{ id: string }>(),
     [publicError, setPublicError] = useState(false),
     [busy, setBusy] = useState(false),
-    [toast, setToast] = useState(""),
+    [toast, setToast] = useState<{
+      message: string;
+      tone: "success" | "error" | "warning";
+    } | null>(null),
     [mobileNav, setMobileNav] = useState(false),
     [mode, setMode] = useState<MapMode>("view"),
     [dirty, setDirty] = useState(false),
@@ -150,7 +155,17 @@ function Workspace({ token, initialLocale }: AppProps) {
   const publicMapRef = useRef<HTMLDivElement>(null);
   const t = messages[locale];
   const text = (key: string) => t[key as TextKey] || t.error;
-  const notify = (key: string) => setToast(text(key));
+  const notify = (key: string) =>
+    setToast({
+      message: text(key),
+      tone: ["saved", "copied", "cloned", "favorited", "shareRevoked"].includes(
+        key,
+      )
+        ? "success"
+        : ["anchorWarning", "saveBeforeShare"].includes(key)
+          ? "warning"
+          : "error",
+    });
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("lang"),
       stored = storedLanguage();
@@ -168,7 +183,7 @@ function Workspace({ token, initialLocale }: AppProps) {
   }, [locale, languageReady]);
   useEffect(() => {
     if (!toast) return;
-    const id = setTimeout(() => setToast(""), 6000);
+    const id = setTimeout(() => setToast(null), 6000);
     return () => clearTimeout(id);
   }, [toast]);
   const refresh = async () => {
@@ -518,10 +533,19 @@ function Workspace({ token, initialLocale }: AppProps) {
     </button>
   );
   const notifyNode = toast && (
-    <div className="toast" role="status">
-      <Check size={17} />
-      {toast}
-      <button onClick={() => setToast("")} aria-label={t.cancel}>
+    <div
+      className={"toast toast-" + toast.tone}
+      role={toast.tone === "error" ? "alert" : "status"}
+    >
+      {toast.tone === "error" ? (
+        <CircleAlert size={20} aria-hidden="true" />
+      ) : toast.tone === "warning" ? (
+        <TriangleAlert size={20} aria-hidden="true" />
+      ) : (
+        <Check size={20} aria-hidden="true" />
+      )}
+      <span>{toast.message}</span>
+      <button onClick={() => setToast(null)} aria-label={t.cancel}>
         <X size={15} />
       </button>
     </div>

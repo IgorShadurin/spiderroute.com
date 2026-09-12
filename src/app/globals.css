@@ -3186,3 +3186,29 @@ html[data-theme="light"] .overview-launch[aria-pressed="true"] {
     gap: 16px;
   }
 }
+
+html[data-theme] .toast.toast-error,
+html[data-theme] .toast.toast-error button {
+  background: #8e202a;
+  color: #fff5f5;
+}
+html[data-theme] .toast.toast-warning,
+html[data-theme] .toast.toast-warning button {
+  background: #70480b;
+  color: #fff8e8;
+}
+html[data-theme] .toast.toast-success,
+html[data-theme] .toast.toast-success button {
+  background: #173e2e;
+  color: #f1fff6;
+}
+.toast-error {
+  border: 1px solid #bf4852;
+}
+.toast-warning {
+  border: 1px solid #aa7624;
+}
+.toast > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
