@@ -412,7 +412,6 @@ function Workspace({ token }: { token?: string }) {
           <>
             <div className="public-title">
               <div>
-                <span className="eyebrow">{t.publicInfo}</span>
                 <h1>{publicRoute.title}</h1>
                 <div className="public-stats">
                   <span>
@@ -500,7 +499,6 @@ function Workspace({ token }: { token?: string }) {
             <div>
               <span className="eyebrow">SPIDERROUTE</span>
               <h2>{t.tagline}</h2>
-              <p>{t.private}</p>
             </div>
           </div>
           <section className="signin-form">
@@ -734,10 +732,6 @@ function Workspace({ token }: { token?: string }) {
                   </div>
                 ))}
           </div>
-          <div className="library-foot">
-            <ShieldCheck size={16} />
-            <span>{t.private}</span>
-          </div>
         </aside>
         <main className="editor">
           {!route ? (
@@ -752,11 +746,6 @@ function Workspace({ token }: { token?: string }) {
               <div className="empty-symbol">
                 <Route size={48} />
               </div>
-              <span className="eyebrow">
-                {locale === "ru"
-                  ? "ГОТОВО К ПРИКЛЮЧЕНИЯМ"
-                  : "READY WHEN YOU ARE"}
-              </span>
               <h1>{t.empty}</h1>
               <p>{t.emptyText}</p>
               <button

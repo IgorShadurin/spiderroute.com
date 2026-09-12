@@ -1,37 +1,17 @@
 import type { Locale } from "./types";
 export const messages = {
   en: {
-    tagline: "Every route has a story.",
-    hero: "Keep the route.\nShare the adventure.",
-    intro:
-      "Turn your GPS tracks into a map worth sharing. Tidy up a detour, mark a good spot, and keep your doorstep to yourself.",
+    tagline: "Bike and scooter routes.",
     open: "Open SpiderRoute",
-    try: "Explore an example",
-    eyebrow: "YOUR NEXT ADVENTURE, MAPPED",
-    formats: "GPX · KML · GeoJSON · CSV",
-    private: "Private by default",
-    own: "Your route. Your call.",
-    ownText:
-      "Upload a track, shape the details, and share only what you choose.",
-    importTitle: "Bring your route",
-    importText:
-      "Import tracks from Speedometer GPS or any app that exports GPX, KML, GeoJSON or CSV.",
-    editTitle: "Make it yours",
-    editText:
-      "Fix a wobbly track. Color a section. Add the café, viewpoint, or trail note you want to remember.",
-    shareTitle: "Share with care",
-    shareText:
-      "Preview hidden start and finish areas before creating a link. Switch sharing off whenever you want.",
-    footer: "A little less planning. A little more exploring.",
     privacy: "Privacy",
     mapCredit: "Map data © OpenStreetMap contributors",
     library: "Your routes",
     favorites: "Favorites",
     upload: "Import route",
     draw: "Draw a route",
-    empty: "Your next adventure starts here.",
+    empty: "Import or draw a route.",
     emptyText:
-      "Drop in a GPS file, or draw a route on the map. It stays private until you share it.",
+      "Upload a GPS track or add points on the map. Then edit the route and add your notes.",
     drop: "Choose GPX, KML, GeoJSON or CSV",
     signin: "Your routes, in one place.",
     signinText:
@@ -91,7 +71,7 @@ export const messages = {
     share: "Share route",
     shared: "Shared by link",
     privateLabel: "Private",
-    shareIntro: "Share the adventure, not your doorstep.",
+    shareIntro: "Choose which parts appear in the shared route.",
     start: "Hide around start",
     end: "Hide around finish",
     meters: "m",
@@ -114,7 +94,6 @@ export const messages = {
     back: "Back to routes",
     backSite: "Back to SpiderRoute",
     protected: "Start & finish protected",
-    publicInfo: "Shared with you. Make it part of your next adventure.",
     signForCopy: "Sign in to save a copy",
     editedWarning:
       "Changed points no longer carry recorded elevation, time, or speed.",
@@ -122,8 +101,6 @@ export const messages = {
       "This edit removes note anchors. Remove or move those notes first.",
     unsaved: "Unsaved changes",
     discard: "Discard unsaved changes?",
-    example: "Coastal loop",
-    synthetic: "Illustrative route · no personal GPS data",
     mapUnavailable: "Map background unavailable. Your route is still here.",
     error: "Something went wrong. Please try again.",
     unauthorized: "Please sign in again.",
@@ -160,37 +137,17 @@ export const messages = {
       "Your routes have a home. Import a route and make it yours. Everything stays private until you share it.",
   },
   ru: {
-    tagline: "У каждого маршрута своя история.",
-    hero: "Сохраните маршрут.\nПоделитесь приключением.",
-    intro:
-      "Превратите GPS-трек в карту, которой хочется поделиться. Исправьте лишний поворот, отметьте интересное место и скройте путь до дома.",
+    tagline: "Маршруты велосипеда и самоката.",
     open: "Открыть SpiderRoute",
-    try: "Посмотреть пример",
-    eyebrow: "ВАШЕ СЛЕДУЮЩЕЕ ПРИКЛЮЧЕНИЕ НА КАРТЕ",
-    formats: "GPX · KML · GeoJSON · CSV",
-    private: "По умолчанию — только для вас",
-    own: "Ваш маршрут. Ваши правила.",
-    ownText:
-      "Загрузите трек, настройте детали и делитесь только тем, чем хотите.",
-    importTitle: "Добавьте маршрут",
-    importText:
-      "Загружайте треки из Speedometer GPS и других приложений с экспортом GPX, KML, GeoJSON или CSV.",
-    editTitle: "Сделайте его своим",
-    editText:
-      "Исправьте неточный трек. Выделите участок цветом. Отметьте кафе, смотровую площадку или сложный поворот.",
-    shareTitle: "Делитесь осознанно",
-    shareText:
-      "Скройте начало и конец перед созданием ссылки. Отключите доступ в любой момент.",
-    footer: "Меньше подготовки. Больше открытий.",
     privacy: "Конфиденциальность",
     mapCredit: "Данные карты © участники OpenStreetMap",
     library: "Ваши маршруты",
     favorites: "Избранное",
     upload: "Загрузить маршрут",
     draw: "Нарисовать маршрут",
-    empty: "Здесь начинается новое приключение.",
+    empty: "Загрузите или нарисуйте маршрут.",
     emptyText:
-      "Загрузите GPS-файл или нарисуйте маршрут на карте. Он останется приватным, пока вы им не поделитесь.",
+      "Загрузите GPS-трек или добавьте точки на карту. Затем отредактируйте маршрут и добавьте заметки.",
     drop: "Выберите GPX, KML, GeoJSON или CSV",
     signin: "Все маршруты в одном месте.",
     signinText:
@@ -249,7 +206,7 @@ export const messages = {
     share: "Поделиться",
     shared: "Доступ по ссылке",
     privateLabel: "Приватный",
-    shareIntro: "Делитесь приключением, а не адресом дома.",
+    shareIntro: "Выберите, какие части маршрута будут видны по ссылке.",
     start: "Скрыть вокруг начала",
     end: "Скрыть вокруг конца",
     meters: "м",
@@ -272,7 +229,6 @@ export const messages = {
     back: "К маршрутам",
     backSite: "На главную",
     protected: "Начало и конец скрыты",
-    publicInfo: "Маршрут для вас. Возьмите его в следующее приключение.",
     signForCopy: "Войдите, чтобы сохранить копию",
     editedWarning:
       "Изменённые точки больше не содержат записанные высоту, время и скорость.",
@@ -280,8 +236,6 @@ export const messages = {
       "Изменение удалит точки с заметками. Сначала перенесите или удалите эти заметки.",
     unsaved: "Есть несохранённые изменения",
     discard: "Отменить несохранённые изменения?",
-    example: "Прибрежный круг",
-    synthetic: "Иллюстрация · без личных GPS-данных",
     mapUnavailable: "Подложка карты недоступна. Ваш маршрут на месте.",
     error: "Что-то пошло не так. Попробуйте ещё раз.",
     unauthorized: "Войдите снова.",

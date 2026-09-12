@@ -1,37 +1,116 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import {
   ArrowUpRight,
-  Upload,
-  Route,
-  ShieldCheck,
   ArrowRight,
+  Bike,
   MapPin,
+  PencilLine,
+  ShieldCheck,
+  Copy,
+  MoveRight,
+  Plus,
 } from "lucide-react";
 import { Brand } from "@/components/Brand";
-import { Illustration } from "@/components/Illustration";
-import { messages } from "@/lib/i18n";
-export default async function Home({
+import { landingCopy } from "@/lib/landing";
+
+type Props = { searchParams: Promise<{ lang?: string }> };
+async function landingContext(searchParams: Props["searchParams"]) {
+  const host = (await headers()).get("host") || "";
+  const local = host.includes("localhost") || host.startsWith("127.");
+  const locale =
+    host.startsWith("ru.") || (local && (await searchParams).lang === "ru")
+      ? "ru"
+      : "en";
+  return { host, local, locale, t: landingCopy[locale] };
+}
+export async function generateMetadata({
   searchParams,
-}: {
-  searchParams: Promise<{ lang?: string }>;
-}) {
-  const query = await searchParams;
-  const h = await headers(),
-    host = h.get("host") || "",
-    ru =
-      host.startsWith("ru.") ||
-      (host.includes("localhost") && query.lang === "ru"),
-    t = messages[ru ? "ru" : "en"];
+}: Props): Promise<Metadata> {
+  const { locale, t, host } = await landingContext(searchParams);
+  const url =
+    locale === "ru" ? "https://ru.spiderroute.com" : "https://spiderroute.com";
+  return {
+    title: { absolute: t.title },
+    description: t.description,
+    alternates: {
+      canonical: url,
+      languages: {
+        en: "https://spiderroute.com",
+        ru: "https://ru.spiderroute.com",
+        "x-default": "https://spiderroute.com",
+      },
+    },
+    robots: host.startsWith("app.")
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: "SpiderRoute",
+      title: t.title,
+      description: t.description,
+      locale: locale === "ru" ? "ru_RU" : "en_US",
+      alternateLocale: locale === "ru" ? "en_US" : "ru_RU",
+      images: [
+        {
+          url: `/maps/social-${locale}.png`,
+          width: 1200,
+          height: 630,
+          alt: t.mapAlt,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.title,
+      description: t.description,
+      images: [`/maps/social-${locale}.png`],
+    },
+  };
+}
+export default async function Home({ searchParams }: Props) {
+  const { host, local, locale, t } = await landingContext(searchParams);
+  const ru = locale === "ru";
   if (host.startsWith("app.")) {
     const { redirect } = await import("next/navigation");
     redirect("/workspace");
   }
-  const local = host.includes("localhost") || host.startsWith("127.");
   const app = local
-    ? "/workspace"
+    ? `/workspace${ru ? "?lang=ru" : ""}`
     : `https://app.spiderroute.com/workspace${ru ? "?lang=ru" : ""}`;
+  const url = ru ? "https://ru.spiderroute.com" : "https://spiderroute.com";
+  const icons = [PencilLine, MapPin, ShieldCheck, Copy];
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${url}/#website`,
+        name: "SpiderRoute",
+        url,
+        inLanguage: locale,
+      },
+      {
+        "@type": "WebApplication",
+        name: "SpiderRoute",
+        url: "https://app.spiderroute.com",
+        description: t.description,
+        applicationCategory: "TravelApplication",
+        operatingSystem: "Web browser",
+        inLanguage: ["en", "ru"],
+        featureList: t.tools.map((item) => item.title),
+      },
+    ],
+  };
   return (
-    <div className="landing">
+    <div className="landing ride-landing">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <header className="site-header">
         <a href="/" aria-label="SpiderRoute">
           <Brand />
@@ -41,9 +120,7 @@ export default async function Home({
             className="language-link"
             href={
               local
-                ? ru
-                  ? "/?lang=en"
-                  : "/?lang=ru"
+                ? `/?lang=${ru ? "en" : "ru"}`
                 : ru
                   ? "https://spiderroute.com"
                   : "https://ru.spiderroute.com"
@@ -53,82 +130,139 @@ export default async function Home({
           </a>
           <a className="button dark small" href={app} aria-label={t.open}>
             <span className="wide-label">{t.open}</span>
-            <span className="short-label">{ru ? "Открыть" : "Open"}</span>
+            <span className="short-label">{t.shortOpen}</span>
             <ArrowUpRight size={16} />
           </a>
         </nav>
       </header>
       <main>
-        <section className="hero">
-          <div className="hero-copy">
+        <section className="ride-hero">
+          <div className="ride-hero-copy">
             <div className="eyebrow">
-              <span />
+              <Bike size={18} />
               {t.eyebrow}
             </div>
             <h1>
-              {t.hero.split("\n")[0]}
+              {t.hero[0]}
               <br />
-              <em>{t.hero.split("\n")[1]}</em>
+              <em>{t.hero[1]}</em>
             </h1>
-            <p>{t.intro}</p>
-            <a className="button coral large" href={app}>
-              {t.open}
-              <ArrowUpRight size={19} />
-            </a>
-            <div className="hero-meta">
-              <ShieldCheck size={16} />
-              {t.private}
-              <span>·</span>
-              {t.formats}
+            <p className="ride-intro">{t.intro}</p>
+            <div className="ride-actions">
+              <a className="button coral large" href={app}>
+                {t.open}
+                <ArrowUpRight size={19} />
+              </a>
+              <a className="text-link" href="#tools">
+                {t.seeTools}
+                <ArrowRight size={16} />
+              </a>
             </div>
+            <p className="access-note">{t.access}</p>
           </div>
-          <div className="hero-map">
-            <Illustration />
-            <div className="map-label">
-              <span className="label-icon">
-                <Route size={20} />
-              </span>
-              <div>
-                <strong>{t.example}</strong>
-                <small>{ru ? "Пешком · 8,4 км" : "On foot · 8.4 km"}</small>
+          <figure className="london-preview">
+            <div className="london-map">
+              <img
+                src="/maps/london-c3.webp"
+                width="1200"
+                height="1120"
+                alt={t.mapAlt}
+                fetchPriority="high"
+              />
+              <div className="london-map-heading">
+                <span>
+                  <Bike size={17} />
+                  {t.mapLocation}
+                </span>
+                <strong>{t.mapDistance}</strong>
               </div>
-              <span className="live-dot" />
+              <a
+                className="map-attribution"
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noreferrer"
+              >
+                © OpenStreetMap contributors
+              </a>
             </div>
-            <div className="map-mini-label">
-              <ShieldCheck size={15} />
-              {t.protected}
-            </div>
-            <span className="synthetic">{t.synthetic}</span>
-          </div>
+            <figcaption>
+              <div>
+                <strong>{t.mapTitle}</strong>
+                <span>
+                  {t.mapFrom}
+                  <MoveRight size={16} />
+                  {t.mapTo}
+                </span>
+              </div>
+              <a
+                href="https://www.openstreetmap.org/#map=15/51.5062/-0.1143"
+                target="_blank"
+                rel="noreferrer"
+                aria-label={t.mapSource}
+              >
+                <ArrowUpRight size={23} />
+              </a>
+            </figcaption>
+            <p className="map-caption">{t.mapCaption}</p>
+          </figure>
         </section>
-        <section className="feature-section">
-          <div className="section-heading">
-            <span className="eyebrow">01 — SPIDERROUTE</span>
-            <h2>{t.own}</h2>
-            <p>{t.ownText}</p>
+        <section className="ride-tools" id="tools">
+          <div className="ride-section-intro">
+            <h2>{t.toolsTitle}</h2>
+            <p>{t.toolsIntro}</p>
           </div>
-          <div className="features">
-            {[
-              [Upload, t.importTitle, t.importText],
-              [MapPin, t.editTitle, t.editText],
-              [ShieldCheck, t.shareTitle, t.shareText],
-            ].map(([Icon, title, text], i) => {
-              const C = Icon as typeof Upload;
+          <div className="ride-tool-list">
+            {t.tools.map((tool, i) => {
+              const Icon = icons[i];
               return (
-                <article key={i}>
-                  <div className="feature-top">
-                    <C size={25} />
-                    <span>0{i + 1}</span>
+                <article key={tool.title}>
+                  <span className="tool-icon">
+                    <Icon size={22} />
+                  </span>
+                  <div>
+                    <h3>{tool.title}</h3>
+                    <p>{tool.text}</p>
                   </div>
-                  <h3>{String(title)}</h3>
-                  <p>{String(text)}</p>
                 </article>
               );
             })}
           </div>
         </section>
+        <section className="ride-formats" id="formats">
+          <div className="formats-heading">
+            <h2>{t.formatsTitle}</h2>
+            <p>{t.formatsIntro}</p>
+          </div>
+          <div className="format-grid">
+            {t.formats.map((format) => (
+              <article key={format.name}>
+                <span className="file-extension">{format.name}</span>
+                <h3>{format.title}</h3>
+                <p>{format.text}</p>
+              </article>
+            ))}
+          </div>
+          <p className="file-limits">{t.limits}</p>
+        </section>
+        <section className="ride-faq">
+          <h2>{t.faqTitle}</h2>
+          <div>
+            {t.faqs.map((faq) => (
+              <details key={faq.question}>
+                <summary>
+                  {faq.question}
+                  <Plus size={18} />
+                </summary>
+                <p>{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
         <section className="bottom-cta">
-          <h2>{t.footer}</h2>
+          <div>
+            <h2>{t.cta}</h2>
+            <p>{t.ctaText}</p>
+          </div>
           <a className="button dark" href={app}>
             {t.open}
             <ArrowRight size={18} />

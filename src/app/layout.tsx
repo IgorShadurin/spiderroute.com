@@ -3,11 +3,11 @@ import { headers } from "next/headers";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
-    default: "SpiderRoute — Keep the route. Share the adventure.",
+    default: "SpiderRoute — Bike & scooter route editor",
     template: "%s · SpiderRoute",
   },
   description:
-    "View, edit and share GPS routes. Import GPX, KML, GeoJSON and CSV. Private by default.",
+    "View, edit and share bike, e-bike and scooter routes. Add ride notes and export your GPS tracks.",
   metadataBase: new URL("https://spiderroute.com"),
 };
 export default async function RootLayout({

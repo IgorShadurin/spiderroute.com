@@ -1,5 +1,21 @@
 import { headers } from "next/headers";
 import { Brand } from "@/components/Brand";
+export async function generateMetadata() {
+  const ru = (await headers()).get("host")?.startsWith("ru.");
+  return {
+    title: ru ? "Конфиденциальность" : "Privacy",
+    description: ru
+      ? "Как SpiderRoute хранит маршруты, обрабатывает данные аккаунта и предоставляет доступ по ссылке."
+      : "How SpiderRoute stores routes, handles account data and shares routes by link.",
+    alternates: {
+      canonical: `${ru ? "https://ru.spiderroute.com" : "https://spiderroute.com"}/privacy`,
+      languages: {
+        en: "https://spiderroute.com/privacy",
+        ru: "https://ru.spiderroute.com/privacy",
+      },
+    },
+  };
+}
 export default async function Privacy() {
   const ru = (await headers()).get("host")?.startsWith("ru.");
   return (
