@@ -106,7 +106,7 @@ function Workspace({ token }: { token?: string }) {
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("lang"),
       stored = localStorage.getItem("spiderroute-language");
-    setLocale(q === "ru" || stored === "ru" ? "ru" : "en");
+    setLocale(q === "ru" || q === "en" ? q : stored === "ru" ? "ru" : "en");
     getProviders().then(setProviders);
   }, []);
   useEffect(() => {
@@ -125,7 +125,9 @@ function Workspace({ token }: { token?: string }) {
     const initial = new URLSearchParams(location.search).get("route");
     if (initial && !route && r.some((x: any) => x.id === initial)) {
       setRoute(await api("routes/" + initial));
-      window.history.replaceState(null, "", "/workspace");
+      const target = new URL(location.href);
+      target.searchParams.delete("route");
+      window.history.replaceState(null, "", target.pathname + target.search);
     }
   };
   useEffect(() => {
