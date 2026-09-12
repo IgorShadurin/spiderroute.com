@@ -10,6 +10,7 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
+  CircleHelp,
   ArrowLeft,
   ArrowUpRight,
   Check,
@@ -1313,8 +1314,7 @@ function Workspace({ token, initialLocale }: AppProps) {
           >
             <div className="modal-header">
               <div>
-                <span className="eyebrow">{t.share}</span>
-                <h2>{t.shareIntro}</h2>
+                <h2>{t.share}</h2>
               </div>
               <button
                 className="icon-button"
@@ -1327,13 +1327,31 @@ function Workspace({ token, initialLocale }: AppProps) {
                 <X />
               </button>
             </div>
+            <details className="share-help">
+              <summary>
+                <CircleHelp size={16} />
+                {locale === "ru"
+                  ? "Скрыть начало и конец"
+                  : "Hide start and finish"}
+              </summary>
+              <p>{t.privacyHelp}</p>
+            </details>
             <div className="privacy-controls">
               {[
-                ["privacyStart", t.start],
-                ["privacyEnd", t.end],
+                ["privacyStart", locale === "ru" ? "Начало" : "Start"],
+                ["privacyEnd", locale === "ru" ? "Конец" : "Finish"],
               ].map(([key, label]) => (
                 <label key={key}>
-                  {label}
+                  <span className="privacy-field-label">
+                    <i
+                      className={
+                        key === "privacyStart"
+                          ? "privacy-dot start"
+                          : "privacy-dot finish"
+                      }
+                    />
+                    {label}
+                  </span>
                   <div>
                     <input
                       type="number"
@@ -1351,15 +1369,17 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </label>
               ))}
             </div>
-            <p className="subtle">{t.privacyHelp}</p>
-            <button
-              className="button light full"
-              disabled={busy}
-              onClick={() => run(previewShare)}
-            >
-              <ShieldCheck size={16} />
-              {t.publicPreview}
-            </button>
+            <div className="share-preview-heading">
+              <span>{locale === "ru" ? "Предпросмотр" : "Preview"}</span>
+              <button
+                className="button light small"
+                disabled={busy}
+                onClick={() => run(previewShare)}
+              >
+                <Redo2 size={14} />
+                {locale === "ru" ? "Обновить" : "Refresh"}
+              </button>
+            </div>
             <div className="share-preview-map">
               <RouteMap
                 locale={locale}
@@ -1380,31 +1400,50 @@ function Workspace({ token, initialLocale }: AppProps) {
                 ])}
               />
             </div>
-            <div className="privacy-legend">
+            <div className="share-preview-caption">
               <span>
-                <i className="legend-original" />
-                {t.originalRoute}
+                {preview
+                  ? `${(preview.stats.distance / 1000).toFixed(2)} ${locale === "ru" ? "км" : "km"}`
+                  : locale === "ru"
+                    ? "Загрузка…"
+                    : "Loading…"}
               </span>
-              <span>
-                <i className="legend-shared" />
-                {t.sharedSection}
-              </span>
-              <span>
-                <i className="legend-start" />
-                {t.hiddenStart}
-              </span>
-              <span>
-                <i className="legend-finish" />
-                {t.hiddenFinish}
-              </span>
+              <details className="share-help map-help">
+                <summary>
+                  <CircleHelp size={16} />
+                  {locale === "ru" ? "Что видно на карте?" : "Map key"}
+                </summary>
+                <div className="privacy-legend">
+                  <span>
+                    <i className="legend-original" />
+                    {t.originalRoute}
+                  </span>
+                  <span>
+                    <i className="legend-shared" />
+                    {t.sharedSection}
+                  </span>
+                  <span>
+                    <i className="legend-start" />
+                    {t.hiddenStart}
+                  </span>
+                  <span>
+                    <i className="legend-finish" />
+                    {t.hiddenFinish}
+                  </span>
+                </div>
+                <p>{t.ownerPreview}</p>
+              </details>
             </div>
-            <p className="subtle">{t.ownerPreview}</p>
-            {preview && (
-              <p className="subtle">
-                {(preview.stats.distance / 1000).toFixed(2)}{" "}
-                {locale === "ru" ? "км" : "km"} · {t.publishWarning}
-              </p>
-            )}
+            <details className="share-help sharing-help">
+              <summary>
+                <CircleHelp size={16} />
+                {locale === "ru"
+                  ? "Доступно всем, у кого есть ссылка"
+                  : "Anyone with the link can view"}
+              </summary>
+              <p>{t.publishWarning}</p>
+              {route.shared && <p>{t.liveShare}</p>}
+            </details>
             {route.shared && (
               <div className="share-link">
                 <input
@@ -1485,7 +1524,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </button>
               )}
             </div>
-            {route.shared && <p className="subtle">{t.liveShare}</p>}
           </section>
         </div>
       )}
