@@ -3116,3 +3116,47 @@ html[data-theme="light"] .overview-launch[aria-pressed="true"] {
     animation: none;
   }
 }
+
+/* Shared mouse, touch and keyboard press feedback, including map controls. */
+:is(
+  button,
+  a.button,
+  summary,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"]
+) {
+  transition:
+    scale 100ms ease-out,
+    filter 100ms ease-out,
+    background-color 150ms ease-out,
+    transform 150ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+:is(
+    button,
+    a.button,
+    summary,
+    [role="button"],
+    input[type="button"],
+    input[type="submit"]
+  ):not(:disabled):not([aria-disabled="true"]):active {
+  scale: 0.97;
+  filter: brightness(0.9);
+  transition-duration: 50ms;
+}
+.button:not(:disabled):active {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    button,
+    a.button,
+    summary,
+    [role="button"],
+    input[type="button"],
+    input[type="submit"]
+  ):active {
+    scale: 1;
+  }
+}
