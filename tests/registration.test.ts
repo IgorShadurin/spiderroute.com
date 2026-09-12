@@ -32,10 +32,11 @@ test("registration atomically saves the selected language and sends localized we
         "google",
         locale,
         locale,
+        locale === "ru" ? "light" : "dark",
       );
       assert.deepEqual(
-        sql.prepare("SELECT locale FROM users WHERE id=?").get(id),
-        { locale },
+        sql.prepare("SELECT locale,theme FROM users WHERE id=?").get(id),
+        { locale, theme: locale === "ru" ? "light" : "dark" },
       );
       assert.deepEqual(
         sql

@@ -33,6 +33,8 @@ import {
   PenLine,
 } from "lucide-react";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
+import { useTheme, ThemeToggle } from "./ThemeProvider";
+import { resolveTheme, type Theme } from "@/lib/theme";
 import { AccountSettings } from "./AccountSettings";
 import { rememberLanguage, storedLanguage, validLocale } from "@/lib/language";
 import FavoriteButton from "./FavoriteButton";
@@ -79,6 +81,7 @@ export default function App({ token, initialLocale }: AppProps) {
 }
 function Workspace({ token, initialLocale }: AppProps) {
   const { data: session, status } = useSession();
+  const { theme, applyTheme } = useTheme();
   const [locale, setLocale] = useState<Locale>(initialLocale ?? "en"),
     [languageReady, setLanguageReady] = useState(false),
     [accountLocale, setAccountLocale] = useState<Locale>("en"),
@@ -175,6 +178,7 @@ function Workspace({ token, initialLocale }: AppProps) {
         .then((u) => {
           const saved = validLocale(u.locale) ? u.locale : "en";
           setAccountLocale(saved);
+          applyTheme(resolveTheme(u.theme));
           if (!token) {
             setLocale(saved);
             const target = new URL(location.href);
@@ -241,8 +245,12 @@ function Workspace({ token, initialLocale }: AppProps) {
       previous?.focus();
     };
   }, [shareOpen, noteOpen, cloneOpen]);
-  const saveAccountLanguage = async (l: Locale) => {
-    await api("me", "PATCH", { locale: l });
+  const saveAccountLanguage = async (l: Locale, nextTheme?: Theme) => {
+    await api("me", "PATCH", {
+      locale: l,
+      ...(nextTheme ? { theme: nextTheme } : {}),
+    });
+    if (nextTheme) applyTheme(nextTheme);
     setAccountLocale(l);
     setLocale(l);
     rememberLanguage(l);
@@ -482,6 +490,7 @@ function Workspace({ token, initialLocale }: AppProps) {
             <Brand />
           </a>
           <div>
+            <ThemeToggle locale={locale} account={!!session} />
             {languageButton}
             <a className="button dark small" href={workspaceHref}>
               {workspaceLabel}
@@ -631,6 +640,7 @@ function Workspace({ token, initialLocale }: AppProps) {
           <a href="https://spiderroute.com">
             <Brand />
           </a>
+          <ThemeToggle locale={locale} account={!!session} />
           {languageButton}
         </header>
         <main className="signin-main">
@@ -759,10 +769,12 @@ function Workspace({ token, initialLocale }: AppProps) {
           <Brand />
         </a>
         <div>
+          <ThemeToggle locale={locale} account={!!session} />
           {languageButton}
           <AccountSettings
             locale={locale}
             accountLocale={accountLocale}
+            theme={theme}
             onSave={saveAccountLanguage}
           />
           <span className="user-avatar" title={session.user?.name || ""}>

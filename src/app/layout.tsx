@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { THEME_KEY, resolveTheme } from "@/lib/theme";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
@@ -16,13 +18,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const h = await headers();
+  const theme = resolveTheme((await cookies()).get(THEME_KEY)?.value);
   const locale =
     h.get("x-spiderroute-locale") === "ru" || h.get("host")?.startsWith("ru.")
       ? "ru"
       : "en";
   return (
-    <html lang={locale}>
-      <body>{children}</body>
+    <html lang={locale} data-theme={theme}>
+      <body>
+        <ThemeProvider initialTheme={theme}>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

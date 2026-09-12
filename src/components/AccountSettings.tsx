@@ -2,19 +2,23 @@
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Settings, X } from "lucide-react";
+import type { Theme } from "@/lib/theme";
 import type { Locale } from "@/lib/types";
 export function AccountSettings({
   locale,
   accountLocale,
+  theme,
   onSave,
 }: {
   locale: Locale;
   accountLocale: Locale;
-  onSave: (value: Locale) => Promise<void>;
+  theme: Theme;
+  onSave: (value: Locale, theme: Theme) => Promise<void>;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false),
     [value, setValue] = useState(accountLocale),
+    [themeValue, setThemeValue] = useState(theme),
     [saving, setSaving] = useState(false),
     [error, setError] = useState(false);
   const ru = locale === "ru";
@@ -32,6 +36,7 @@ export function AccountSettings({
         aria-label={ru ? "Настройки аккаунта" : "Account settings"}
         onClick={() => {
           setValue(accountLocale);
+          setThemeValue(theme);
           setError(false);
           setOpen(true);
         }}
@@ -81,7 +86,7 @@ export function AccountSettings({
                 setSaving(true);
                 setError(false);
                 try {
-                  await onSave(value);
+                  await onSave(value, themeValue);
                   dialog.current?.close();
                   setOpen(false);
                 } catch {
@@ -112,6 +117,18 @@ export function AccountSettings({
                 <option value="ru" lang="ru">
                   Русский
                 </option>
+              </select>
+              <label className="settings-theme-label" htmlFor="account-theme">
+                {ru ? "Тема оформления" : "Appearance"}
+              </label>
+              <select
+                id="account-theme"
+                value={themeValue}
+                onChange={(event) => setThemeValue(event.target.value as Theme)}
+                disabled={saving}
+              >
+                <option value="dark">{ru ? "Тёмная" : "Dark"}</option>
+                <option value="light">{ru ? "Светлая" : "Light"}</option>
               </select>
               {error && (
                 <p role="alert">

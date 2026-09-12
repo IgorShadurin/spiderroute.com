@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
+import { updatePreferences } from "@/server/preferences";
 import { sql, rateLimit } from "@/server/db";
 import {
   cloneRoute,
@@ -95,12 +96,11 @@ async function handler(
     if (p[0] === "me") {
       if (method === "PATCH") {
         const b = JSON.parse(await body(req, 1000));
-        if (!["en", "ru"].includes(b.locale)) throw Error("invalidFile");
-        sql.prepare("UPDATE users SET locale=? WHERE id=?").run(b.locale, user);
+        updatePreferences(sql, user, b);
       }
       return json(
         sql
-          .prepare("SELECT id,name,email,locale FROM users WHERE id=?")
+          .prepare("SELECT id,name,email,locale,theme FROM users WHERE id=?")
           .get(user),
       );
     }

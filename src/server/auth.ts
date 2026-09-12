@@ -1,3 +1,4 @@
+import { THEME_KEY } from "../lib/theme";
 import { cookies } from "next/headers";
 import { LANGUAGE_KEY } from "../lib/language";
 import { registerOAuthUser } from "./registration";
@@ -108,6 +109,7 @@ export const authOptions: NextAuthOptions = {
         account.provider,
         account.providerAccountId,
         preference,
+        (await cookies()).get(THEME_KEY)?.value,
       );
       user.id = id;
       return true;

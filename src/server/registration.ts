@@ -1,3 +1,4 @@
+import { resolveTheme } from "../lib/theme";
 import { randomUUID } from "node:crypto";
 import { sql } from "./db";
 import { resolveLocale } from "../lib/language";
@@ -20,6 +21,7 @@ export function registerOAuthUser(
   provider: string,
   subject: string,
   preference: unknown,
+  themePreference?: unknown,
 ) {
   const id = randomUUID(),
     now = new Date().toISOString(),
@@ -28,9 +30,16 @@ export function registerOAuthUser(
   sql.transaction(() => {
     sql
       .prepare(
-        "INSERT INTO users(id,email,name,locale,created_at) VALUES(?,?,?,?,?)",
+        "INSERT INTO users(id,email,name,locale,created_at,theme) VALUES(?,?,?,?,?,?)",
       )
-      .run(id, email.toLowerCase(), name, locale, now);
+      .run(
+        id,
+        email.toLowerCase(),
+        name,
+        locale,
+        now,
+        resolveTheme(themePreference),
+      );
     sql
       .prepare("INSERT INTO identities VALUES(?,?,?)")
       .run(provider, subject, id);

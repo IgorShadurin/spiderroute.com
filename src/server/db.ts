@@ -1,3 +1,4 @@
+import { migratePreferences } from "./preferences";
 import Database from "better-sqlite3";
 import { migrateShortShares } from "./share-tokens";
 import { drizzle } from "drizzle-orm/better-sqlite3";
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS delivery_events(id TEXT PRIMARY KEY,event TEXT NOT NU
 CREATE TABLE IF NOT EXISTS suppressions(email TEXT PRIMARY KEY,reason TEXT NOT NULL);
 `);
 migrateShortShares(sql);
+migratePreferences(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {
   const now = Math.floor(Date.now() / 1000);
   return sql.transaction(() => {

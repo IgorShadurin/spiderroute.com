@@ -11,6 +11,7 @@ import {
   Copy,
   Plus,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeProvider";
 import { LandingLanguage } from "@/components/LandingLanguage";
 import { Brand } from "@/components/Brand";
 import { landingCopy } from "@/lib/landing";
@@ -118,6 +119,7 @@ export default async function Home({ searchParams }: Props) {
           <Brand />
         </a>
         <nav>
+          <ThemeToggle locale={locale} />
           <a
             className="language-link"
             href={

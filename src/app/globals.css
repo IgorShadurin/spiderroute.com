@@ -2610,3 +2610,168 @@ select,
   justify-content: flex-end;
   margin-top: 26px;
 }
+
+.theme-control {
+  position: relative;
+  display: inline-flex;
+}
+.theme-error {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  padding: 12px;
+  width: 230px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  z-index: 200;
+  font-size: 12px;
+}
+.settings-theme-label {
+  display: block;
+  margin: 24px 0 10px;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --ink: #17392c;
+  --muted: #53685b;
+  --paper: #f7f8f2;
+  --line: #d5dfd1;
+  --green: #e6eedf;
+  --white: #ffffff;
+}
+html[data-theme="light"] .ride-landing {
+  --muted: #53685b;
+}
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select,
+html[data-theme="light"] .route-title > input:focus {
+  background: #fff;
+  color: var(--ink);
+}
+html[data-theme="light"] .button.light {
+  background: #fff;
+}
+html[data-theme="light"] .button.dark,
+html[data-theme="light"] .button.coral {
+  border-color: #bfdc35;
+}
+html[data-theme="light"] .ride-hero h1 em,
+html[data-theme="light"] .text-link,
+html[data-theme="light"] .tool-icon,
+html[data-theme="light"] .route-status b,
+html[data-theme="light"] .empty-symbol svg {
+  color: #387018;
+}
+html[data-theme="light"] .library {
+  background: #eef2e8;
+}
+html[data-theme="light"] .user-avatar,
+html[data-theme="light"] .library-tabs span,
+html[data-theme="light"] .route-card-icon,
+html[data-theme="light"] .empty-symbol {
+  background: #e2eccf;
+  color: #285331;
+}
+html[data-theme="light"] .route-card:hover {
+  background: #e4ecd8;
+}
+html[data-theme="light"] .route-card.active {
+  background: #fff;
+  border-color: #85a363;
+}
+html[data-theme="light"] .route-card.active .route-card-icon {
+  background: var(--coral);
+  color: #17392c;
+}
+html[data-theme="light"] .library-tabs button.active {
+  border-color: #387018;
+}
+html[data-theme="light"] .empty-state {
+  background: radial-gradient(ellipse at center, #eaf0dc 0, transparent 65%);
+}
+html[data-theme="light"] .map-wrap,
+html[data-theme="light"] .map-loading,
+html[data-theme="light"] .fullscreen-map-dialog {
+  background: #e5eddf;
+}
+html[data-theme="light"] .map-toolbar,
+html[data-theme="light"] .map-hint,
+html[data-theme="light"] .map-action {
+  background: #fffffff5;
+  color: var(--ink);
+}
+html[data-theme="light"] .danger-link {
+  color: #a83b29;
+}
+html[data-theme="light"] .toast,
+html[data-theme="light"] .toast button {
+  background: #17392c;
+  color: #fff;
+}
+html[data-theme="light"] .maplibregl-map .maplibregl-ctrl-group,
+html[data-theme="light"] .maplibregl-map .maplibregl-ctrl-group button {
+  background: #fff;
+}
+html[data-theme="light"] .maplibregl-map .maplibregl-ctrl-group button:hover {
+  background: #e6eedf;
+}
+html[data-theme="light"] .maplibregl-ctrl button .maplibregl-ctrl-icon {
+  filter: none;
+}
+html[data-theme="light"] .maplibregl-ctrl-attrib {
+  background: #ffffffed !important;
+}
+html[data-theme="light"] .download-menu a.recommended-format,
+html[data-theme="light"] .download-menu a.recommended-format:hover {
+  background: #edf4d8;
+  color: #285331;
+}
+html[data-theme="light"] .favorite-button.is-favorite {
+  background: #edf4d8;
+  border-color: #88a650;
+  color: #285331;
+}
+html[data-theme="light"] .favorite-button.is-favorite svg {
+  fill: #487b29;
+  color: #487b29;
+}
+html[data-theme="light"] .london-preview,
+html[data-theme="light"] .ride-formats {
+  background: #edf2e6;
+}
+html[data-theme="light"] .london-map {
+  background: #e4ebdd;
+}
+html[data-theme="light"] .london-map-heading span,
+html[data-theme="light"] .london-map-heading strong,
+html[data-theme="light"] .map-attribution {
+  background: #fffffff0;
+  color: var(--ink);
+}
+html[data-theme="light"] .london-preview .sport-route-sidebar .sport-distance,
+html[data-theme="light"] .london-preview .sport-route-sidebar > a {
+  color: #387018;
+}
+html[data-theme="light"] .file-extension {
+  background: #e2eccf;
+  color: #285331;
+}
+html[data-theme="light"] .account-settings::backdrop {
+  background: #17392c66;
+}
+html[data-theme="light"] :focus-visible {
+  outline-color: #387018;
+}
+@media (max-width: 700px) {
+  .site-header nav {
+    gap: 10px;
+  }
+  .app-header > div {
+    gap: 9px;
+  }
+}
+html[data-theme="light"] .route-title > input:not(:focus) {
+  background: transparent;
+}
