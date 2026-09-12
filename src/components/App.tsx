@@ -94,6 +94,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     [history, setHistory] = useState<RouteData[]>([]),
     [future, setFuture] = useState<RouteData[]>([]),
     [shareOpen, setShareOpen] = useState(false),
+    [cloneOpen, setCloneOpen] = useState(false),
     [preview, setPreview] = useState<PublicRoute | null>(null),
     [transform, setTransform] = useState<"smooth" | "simplify" | null>(null),
     [amount, setAmount] = useState(50),
@@ -166,7 +167,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     return () => window.removeEventListener("beforeunload", fn);
   }, [dirty]);
   useEffect(() => {
-    if (!shareOpen && !noteOpen) return;
+    if (!shareOpen && !noteOpen && !cloneOpen) return;
     const dialog = document.querySelector<HTMLElement>("[role=dialog]");
     const previous = document.activeElement as HTMLElement;
     const items = () =>
@@ -180,6 +181,7 @@ function Workspace({ token, initialLocale }: AppProps) {
       if (e.key === "Escape") {
         setShareOpen(false);
         setNoteOpen(false);
+        setCloneOpen(false);
       }
       if (e.key === "Tab") {
         const nodes = items(),
@@ -199,7 +201,7 @@ function Workspace({ token, initialLocale }: AppProps) {
       document.removeEventListener("keydown", key);
       previous?.focus();
     };
-  }, [shareOpen, noteOpen]);
+  }, [shareOpen, noteOpen, cloneOpen]);
   const changeLocale = () => {
     const l = locale === "en" ? "ru" : "en";
     if (token) {
@@ -355,7 +357,8 @@ function Workspace({ token, initialLocale }: AppProps) {
       }
       const r = await api("public/" + token + "/" + action, "POST", {});
       notify(action === "clone" ? "cloned" : "favorited");
-      if (action === "clone") location.href = "/workspace?route=" + r.id;
+      if (action === "clone")
+        location.href = "/workspace?lang=" + locale + "&route=" + r.id;
     });
   const exportLink = (format: string) =>
     token
@@ -460,7 +463,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                 <button
                   className="button dark"
                   disabled={busy}
-                  onClick={() => publicAction("clone")}
+                  onClick={() => setCloneOpen(true)}
                 >
                   <Plus size={17} />
                   {t.clone}
@@ -495,6 +498,51 @@ function Workspace({ token, initialLocale }: AppProps) {
               </section>
             )}
           </>
+        )}
+        {cloneOpen && publicRoute && (
+          <div className="modal-backdrop">
+            <section
+              className="modal clone-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="clone-title"
+              aria-describedby="clone-description"
+            >
+              <div className="modal-header">
+                <h2 id="clone-title">{t.cloneConfirmTitle}</h2>
+                <button
+                  className="icon-button"
+                  aria-label={t.cancel}
+                  onClick={() => setCloneOpen(false)}
+                >
+                  <X />
+                </button>
+              </div>
+              <p className="clone-route-name">{publicRoute.title}</p>
+              <p id="clone-description" className="subtle">
+                {t.cloneConfirmDescription}
+              </p>
+              <div className="action-row">
+                <button
+                  className="button light"
+                  onClick={() => setCloneOpen(false)}
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  className="button dark"
+                  disabled={busy}
+                  onClick={() => {
+                    setCloneOpen(false);
+                    publicAction("clone");
+                  }}
+                >
+                  <Plus size={17} />
+                  {t.clone}
+                </button>
+              </div>
+            </section>
+          </div>
         )}
         {notifyNode}
       </div>

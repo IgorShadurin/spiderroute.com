@@ -93,6 +93,9 @@ export const messages = {
     liveShare:
       "Saved edits automatically update this link. Anyone with it can view or clone the visible route.",
     clone: "Save a copy",
+    cloneConfirmTitle: "Save a copy to your routes?",
+    cloneConfirmDescription:
+      "You will get your own editable copy. Changes to the original route, including deletion, will not affect it.",
     cloned: "Copy saved to your routes",
     favorite: "Add to favorites",
     favorited: "Added to favorites",
@@ -236,6 +239,9 @@ export const messages = {
     liveShare:
       "Сохранённые изменения автоматически обновляют ссылку. Любой, у кого она есть, может посмотреть или скопировать видимый маршрут.",
     clone: "Сохранить копию",
+    cloneConfirmTitle: "Сохранить копию в ваши маршруты?",
+    cloneConfirmDescription:
+      "У вас появится отдельная копия для редактирования. Изменения или удаление исходного маршрута не повлияют на неё.",
     cloned: "Копия добавлена в ваши маршруты",
     favorite: "В избранное",
     favorited: "Добавлено в избранное",
