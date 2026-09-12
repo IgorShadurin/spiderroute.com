@@ -1,14 +1,16 @@
+@import "@fontsource/oswald/latin-700.css";
+@import "@fontsource/oswald/cyrillic-700.css";
 @import "@fontsource/dm-sans/latin.css";
 @import "@fontsource/manrope/latin.css";
 @import "@fontsource/manrope/cyrillic.css";
 :root {
-  --ink: #233d32;
-  --muted: #7b847d;
-  --paper: #f8f8f3;
-  --line: #e3e6dd;
-  --coral: #ed704c;
-  --green: #e9efe5;
-  --white: #fff;
+  --ink: #f2f5ed;
+  --muted: #a4b5a8;
+  --paper: #0a110e;
+  --line: #304236;
+  --coral: #d5ff39;
+  --green: #233b2c;
+  --white: #14231b;
   --font: "DM Sans", Arial, sans-serif;
 }
 * {
@@ -1944,10 +1946,10 @@ html[lang="ru"] {
   flex-shrink: 0;
 }
 .legend-original {
-  border-top: 3px dashed #475569;
+  border-top: 3px dashed #c3cfc7;
 }
 .legend-shared {
-  border-top: 4px solid #ed704c;
+  border-top: 4px solid var(--coral);
 }
 .privacy-legend .legend-start,
 .privacy-legend .legend-finish {
@@ -2162,4 +2164,398 @@ html[lang="ru"] {
     transition: none;
     animation: none;
   }
+}
+
+/* Sport identity: shared by the landing page, editor and public routes. */
+:root {
+  color-scheme: dark;
+}
+:focus-visible {
+  outline-color: var(--coral);
+}
+.brand img {
+  border-radius: 8px;
+  object-fit: cover;
+}
+input,
+textarea,
+select,
+.route-title > input:focus {
+  background: #101d15;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.button {
+  border-radius: 8px;
+}
+.button.dark,
+.button.coral {
+  background: var(--coral);
+  color: #142719;
+}
+.button.light,
+.download-menu > div,
+.note-card,
+.point-panel {
+  background: var(--white);
+  color: var(--ink);
+}
+.user-avatar,
+.library-tabs span,
+.route-card-icon,
+.empty-symbol {
+  background: #233b2c;
+  color: var(--coral);
+  border-color: var(--line);
+}
+.library {
+  background: #101b14;
+}
+.route-card:hover {
+  background: #1b2d21;
+}
+.route-card.active {
+  background: #233b2c;
+  border-color: #688242;
+}
+.route-card.active .route-card-icon {
+  background: var(--coral);
+  color: #142719;
+}
+.library-tabs button.active {
+  border-color: var(--coral);
+}
+.empty-state {
+  background: radial-gradient(ellipse at center, #17291c 0, transparent 65%);
+}
+.empty-symbol svg,
+.route-status b {
+  color: var(--coral);
+}
+.map-wrap,
+.map-loading,
+.fullscreen-map-dialog {
+  background: #14231b;
+}
+.map-toolbar,
+.map-hint,
+.map-action {
+  background: #14231bf5;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.tool-button.active {
+  background: var(--coral);
+  color: #142719;
+}
+.map-error {
+  color: #624a12;
+}
+.danger-link {
+  color: #ff9b83;
+}
+.modal {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.toast,
+.toast button {
+  color: #142719;
+}
+.legal p {
+  color: var(--muted);
+}
+.maplibregl-ctrl-group {
+  background: #14231b;
+}
+.maplibregl-ctrl-group button + button {
+  border-color: var(--line);
+}
+.maplibregl-ctrl button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+.maplibregl-ctrl-attrib {
+  background: #14231be8 !important;
+  color: var(--ink);
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--ink) !important;
+}
+.download-menu a.recommended-format,
+.download-menu a.recommended-format:hover {
+  background: #2b4124;
+  color: var(--coral);
+}
+.format-badge {
+  background: var(--coral);
+  color: #142719;
+}
+.favorite-button.is-favorite {
+  background: #263c21;
+  border-color: #6e8e38;
+  color: var(--coral);
+}
+.favorite-button.is-favorite svg {
+  fill: var(--coral);
+  color: var(--coral);
+}
+.privacy-legend .legend-shared {
+  border-color: var(--coral);
+}
+.ride-landing {
+  --muted: #a4b5a8;
+}
+.site-header {
+  height: 86px;
+  border-bottom: 1px solid var(--line);
+}
+.ride-hero {
+  grid-template-columns: 1.2fr 1fr;
+  gap: 44px 80px;
+  margin: 60px auto 90px;
+  align-items: center;
+}
+.ride-hero h1 {
+  font-family: "Oswald", sans-serif;
+  font-size: clamp(66px, 7.8vw, 110px);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.03;
+  letter-spacing: -2px;
+}
+.ride-hero h1 em {
+  color: var(--coral);
+  font-style: normal;
+}
+.ride-hero-copy .eyebrow {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.ride-hero-description {
+  max-width: 440px;
+}
+.ride-intro {
+  font-size: 17px;
+  line-height: 1.8;
+}
+.london-preview {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  padding: 0;
+  overflow: hidden;
+  background: #14231b;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.london-preview .sport-route-sidebar {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 18px;
+}
+.sport-route-sidebar h2 {
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  font-size: 38px;
+  line-height: 1.15;
+  margin: 0;
+}
+.sport-route-sidebar p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 0;
+}
+.london-preview .sport-route-sidebar .sport-distance {
+  font-family: "Oswald", sans-serif;
+  font-size: 44px;
+  color: var(--coral);
+  margin: 8px 0;
+}
+.london-preview .sport-route-sidebar > a {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: 12px;
+  color: var(--coral);
+}
+.london-map {
+  border-radius: 0;
+  min-width: 0;
+  height: 560px;
+  background: #20372a;
+}
+.london-map > img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  filter: grayscale(1) invert(1) sepia(0.35) hue-rotate(65deg) brightness(0.7);
+}
+.london-route-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.london-map-heading span,
+.london-map-heading strong,
+.map-attribution {
+  background: #14231bed;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.ride-tools {
+  display: block;
+}
+.ride-section-intro {
+  max-width: 650px;
+  margin-bottom: 36px;
+}
+.ride-section-intro h2,
+.formats-heading h2,
+.ride-faq h2,
+.bottom-cta h2 {
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+.ride-tool-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.ride-tool-list article {
+  display: block;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+}
+.tool-icon {
+  color: var(--coral);
+  border-color: var(--line);
+  margin-bottom: 22px;
+  border-radius: 8px;
+}
+.ride-tool-list h3 {
+  font-size: 18px;
+}
+.text-link {
+  color: var(--coral);
+}
+.ride-formats {
+  background: #14231b;
+  border: 1px solid var(--line);
+}
+.format-grid article,
+.file-extension {
+  border-color: var(--line);
+}
+.file-extension {
+  background: #233b2c;
+  color: var(--coral);
+}
+.ride-landing .bottom-cta {
+  background: var(--coral);
+  color: #142719;
+  border-radius: 12px;
+}
+.ride-landing .bottom-cta p {
+  color: #334a23;
+}
+.ride-landing .bottom-cta .button {
+  background: #142719;
+  color: var(--coral);
+}
+@media (max-width: 1000px) {
+  .ride-hero {
+    gap: 32px;
+  }
+  .london-preview {
+    grid-template-columns: 230px 1fr;
+  }
+  .london-preview .sport-route-sidebar {
+    padding: 24px;
+  }
+  .london-map {
+    height: 480px;
+  }
+  .ride-tool-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .site-header {
+    height: 76px;
+  }
+  .ride-hero {
+    grid-template-columns: 1fr;
+    margin-top: 32px;
+    gap: 28px;
+  }
+  .ride-hero-copy {
+    text-align: left;
+  }
+  .ride-hero-copy .eyebrow {
+    justify-content: flex-start;
+    font-size: 10px;
+  }
+  .ride-hero h1 {
+    font-size: clamp(58px, 12vw, 84px);
+    letter-spacing: -1px;
+  }
+  .ride-hero-description {
+    max-width: none;
+  }
+  .ride-intro {
+    font-size: 15px;
+    text-align: left;
+  }
+  .ride-actions {
+    justify-content: flex-start;
+  }
+  .london-preview {
+    grid-template-columns: 1fr;
+  }
+  .london-preview .sport-route-sidebar {
+    padding: 24px;
+    gap: 12px;
+  }
+  .sport-route-sidebar h2 {
+    font-size: 30px;
+  }
+  .london-preview .sport-route-sidebar .sport-distance {
+    font-size: 32px;
+  }
+  .london-map {
+    height: auto;
+    aspect-ratio: 1200 / 1120;
+  }
+  .ride-tool-list {
+    grid-template-columns: 1fr;
+  }
+  .ride-tool-list article {
+    padding: 24px;
+  }
+  .ride-landing .bottom-cta .button {
+    width: 100%;
+  }
+}
+.maplibregl-map .maplibregl-ctrl-group {
+  background: #14231b;
+  border: 1px solid #304236;
+}
+.maplibregl-map .maplibregl-ctrl-group button {
+  background-color: #14231b;
+}
+.maplibregl-map .maplibregl-ctrl-group button:hover {
+  background-color: #233b2c;
+}
+.route-note-popup .maplibregl-popup-content {
+  color-scheme: light;
 }

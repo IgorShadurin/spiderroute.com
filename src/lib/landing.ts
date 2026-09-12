@@ -4,7 +4,7 @@ export const landingCopy = {
     description:
       "View, edit and share bike, e-bike and scooter routes on a map. Import a GPS track, fix the line, add ride notes and hide your start and finish before sharing.",
     eyebrow: "FOR BIKES, E-BIKES & SCOOTERS",
-    hero: ["Your rides.", "On one map."],
+    hero: ["Ride your", "own line."],
     intro:
       "SpiderRoute is an open-source route editor. Upload a ride from your GPS app, adjust the track, mark useful stops and share a map that opens on any phone.",
     open: "Open route editor",
@@ -17,7 +17,7 @@ export const landingCopy = {
     mapCaption:
       "A cycling example on Victoria Embankment, following the mapped cycleway.",
     mapAlt:
-      "Street map of central London with a coral route following Cycleway 3 from Westminster to Blackfriars along the north bank of the Thames.",
+      "Street map of central London with a lime route following Cycleway 3 from Westminster to Blackfriars along the north bank of the Thames.",
     mapSource: "View on OpenStreetMap",
     toolsTitle: "Edit the track. Add the ride details.",
     toolsIntro:
@@ -97,7 +97,7 @@ export const landingCopy = {
     description:
       "Просматривайте, редактируйте и делитесь маршрутами велосипеда, электровелосипеда и самоката. Загрузите GPS-трек, добавьте заметки и скройте начало и конец поездки.",
     eyebrow: "ВЕЛОСИПЕДЫ, ЭЛЕКТРОВЕЛОСИПЕДЫ И САМОКАТЫ",
-    hero: ["Ваши поездки.", "На одной карте."],
+    hero: ["Ваш путь.", "Ваш маршрут."],
     intro:
       "SpiderRoute — редактор маршрутов с открытым исходным кодом. Загрузите поездку из GPS-приложения, исправьте трек, отметьте полезные остановки и поделитесь картой, которая откроется на любом телефоне.",
     open: "Открыть редактор",
@@ -110,7 +110,7 @@ export const landingCopy = {
     mapCaption:
       "Пример веломаршрута по набережной Виктории вдоль велодорожки на карте.",
     mapAlt:
-      "Карта центра Лондона с коралловой линией по велодорожке Cycleway 3 от Вестминстера до Блэкфрайарса вдоль северного берега Темзы.",
+      "Карта центра Лондона с лаймовой линией по велодорожке Cycleway 3 от Вестминстера до Блэкфрайарса вдоль северного берега Темзы.",
     mapSource: "Посмотреть в OpenStreetMap",
     toolsTitle: "Редактируйте трек и добавляйте заметки.",
     toolsIntro:

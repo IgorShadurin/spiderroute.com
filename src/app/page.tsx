@@ -9,7 +9,6 @@ import {
   PencilLine,
   ShieldCheck,
   Copy,
-  MoveRight,
   Plus,
 } from "lucide-react";
 import { Brand } from "@/components/Brand";
@@ -148,6 +147,8 @@ export default async function Home({ searchParams }: Props) {
               <br />
               <em>{t.hero[1]}</em>
             </h1>
+          </div>
+          <div className="ride-hero-description">
             <p className="ride-intro">{t.intro}</p>
             <div className="ride-actions">
               <a className="button coral large" href={app}>
@@ -157,6 +158,24 @@ export default async function Home({ searchParams }: Props) {
             </div>
           </div>
           <figure className="london-preview">
+            <figcaption className="sport-route-sidebar">
+              <span className="eyebrow">{t.mapLocation}</span>
+              <h2>{t.mapTitle}</h2>
+              <p>
+                {t.mapFrom} → {t.mapTo}
+              </p>
+              <strong className="sport-distance">{t.mapDistance}</strong>
+              <p>{t.mapCaption}</p>
+              <a
+                className="text-link"
+                href="https://www.openstreetmap.org/#map=15/51.5062/-0.1143"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t.mapSource}
+                <ArrowUpRight size={16} />
+              </a>
+            </figcaption>
             <div className="london-map">
               <img
                 src="/maps/london-c3.webp"
@@ -165,6 +184,37 @@ export default async function Home({ searchParams }: Props) {
                 alt={t.mapAlt}
                 fetchPriority="high"
               />
+              <svg
+                className="london-route-line"
+                viewBox="0 0 1200 1120"
+                preserveAspectRatio="xMidYMid meet"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M150 955C169 780 181 615 220 548C255 470 277 410 323 361C393 297 452 275 527 246C640 204 701 198 810 199L893 199L895 191L990 191Q1016 193 1050 164"
+                  stroke="#d5ff39"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx="150"
+                  cy="955"
+                  r="13"
+                  fill="#d5ff39"
+                  stroke="#143522"
+                  strokeWidth="5"
+                />
+                <circle
+                  cx="1050"
+                  cy="164"
+                  r="13"
+                  fill="#d5ff39"
+                  stroke="#143522"
+                  strokeWidth="5"
+                />
+              </svg>
               <div className="london-map-heading">
                 <span>
                   <Bike size={17} />
@@ -181,25 +231,6 @@ export default async function Home({ searchParams }: Props) {
                 © OpenStreetMap contributors
               </a>
             </div>
-            <figcaption>
-              <div>
-                <strong>{t.mapTitle}</strong>
-                <span>
-                  {t.mapFrom}
-                  <MoveRight size={16} />
-                  {t.mapTo}
-                </span>
-              </div>
-              <a
-                href="https://www.openstreetmap.org/#map=15/51.5062/-0.1143"
-                target="_blank"
-                rel="noreferrer"
-                aria-label={t.mapSource}
-              >
-                <ArrowUpRight size={23} />
-              </a>
-            </figcaption>
-            <p className="map-caption">{t.mapCaption}</p>
           </figure>
         </section>
         <section className="ride-tools" id="tools">

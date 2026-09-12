@@ -109,7 +109,18 @@ export default function RouteMap({
                 '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
             },
           },
-          layers: [{ id: "osm", type: "raster", source: "osm" }],
+          layers: [
+            {
+              id: "osm",
+              type: "raster",
+              source: "osm",
+              paint: {
+                "raster-saturation": -0.85,
+                "raster-brightness-max": 0.55,
+                "raster-brightness-min": 0.03,
+              },
+            },
+          ],
         };
         const m = new maplibregl.Map({
           container: container.current,
@@ -207,7 +218,7 @@ export default function RouteMap({
       if (s.length > 1)
         features.push({
           type: "Feature",
-          properties: { color: "#ed704c", kind: "route" },
+          properties: { color: "#d5ff39", kind: "route" },
           geometry: {
             type: "LineString",
             coordinates: s.map((p) => [p.lon, p.lat]),
@@ -280,7 +291,7 @@ export default function RouteMap({
         source: "route",
         filter: ["==", ["get", "kind"], "original"],
         paint: {
-          "line-color": "#475569",
+          "line-color": "#c3cfc7",
           "line-width": 4,
           "line-dasharray": [2, 2],
         },
@@ -294,7 +305,7 @@ export default function RouteMap({
           ["==", ["geometry-type"], "LineString"],
           ["!=", ["get", "kind"], "original"],
         ],
-        paint: { "line-color": "#fff", "line-width": 9 },
+        paint: { "line-color": "#142719", "line-width": 9 },
         layout: { "line-join": "round", "line-cap": "round" },
       });
       m.addLayer({
