@@ -363,8 +363,8 @@ function Workspace({ token, initialLocale }: AppProps) {
       : `/api/routes/${route?.id}/export?format=${format}`;
   const downloadMenu = (
     <details className="download-menu">
-      <summary className="button light small">
-        <Download size={16} />
+      <summary className={token ? "button light" : "button light small"}>
+        <Download size={token ? 17 : 16} />
         {t.export}
       </summary>
       <div>
