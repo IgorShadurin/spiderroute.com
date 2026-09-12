@@ -1,13 +1,11 @@
+import { cookies } from "next/headers";
+import { LANGUAGE_KEY } from "../lib/language";
+import { registerOAuthUser } from "./registration";
 import type { NextAuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
-import {
-  randomUUID,
-  scryptSync,
-  timingSafeEqual,
-  randomBytes,
-} from "node:crypto";
+import { scryptSync, timingSafeEqual, randomBytes } from "node:crypto";
 import { sql, rateLimit } from "./db";
 export function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -103,29 +101,14 @@ export const authOptions: NextAuthOptions = {
           .get(user.email.toLowerCase())
       )
         return "/workspace?error=accountLink";
-      const id = randomUUID(),
-        now = new Date().toISOString();
-      sql.transaction(() => {
-        sql
-          .prepare(
-            "INSERT INTO users(id,email,name,created_at) VALUES(?,?,?,?)",
-          )
-          .run(id, user.email!.toLowerCase(), user.name || "Explorer", now);
-        sql
-          .prepare("INSERT INTO identities VALUES(?,?,?)")
-          .run(account.provider, account.providerAccountId, id);
-        sql
-          .prepare(
-            "INSERT INTO outbox(id,recipient,subject,body,created_at) VALUES(?,?,?,?,?)",
-          )
-          .run(
-            "welcome:" + id,
-            user.email!,
-            "Welcome to SpiderRoute",
-            "Your routes have a home. Import a GPX, KML, GeoJSON or CSV file at https://app.spiderroute.com. Your routes stay private until you share them.",
-            now,
-          );
-      })();
+      const preference = (await cookies()).get(LANGUAGE_KEY)?.value;
+      const id = registerOAuthUser(
+        user.email,
+        user.name || "Explorer",
+        account.provider,
+        account.providerAccountId,
+        preference,
+      );
       user.id = id;
       return true;
     },

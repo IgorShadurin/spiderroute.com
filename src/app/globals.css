@@ -2578,3 +2578,35 @@ select,
     font-size: clamp(30px, 8vw, 42px);
   }
 }
+.account-settings {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  color: var(--ink);
+}
+.account-settings::backdrop {
+  background: #07100cc9;
+  backdrop-filter: blur(5px);
+}
+.account-settings h2 {
+  padding-right: 30px;
+  margin-bottom: 26px;
+}
+.account-settings .settings-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+.account-settings select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+}
+.account-settings .action-row {
+  justify-content: flex-end;
+  margin-top: 26px;
+}

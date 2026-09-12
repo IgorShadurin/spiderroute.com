@@ -11,6 +11,7 @@ import {
   Copy,
   Plus,
 } from "lucide-react";
+import { LandingLanguage } from "@/components/LandingLanguage";
 import { Brand } from "@/components/Brand";
 import { landingCopy } from "@/lib/landing";
 
@@ -18,7 +19,7 @@ type Props = { searchParams: Promise<{ lang?: string }> };
 async function landingContext(searchParams: Props["searchParams"]) {
   const host = (await headers()).get("host") || "";
   const local = host.includes("localhost") || host.startsWith("127.");
-  const locale =
+  const locale: "en" | "ru" =
     host.startsWith("ru.") || (local && (await searchParams).lang === "ru")
       ? "ru"
       : "en";
@@ -77,8 +78,8 @@ export default async function Home({ searchParams }: Props) {
     redirect("/workspace");
   }
   const app = local
-    ? `/workspace${ru ? "?lang=ru" : ""}`
-    : `https://app.spiderroute.com/workspace${ru ? "?lang=ru" : ""}`;
+    ? `/workspace?lang=${locale}`
+    : `https://app.spiderroute.com/workspace?lang=${locale}`;
   const url = ru ? "https://ru.spiderroute.com" : "https://spiderroute.com";
   const icons = [PencilLine, MapPin, ShieldCheck, Copy];
   const structuredData = {
@@ -105,6 +106,7 @@ export default async function Home({ searchParams }: Props) {
   };
   return (
     <div className="landing ride-landing" lang={locale}>
+      <LandingLanguage locale={locale} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

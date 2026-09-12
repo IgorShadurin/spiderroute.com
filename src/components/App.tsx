@@ -33,6 +33,8 @@ import {
   PenLine,
 } from "lucide-react";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
+import { AccountSettings } from "./AccountSettings";
+import { rememberLanguage, storedLanguage, validLocale } from "@/lib/language";
 import FavoriteButton from "./FavoriteButton";
 import AnnotationList from "./AnnotationList";
 import { sharePath, shareUrl, safeShareReturn } from "@/lib/sharing";
@@ -78,6 +80,8 @@ export default function App({ token, initialLocale }: AppProps) {
 function Workspace({ token, initialLocale }: AppProps) {
   const { data: session, status } = useSession();
   const [locale, setLocale] = useState<Locale>(initialLocale ?? "en"),
+    [languageReady, setLanguageReady] = useState(false),
+    [accountLocale, setAccountLocale] = useState<Locale>("en"),
     [routes, setRoutes] = useState<any[]>([]),
     [favorites, setFavorites] = useState<any[]>([]),
     [tab, setTab] = useState<"routes" | "favorites">("routes"),
@@ -134,17 +138,19 @@ function Workspace({ token, initialLocale }: AppProps) {
   const notify = (key: string) => setToast(text(key));
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("lang"),
-      stored = localStorage.getItem("spiderroute-language");
+      stored = storedLanguage();
     setLocale(
       initialLocale ??
         (q === "ru" || q === "en" ? q : stored === "ru" ? "ru" : "en"),
     );
+    setLanguageReady(true);
     getProviders().then(setProviders);
   }, []);
   useEffect(() => {
+    if (!languageReady) return;
     document.documentElement.lang = locale;
-    localStorage.setItem("spiderroute-language", locale);
-  }, [locale]);
+    rememberLanguage(locale);
+  }, [locale, languageReady]);
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(""), 6000);
@@ -167,8 +173,18 @@ function Workspace({ token, initialLocale }: AppProps) {
       refresh().catch((e) => notify(e.message));
       api("me")
         .then((u) => {
-          if (!token && !new URLSearchParams(location.search).get("lang"))
-            setLocale(u.locale === "ru" ? "ru" : "en");
+          const saved = validLocale(u.locale) ? u.locale : "en";
+          setAccountLocale(saved);
+          if (!token) {
+            setLocale(saved);
+            const target = new URL(location.href);
+            target.searchParams.set("lang", saved);
+            window.history.replaceState(
+              null,
+              "",
+              target.pathname + target.search,
+            );
+          }
         })
         .catch(() => {});
     }
@@ -225,14 +241,35 @@ function Workspace({ token, initialLocale }: AppProps) {
       previous?.focus();
     };
   }, [shareOpen, noteOpen, cloneOpen]);
+  const saveAccountLanguage = async (l: Locale) => {
+    await api("me", "PATCH", { locale: l });
+    setAccountLocale(l);
+    setLocale(l);
+    rememberLanguage(l);
+    const target = new URL(location.href);
+    target.searchParams.set("lang", l);
+    window.history.replaceState(null, "", target.pathname + target.search);
+  };
   const changeLocale = () => {
     const l = locale === "en" ? "ru" : "en";
     if (token) {
+      rememberLanguage(l);
       location.assign(sharePath(token, l));
       return;
     }
+    if (session) {
+      saveAccountLanguage(l).catch(() => notify("error"));
+      return;
+    }
     setLocale(l);
-    if (session) api("me", "PATCH", { locale: l }).catch(() => {});
+    rememberLanguage(l);
+    const target = new URL(location.href);
+    target.searchParams.set("lang", l);
+    window.history.replaceState(null, "", target.pathname + target.search);
+  };
+  const startOAuth = (provider: string) => {
+    rememberLanguage(locale);
+    return signIn(provider, { callbackUrl: "/workspace" });
   };
   const run = async (fn: () => Promise<void>) => {
     if (busy) return;
@@ -611,7 +648,7 @@ function Workspace({ token, initialLocale }: AppProps) {
             {providers?.google && (
               <button
                 className="button light full"
-                onClick={() => signIn("google", { callbackUrl: "/workspace" })}
+                onClick={() => startOAuth("google")}
               >
                 {t.google}
               </button>
@@ -619,7 +656,7 @@ function Workspace({ token, initialLocale }: AppProps) {
             {providers?.apple && (
               <button
                 className="button dark full"
-                onClick={() => signIn("apple", { callbackUrl: "/workspace" })}
+                onClick={() => startOAuth("apple")}
               >
                 {t.apple}
               </button>
@@ -723,6 +760,11 @@ function Workspace({ token, initialLocale }: AppProps) {
         </a>
         <div>
           {languageButton}
+          <AccountSettings
+            locale={locale}
+            accountLocale={accountLocale}
+            onSave={saveAccountLanguage}
+          />
           <span className="user-avatar" title={session.user?.name || ""}>
             {session.user?.name?.[0]?.toUpperCase() || "S"}
           </span>
