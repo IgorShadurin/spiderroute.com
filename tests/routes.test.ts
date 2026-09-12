@@ -152,3 +152,20 @@ test("share isolation, atomic updates, conflict detection, revocation and indepe
     rmSync(process.env.DATA_DIR, { recursive: true, force: true });
   }
 });
+
+test("privacy preserves long hand-drawn edges outside endpoint zones", () => {
+  const route: Geometry = [
+    [
+      { id: "a", lat: 51.2, lon: 0.8 },
+      { id: "b", lat: 47.43827, lon: 9.86816 },
+      { id: "c", lat: 44.1, lon: 18.1 },
+    ],
+  ];
+  const snapshot = publicSnapshot("Synthetic long route", route, [], 500, 500);
+  assert.ok(snapshot.stats.distance > stats(route).distance - 2500);
+  for (const segment of snapshot.geometry)
+    for (const point of segment) {
+      assert.ok(distance(route[0][0], point) >= 500);
+      assert.ok(distance(route[0][2], point) >= 500);
+    }
+});

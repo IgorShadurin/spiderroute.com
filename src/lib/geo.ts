@@ -197,7 +197,35 @@ export function publicSnapshot(
         flush();
         continue;
       }
-      for (const [lo, hi] of visible) {
+      for (let [lo, hi] of visible) {
+        const hidden = (t: number) => {
+          const p = {
+            id: "boundary",
+            lat: a.lat + (b.lat - a.lat) * t,
+            lon: ((a.lon + dlon(a.lon, b.lon) * t + 540) % 360) - 180,
+          };
+          return zones.some(([c, r]) => r > 0 && distance(c, p) < r + 1);
+        };
+        // Long hand-drawn edges can differ from the local projection. Refine
+        // their boundary along the actual displayed line instead of dropping
+        // an entire visible edge when its approximate intersection is inside.
+        if (hidden(lo) || hidden(hi)) {
+          const middle = (lo + hi) / 2;
+          if (hidden(middle)) {
+            flush();
+            continue;
+          }
+          const refine = (inside: number, outside: number) => {
+            for (let n = 0; n < 40; n++) {
+              const mid = (inside + outside) / 2;
+              if (hidden(mid)) inside = mid;
+              else outside = mid;
+            }
+            return outside;
+          };
+          if (hidden(lo)) lo = refine(lo, middle);
+          if (hidden(hi)) hi = refine(hi, middle);
+        }
         if (lo > 0) flush();
         const p = lo === 0 ? clean(a, a.id) : clean(interpolate(a, b, lo)),
           q = hi === 1 ? clean(b, b.id) : clean(interpolate(a, b, hi));
