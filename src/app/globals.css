@@ -2115,3 +2115,51 @@ html[lang="ru"] {
   background: #d3e7d9;
   white-space: nowrap;
 }
+
+.favorite-button {
+  min-width: 166px;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+.favorite-button svg {
+  transition:
+    fill 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  fill: transparent;
+}
+.favorite-button.is-favorite {
+  background: #fff0eb;
+  border-color: #eab7a7;
+  color: #ae442c;
+}
+.favorite-button.is-favorite svg {
+  fill: #ed704c;
+  color: #d65a3a;
+}
+.favorite-pop svg {
+  animation: favorite-heart 380ms ease-out;
+}
+@keyframes favorite-heart {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.28) rotate(-8deg);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .favorite-button,
+  .favorite-button svg {
+    transition: none;
+    animation: none;
+  }
+}

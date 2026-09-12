@@ -33,6 +33,7 @@ import {
   PenLine,
 } from "lucide-react";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
+import FavoriteButton from "./FavoriteButton";
 import AnnotationList from "./AnnotationList";
 import { sharePath, shareUrl, safeShareReturn } from "@/lib/sharing";
 import { Brand } from "./Brand";
@@ -453,14 +454,20 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </div>
               </div>
               <div className="action-row">
-                <button
-                  className="button light"
-                  disabled={busy}
-                  onClick={() => publicAction("favorite")}
-                >
-                  <Heart size={17} />
-                  {t.favorite}
-                </button>
+                <FavoriteButton
+                  key={`${token}-${session?.user?.email ?? "guest"}`}
+                  token={token!}
+                  authenticated={!!session}
+                  locale={locale}
+                  onError={() => notify("favoriteError")}
+                  onSignIn={() => {
+                    location.href =
+                      "/workspace?lang=" +
+                      locale +
+                      "&returnTo=" +
+                      encodeURIComponent(sharePath(token!, locale));
+                  }}
+                />
                 {downloadMenu}
                 <button
                   className="button dark"

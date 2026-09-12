@@ -104,6 +104,23 @@ async function handler(
           .get(user),
       );
     }
+    if (p[0] === "favorites" && p[1] === "shared" && p.length === 3) {
+      const shared = readShare(p[2]);
+      if (method === "POST")
+        sql
+          .prepare("INSERT OR IGNORE INTO favorites VALUES(?,?)")
+          .run(user, shared.routeId);
+      else if (method === "DELETE")
+        sql
+          .prepare("DELETE FROM favorites WHERE user_id=? AND route_id=?")
+          .run(user, shared.routeId);
+      else if (method !== "GET") return json({ error: "notFound" }, 404);
+      return json({
+        favorite: !!sql
+          .prepare("SELECT 1 FROM favorites WHERE user_id=? AND route_id=?")
+          .get(user, shared.routeId),
+      });
+    }
     if (p[0] === "favorites") {
       if (method === "GET")
         return json(
