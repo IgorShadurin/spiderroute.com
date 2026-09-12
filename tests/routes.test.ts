@@ -126,7 +126,8 @@ test("share isolation, atomic updates, conflict detection, revocation and indepe
       0,
     );
     const token = service.publishRoute(r.id, "a", 1);
-    assert.equal(token.length, 32);
+    assert.equal(token.length, 16);
+    assert.equal(service.publishRoute(r.id, "a", 1), token);
     const p = service.readShare(token).payload;
     assert.equal("privacyCenters" in p, false);
     const clone = service.cloneRoute(token, "b");
@@ -134,6 +135,7 @@ test("share isolation, atomic updates, conflict detection, revocation and indepe
     assert.equal(clone.shared, false);
     const changed = service.saveRoute(r.id, "a", { ...r, title: "Updated" });
     assert.equal(service.readShare(token).payload.title, "Updated");
+    assert.equal(service.publishRoute(r.id, "a", changed.revision), token);
     const edited = {
       ...service.owned(r.id, "a"),
       geometry: JSON.stringify([g[0].slice(10, 90)]),
@@ -150,14 +152,46 @@ test("share isolation, atomic updates, conflict detection, revocation and indepe
       () => service.saveRoute(r.id, "a", { ...changed, privacyStart: 0 }),
       /privacyConfirmation/,
     );
-    sql.prepare("DELETE FROM shares WHERE token=?").run(token);
+    assert.throws(() => service.revokeShare(r.id, "b"), /notFound/);
+    service.revokeShare(r.id, "a");
+    service.revokeShare(r.id, "a");
     assert.throws(() => service.readShare(token), /notFound/);
     assert.equal(service.owned(clone.id, "b").title, "Private");
     const token2 = service.publishRoute(r.id, "a", changed.revision);
     assert.notEqual(token, token2);
+    assert.throws(() => service.readShare(token), /notFound/);
     sql.prepare("DELETE FROM routes WHERE id=?").run(r.id);
     assert.throws(() => service.readShare(token2), /notFound/);
     assert.ok(service.owned(clone.id, "b"));
+    const legacy = service.createRoute("a", "Legacy", g);
+    const longToken = "L".repeat(32);
+    sql
+      .prepare("INSERT INTO shares VALUES(?,?,?,?,?)")
+      .run(
+        longToken,
+        legacy.id,
+        JSON.stringify(service.snapshot(service.owned(legacy.id, "a"))),
+        1,
+        new Date().toISOString(),
+      );
+    const { migrateShortShares } = await import("../src/server/share-tokens");
+    migrateShortShares(sql);
+    const short = service.routeView(service.owned(legacy.id, "a")).shareToken!;
+    assert.equal(short.length, 16);
+    assert.deepEqual(
+      service.readShare(short).payload,
+      service.readShare(longToken).payload,
+    );
+    migrateShortShares(sql);
+    assert.equal(service.publishRoute(legacy.id, "a", 1), short);
+    service.revokeShare(legacy.id, "a");
+    assert.throws(() => service.readShare(short), /notFound/);
+    assert.throws(() => service.readShare(longToken), /notFound/);
+    assert.throws(() => service.cloneRoute(short, "b"), /notFound/);
+    const replacement = service.publishRoute(legacy.id, "a", 1);
+    assert.notEqual(replacement, short);
+    assert.throws(() => service.readShare(longToken), /notFound/);
+    assert.throws(() => service.readShare(short), /notFound/);
   } finally {
     sql.close();
     rmSync(process.env.DATA_DIR, { recursive: true, force: true });

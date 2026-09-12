@@ -1,5 +1,6 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { sql } from "./db";
+import { ensureShortShare, reserveShareToken } from "./share-tokens";
 import {
   publicSnapshot,
   stats,
@@ -30,7 +31,7 @@ export function routeView(row: any) {
     privacyEnd: row.privacy_end,
     privacyCenters: { start: original[0][0], end: original.at(-1)!.at(-1)! },
     shared: !!share,
-    shareToken: share?.token,
+    shareToken: share ? ensureShortShare(sql, row.id) : undefined,
     updatedAt: row.updated_at,
   };
 }
@@ -141,8 +142,8 @@ export function publishRoute(id: string, user: string, revision: number) {
     const existing = sql
       .prepare("SELECT token FROM shares WHERE route_id=?")
       .get(id) as any;
-    if (existing) return existing.token;
-    const token = randomBytes(24).toString("base64url");
+    if (existing) return ensureShortShare(sql, id);
+    const token = reserveShareToken(sql);
     sql
       .prepare("INSERT INTO shares VALUES(?,?,?,?,?)")
       .run(
@@ -152,8 +153,16 @@ export function publishRoute(id: string, user: string, revision: number) {
         row.revision,
         new Date().toISOString(),
       );
+    sql
+      .prepare("INSERT INTO share_links(token,route_id) VALUES(?,?)")
+      .run(token, id);
     return token;
   })();
+}
+export function revokeShare(id: string, user: string) {
+  owned(id, user);
+  // Cascade removes the short alias; issued codes remain reserved forever.
+  sql.prepare("DELETE FROM shares WHERE route_id=?").run(id);
 }
 const cache = new Map<
   string,
@@ -161,10 +170,13 @@ const cache = new Map<
 >();
 let cacheBytes = 0;
 export function readShare(token: string) {
-  if (!/^[A-Za-z0-9_-]{32}$/.test(token)) throw Error("notFound");
+  if (!/^(?:[A-Za-z0-9_-]{16}|[A-Za-z0-9_-]{32})$/.test(token))
+    throw Error("notFound");
   const row = sql
-    .prepare("SELECT route_id,revision FROM shares WHERE token=?")
-    .get(token) as any;
+    .prepare(
+      "SELECT route_id,revision FROM shares WHERE token=? OR route_id=(SELECT route_id FROM share_links WHERE token=?)",
+    )
+    .get(token, token) as any;
   if (!row) {
     const old = cache.get(token);
     if (old) {
@@ -176,8 +188,8 @@ export function readShare(token: string) {
   let cached = cache.get(token);
   if (!cached || cached.revision !== row.revision) {
     const data = sql
-      .prepare("SELECT payload FROM shares WHERE token=?")
-      .get(token) as any;
+      .prepare("SELECT payload FROM shares WHERE route_id=?")
+      .get(row.route_id) as any;
     const size = Buffer.byteLength(data.payload);
     if (cached) {
       cacheBytes -= cached.size;

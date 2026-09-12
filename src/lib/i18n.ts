@@ -89,9 +89,10 @@ export const messages = {
     publish: "Create share link",
     copy: "Copy link",
     copied: "Link copied",
-    unshare: "Make private",
+    unshare: "Revoke share link",
+    shareRevoked: "Share link revoked",
     liveShare:
-      "Saved edits automatically update this link. Anyone with it can view or clone the visible route.",
+      "This link stays the same when you edit the route. Revoking it blocks both short and previous links. Sharing again creates a new link.",
     clone: "Save a copy",
     cloneConfirmTitle: "Save a copy to your routes?",
     cloneConfirmDescription:
@@ -235,9 +236,10 @@ export const messages = {
     publish: "Создать ссылку",
     copy: "Копировать ссылку",
     copied: "Ссылка скопирована",
-    unshare: "Закрыть доступ",
+    unshare: "Отозвать ссылку",
+    shareRevoked: "Ссылка отозвана",
     liveShare:
-      "Сохранённые изменения автоматически обновляют ссылку. Любой, у кого она есть, может посмотреть или скопировать видимый маршрут.",
+      "При редактировании маршрута ссылка не меняется. Отзыв блокирует короткую и прежние ссылки. При повторной публикации создаётся новая ссылка.",
     clone: "Сохранить копию",
     cloneConfirmTitle: "Сохранить копию в ваши маршруты?",
     cloneConfirmDescription:

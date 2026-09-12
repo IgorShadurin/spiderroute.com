@@ -33,7 +33,7 @@ import {
   PenLine,
 } from "lucide-react";
 import AnnotationList from "./AnnotationList";
-import { sharePath } from "@/lib/sharing";
+import { sharePath, shareUrl, safeShareReturn } from "@/lib/sharing";
 import { Brand } from "./Brand";
 import { Illustration } from "./Illustration";
 import { messages, type TextKey } from "@/lib/i18n";
@@ -611,10 +611,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   const dest = new URLSearchParams(location.search).get(
                     "returnTo",
                   );
-                  location.href =
-                    dest && /^\/s\/[A-Za-z0-9_-]{32}$/.test(dest)
-                      ? dest
-                      : "/workspace";
+                  location.href = safeShareReturn(dest) ?? "/workspace";
                 });
               }}
             >
@@ -1211,7 +1208,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   value={
                     typeof location === "undefined"
                       ? ""
-                      : location.origin + sharePath(route.shareToken!, locale)
+                      : shareUrl(route.shareToken!, locale)
                   }
                 />
                 <button
@@ -1219,7 +1216,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   onClick={() =>
                     run(async () => {
                       await navigator.clipboard.writeText(
-                        location.origin + sharePath(route.shareToken!, locale),
+                        shareUrl(route.shareToken!, locale),
                       );
                       notify("copied");
                     })
@@ -1260,16 +1257,22 @@ function Workspace({ token, initialLocale }: AppProps) {
                 >
                   {t.publish}
                 </button>
-              ) : (
+              ) : null}
+              {route.shared && (
                 <button
                   className="button light full"
                   disabled={busy}
                   onClick={() =>
                     run(async () => {
                       await api("routes/" + route.id + "/share", "DELETE");
-                      setRoute(await api("routes/" + route.id));
+                      setRoute({
+                        ...route,
+                        shared: false,
+                        shareToken: undefined,
+                      });
                       await refresh();
                       setShareOpen(false);
+                      notify("shareRevoked");
                     })
                   }
                 >

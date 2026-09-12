@@ -9,6 +9,18 @@ export function sharePath(token: string, locale: Locale): string {
   return `/s/${encodeURIComponent(token)}?lang=${locale}`;
 }
 
+export function shareUrl(token: string, locale: Locale): string {
+  return `https://spiderroute.com/${encodeURIComponent(token)}?lang=${locale}`;
+}
+export function safeShareReturn(value: string | null): string | undefined {
+  if (!value) return;
+  return /^\/s\/(?:[A-Za-z0-9_-]{16}|[A-Za-z0-9_-]{32})(?:\?lang=(?:en|ru))?$/.test(
+    value,
+  )
+    ? value
+    : undefined;
+}
+
 export function sharedMetadata(token: string, locale: Locale): Metadata {
   const ru = locale === "ru";
   const title = ru
@@ -17,7 +29,7 @@ export function sharedMetadata(token: string, locale: Locale): Metadata {
   const description = ru
     ? "Посмотрите маршрут для велосипеда или самоката на карте, изучите заметки и сохраните копию в своей коллекции SpiderRoute."
     : "View a bike or scooter route on the map, read ride notes and save a copy to your SpiderRoute collection.";
-  const url = `https://app.spiderroute.com${sharePath(token, locale)}`;
+  const url = shareUrl(token, locale);
   return {
     title: { absolute: title },
     description,
@@ -26,8 +38,8 @@ export function sharedMetadata(token: string, locale: Locale): Metadata {
     alternates: {
       canonical: url,
       languages: {
-        en: `https://app.spiderroute.com${sharePath(token, "en")}`,
-        ru: `https://app.spiderroute.com${sharePath(token, "ru")}`,
+        en: shareUrl(token, "en"),
+        ru: shareUrl(token, "ru"),
       },
     },
     openGraph: {

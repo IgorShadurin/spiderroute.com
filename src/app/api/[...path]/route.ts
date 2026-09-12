@@ -7,6 +7,7 @@ import {
   createRoute,
   owned,
   publishRoute,
+  revokeShare,
   readShare,
   routeView,
   saveRoute,
@@ -108,7 +109,7 @@ async function handler(
         return json(
           sql
             .prepare(
-              "SELECT r.id,r.title,r.stats,r.updated_at,s.token FROM favorites f JOIN routes r ON r.id=f.route_id LEFT JOIN shares s ON s.route_id=r.id WHERE f.user_id=? ORDER BY r.updated_at DESC",
+              "SELECT r.id,r.title,r.stats,r.updated_at,COALESCE(l.token,s.token) AS token FROM favorites f JOIN routes r ON r.id=f.route_id LEFT JOIN shares s ON s.route_id=r.id LEFT JOIN share_links l ON l.route_id=r.id WHERE f.user_id=? ORDER BY r.updated_at DESC",
             )
             .all(user)
             .map((r: any) =>
@@ -179,7 +180,7 @@ async function handler(
           return json({ token: publishRoute(p[1], user, b.revision) });
         }
         if (method === "DELETE") {
-          sql.prepare("DELETE FROM shares WHERE route_id=?").run(p[1]);
+          revokeShare(p[1], user);
           return json({ ok: true });
         }
       }

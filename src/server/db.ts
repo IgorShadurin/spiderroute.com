@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { migrateShortShares } from "./share-tokens";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY,recipient TEXT NOT NULL,su
 CREATE TABLE IF NOT EXISTS delivery_events(id TEXT PRIMARY KEY,event TEXT NOT NULL,message_id TEXT,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS suppressions(email TEXT PRIMARY KEY,reason TEXT NOT NULL);
 `);
+migrateShortShares(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {
   const now = Math.floor(Date.now() / 1000);
   return sql.transaction(() => {

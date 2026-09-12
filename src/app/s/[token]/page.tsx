@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { readShare } from "@/server/routes";
 import App from "@/components/App";
 import { shareLocale, sharedMetadata } from "@/lib/sharing";
 export const dynamic = "force-dynamic";
@@ -12,6 +14,11 @@ export async function generateMetadata({ params, searchParams }: Props) {
   );
 }
 export default async function SharedPage({ params, searchParams }: Props) {
+  try {
+    readShare((await params).token);
+  } catch {
+    notFound();
+  }
   return (
     <App
       token={(await params).token}
