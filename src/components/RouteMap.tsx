@@ -114,11 +114,6 @@ export default function RouteMap({
               id: "osm",
               type: "raster",
               source: "osm",
-              paint: {
-                "raster-saturation": -0.85,
-                "raster-brightness-max": 0.55,
-                "raster-brightness-min": 0.03,
-              },
             },
           ],
         };

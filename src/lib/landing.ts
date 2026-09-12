@@ -17,7 +17,7 @@ export const landingCopy = {
     mapCaption:
       "A cycling example on Victoria Embankment, following the mapped cycleway.",
     mapAlt:
-      "Street map of central London with a lime route following Cycleway 3 from Westminster to Blackfriars along the north bank of the Thames.",
+      "Street map of central London with a coral route following Cycleway 3 from Westminster to Blackfriars along the north bank of the Thames.",
     mapSource: "View on OpenStreetMap",
     toolsTitle: "Edit the track. Add the ride details.",
     toolsIntro:
@@ -110,7 +110,7 @@ export const landingCopy = {
     mapCaption:
       "Пример веломаршрута по набережной Виктории вдоль велодорожки на карте.",
     mapAlt:
-      "Карта центра Лондона с лаймовой линией по велодорожке Cycleway 3 от Вестминстера до Блэкфрайарса вдоль северного берега Темзы.",
+      "Карта центра Лондона с коралловой линией по велодорожке Cycleway 3 от Вестминстера до Блэкфрайарса вдоль северного берега Темзы.",
     mapSource: "Посмотреть в OpenStreetMap",
     toolsTitle: "Редактируйте трек и добавляйте заметки.",
     toolsIntro:

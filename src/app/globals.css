@@ -1,5 +1,4 @@
 @import "@fontsource/oswald/latin-700.css";
-@import "@fontsource/oswald/cyrillic-700.css";
 @import "@fontsource/dm-sans/latin.css";
 @import "@fontsource/manrope/latin.css";
 @import "@fontsource/manrope/cyrillic.css";
@@ -2317,7 +2316,7 @@ select,
 }
 .ride-hero h1 {
   font-family: "Oswald", sans-serif;
-  font-size: clamp(66px, 7.8vw, 110px);
+  font-size: clamp(52px, 5.4vw, 76px);
   font-weight: 700;
   text-transform: uppercase;
   line-height: 1.03;
@@ -2394,7 +2393,6 @@ select,
   height: 100%;
   width: 100%;
   object-fit: contain;
-  filter: grayscale(1) invert(1) sepia(0.35) hue-rotate(65deg) brightness(0.7);
 }
 .london-route-line {
   position: absolute;
@@ -2506,7 +2504,7 @@ select,
     font-size: 10px;
   }
   .ride-hero h1 {
-    font-size: clamp(58px, 12vw, 84px);
+    font-size: clamp(42px, 10vw, 56px);
     letter-spacing: -1px;
   }
   .ride-hero-description {
@@ -2558,4 +2556,25 @@ select,
 }
 .route-note-popup .maplibregl-popup-content {
   color-scheme: light;
+}
+
+/* Cyrillic headings use native Manrope glyphs at a readable, quieter scale. */
+.ride-landing:lang(ru) .ride-hero h1,
+.ride-landing:lang(ru) .sport-route-sidebar h2,
+.ride-landing:lang(ru) .ride-section-intro h2,
+.ride-landing:lang(ru) .formats-heading h2,
+.ride-landing:lang(ru) .ride-faq h2,
+.ride-landing:lang(ru) .bottom-cta h2 {
+  font-family: Manrope, sans-serif;
+  text-transform: none;
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+}
+.ride-landing:lang(ru) .ride-hero h1 {
+  font-size: clamp(38px, 4.2vw, 58px);
+}
+@media (max-width: 700px) {
+  .ride-landing:lang(ru) .ride-hero h1 {
+    font-size: clamp(30px, 8vw, 42px);
+  }
 }

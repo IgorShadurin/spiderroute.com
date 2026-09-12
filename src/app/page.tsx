@@ -104,7 +104,7 @@ export default async function Home({ searchParams }: Props) {
     ],
   };
   return (
-    <div className="landing ride-landing">
+    <div className="landing ride-landing" lang={locale}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -184,37 +184,6 @@ export default async function Home({ searchParams }: Props) {
                 alt={t.mapAlt}
                 fetchPriority="high"
               />
-              <svg
-                className="london-route-line"
-                viewBox="0 0 1200 1120"
-                preserveAspectRatio="xMidYMid meet"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M150 955C169 780 181 615 220 548C255 470 277 410 323 361C393 297 452 275 527 246C640 204 701 198 810 199L893 199L895 191L990 191Q1016 193 1050 164"
-                  stroke="#d5ff39"
-                  strokeWidth="7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx="150"
-                  cy="955"
-                  r="13"
-                  fill="#d5ff39"
-                  stroke="#143522"
-                  strokeWidth="5"
-                />
-                <circle
-                  cx="1050"
-                  cy="164"
-                  r="13"
-                  fill="#d5ff39"
-                  stroke="#143522"
-                  strokeWidth="5"
-                />
-              </svg>
               <div className="london-map-heading">
                 <span>
                   <Bike size={17} />
