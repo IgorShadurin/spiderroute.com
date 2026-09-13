@@ -1,16 +1,23 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ExternalLink, Trash2, Youtube } from "lucide-react";
 import { normalizeYoutube, youtubeId } from "@/lib/route-details";
 export function RouteVideo({
   value,
   locale,
   onChange,
+  seek,
 }: {
+  seek?: { seconds: number; nonce: number } | null;
   value?: string | null;
   locale: string;
   onChange?: (url: string | null) => void;
 }) {
+  const player = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    if (seek)
+      player.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [seek]);
   const [draft, setDraft] = useState(value || "");
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -93,8 +100,9 @@ export function RouteVideo({
       {id && (
         <>
           <iframe
-            key={id}
-            src={`https://www.youtube-nocookie.com/embed/${id}`}
+            ref={player}
+            key={`${id}-${seek?.nonce ?? 0}`}
+            src={`https://www.youtube-nocookie.com/embed/${id}${seek ? `?start=${seek.seconds}&autoplay=1` : ""}`}
             title={locale === "ru" ? "Видео поездки" : "Ride video"}
             loading="lazy"
             referrerPolicy="strict-origin-when-cross-origin"

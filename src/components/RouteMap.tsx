@@ -8,7 +8,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Annotation, Geometry, MapConfig, Point } from "@/lib/types";
 import { privacyCircle } from "@/lib/geo";
 maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
-export type MapMode = "view" | "select" | "move" | "insert" | "draw";
+export type MapMode = "view" | "select" | "move" | "insert" | "pin" | "draw";
 export default function RouteMap({
   fullscreenView = false,
   onExitFullscreen,
@@ -22,6 +22,7 @@ export default function RouteMap({
   mode = "view",
   onSelect,
   onCoordinate,
+  onVideoSeek,
   fitKey = "",
   errorLabel = "Map background unavailable",
   locale = "en",
@@ -44,6 +45,7 @@ export default function RouteMap({
   mode?: MapMode;
   onSelect?: (id: string) => void;
   onCoordinate?: (lat: number, lon: number) => void;
+  onVideoSeek?: (seconds: number) => void;
   fitKey?: string;
   errorLabel?: string;
   locale?: "en" | "ru";
@@ -151,8 +153,39 @@ export default function RouteMap({
         });
         m.on("click", (e) => {
           const p = props.current;
-          if (p.mode === "draw" || p.mode === "insert") {
+          if (p.mode === "draw" || p.mode === "pin") {
             p.onCoordinate?.(e.lngLat.lat, e.lngLat.lng);
+            return;
+          }
+          if (p.mode === "insert") {
+            let best = 24;
+            let snapped: { x: number; y: number } | undefined;
+            for (const segment of p.geometry)
+              for (let i = 1; i < segment.length; i++) {
+                const a = m.project([segment[i - 1].lon, segment[i - 1].lat]);
+                const b = m.project([segment[i].lon, segment[i].lat]);
+                const dx = b.x - a.x,
+                  dy = b.y - a.y;
+                const t = Math.max(
+                  0,
+                  Math.min(
+                    1,
+                    ((e.point.x - a.x) * dx + (e.point.y - a.y) * dy) /
+                      (dx * dx + dy * dy || 1),
+                  ),
+                );
+                const x = a.x + t * dx,
+                  y = a.y + t * dy;
+                const d = Math.hypot(x - e.point.x, y - e.point.y);
+                if (d < best) {
+                  best = d;
+                  snapped = { x, y };
+                }
+              }
+            if (snapped) {
+              const point = m.unproject([snapped.x, snapped.y]);
+              p.onCoordinate?.(point.lat, point.lng);
+            }
             return;
           }
           if (p.mode === "view") return;
@@ -350,7 +383,7 @@ export default function RouteMap({
         props.current.onCoordinate?.(ll.lat, ll.lng);
       });
     }
-    m.getCanvas().style.cursor = ["draw", "insert"].includes(mode)
+    m.getCanvas().style.cursor = ["draw", "insert", "pin"].includes(mode)
       ? "crosshair"
       : mode === "view"
         ? "grab"
@@ -379,7 +412,8 @@ export default function RouteMap({
       const start = segment.findIndex((p) => p.id === annotation.startId),
         end = segment.findIndex((p) => p.id === annotation.endId);
       if (end < 0) return;
-      const point = segment[Math.floor((start + end) / 2)];
+      const point =
+        annotation.position ?? segment[Math.floor((start + end) / 2)];
       const button = document.createElement("button");
       button.className =
         "annotation-pin" + (start === end ? "" : " segment-pin");
@@ -387,6 +421,13 @@ export default function RouteMap({
       button.style.color = annotation.color;
       button.textContent = String(index + 1);
       button.title = annotation.text;
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (annotation.videoSeconds !== undefined && onVideoSeek) {
+          if (fullscreenView) onExitFullscreen?.();
+          onVideoSeek(annotation.videoSeconds);
+        }
+      });
       button.setAttribute("aria-label", `${index + 1}. ${annotation.text}`);
       const content = document.createElement("div");
       content.className = "annotation-popup";
@@ -396,7 +437,11 @@ export default function RouteMap({
       heading.textContent = `${index + 1} · ${locale === "ru" ? (start === end ? "Точка маршрута" : "Участок маршрута") : start === end ? "Route point" : "Route section"}`;
       const body = document.createElement("div");
       body.className = "annotation-popup-body";
-      body.textContent = annotation.text;
+      body.textContent =
+        annotation.text +
+        (annotation.videoSeconds !== undefined
+          ? ` · ▶ ${Math.floor(annotation.videoSeconds / 60)}:${String(annotation.videoSeconds % 60).padStart(2, "0")}`
+          : "");
       body.tabIndex = 0;
       const sizeBody = () => {
         body.style.maxHeight = `${Math.max(64, Math.min(240, m.getContainer().clientHeight / 2 - 90))}px`;
@@ -435,7 +480,7 @@ export default function RouteMap({
       for (const marker of noteMarkers.current.values()) marker.remove();
       noteMarkers.current.clear();
     };
-  }, [ready, geometry, annotations, locale]);
+  }, [ready, geometry, annotations, locale, onVideoSeek]);
   useEffect(() => {
     if (!focusAnnotation) return;
     const marker = noteMarkers.current.get(focusAnnotation.id);
@@ -500,6 +545,7 @@ export default function RouteMap({
               mode={mode}
               onSelect={onSelect}
               onCoordinate={onCoordinate}
+              onVideoSeek={onVideoSeek}
               fitKey={fitKey}
               errorLabel={errorLabel}
               locale={locale}

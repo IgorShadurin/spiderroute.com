@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { formatVideoTime } from "@/lib/video-time";
 import type { Annotation, Locale } from "@/lib/types";
 
 export default function AnnotationList({
@@ -44,7 +45,14 @@ export default function AnnotationList({
             >
               {index + 1}
             </span>
-            <p>{annotation.text}</p>
+            <p>
+              {annotation.text}
+              {annotation.videoSeconds !== undefined && (
+                <small className="annotation-time">
+                  ▶ {formatVideoTime(annotation.videoSeconds)}
+                </small>
+              )}
+            </p>
             <span
               className="annotation-kind"
               aria-label={

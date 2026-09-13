@@ -51,7 +51,7 @@ export const messages = {
     drawHelp:
       "Click or tap the map to add points. Finish when your route has at least two points.",
     editHelp:
-      "Tap the route to select a point. Drag the selected point in Move mode, or insert a point after it.",
+      "Select a point on the route, or add a marker.",
     selected: "Selected point",
     removePoint: "Remove point",
     range: "Select section end",
@@ -199,7 +199,7 @@ export const messages = {
     drawHelp:
       "Нажимайте на карту, чтобы добавлять точки. Для завершения нужны хотя бы две точки.",
     editHelp:
-      "Нажмите на маршрут, чтобы выбрать точку. В режиме перемещения перетащите её или вставьте новую после неё.",
+      "Выберите точку на маршруте или добавьте метку.",
     selected: "Выбранная точка",
     removePoint: "Удалить точку",
     range: "Выбрать конец участка",

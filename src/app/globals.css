@@ -3331,3 +3331,36 @@ html[data-theme] .toast.toast-success button {
   margin-top: 16px;
   font-size: 13px;
 }
+
+.insert-menu {
+  position: static;
+}
+.insert-menu > div {
+  min-width: 0;
+  width: min(280px, calc(100vw - 80px));
+  left: 0;
+  right: auto;
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+.insert-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border-radius: 6px;
+}
+.insert-menu button:hover {
+  background: var(--paper);
+}
+.insert-menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.annotation-time {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+  opacity: 0.8;
+}

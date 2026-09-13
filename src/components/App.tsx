@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { flushSync } from "react-dom";
 import {
@@ -38,6 +38,7 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import { parseVideoTime, formatVideoTime } from "@/lib/video-time";
 import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
 import { RouteVideo } from "./RouteVideo";
@@ -127,6 +128,19 @@ function Workspace({ token, initialLocale }: AppProps) {
     [noteText, setNoteText] = useState(""),
     [noteColor, setNoteColor] = useState("#ed704c"),
     [providers, setProviders] = useState<any>({});
+  const [insertTimed, setInsertTimed] = useState(false);
+  const [notePosition, setNotePosition] = useState<Annotation["position"]>();
+  const [noteTime, setNoteTime] = useState("");
+  const [timeRequired, setTimeRequired] = useState(false);
+  const [videoSeek, setVideoSeek] = useState<{
+    seconds: number;
+    nonce: number;
+  } | null>(null);
+  const seekVideo = useCallback(
+    (seconds: number) => setVideoSeek({ seconds, nonce: Date.now() }),
+    [],
+  );
+  const insertionMenu = useRef<HTMLDetailsElement>(null);
   const routeRef = useRef<RouteData | null>(null);
   const dirtyRef = useRef(false);
   const saveFlight = useRef<Promise<void> | null>(null);
@@ -159,15 +173,21 @@ function Workspace({ token, initialLocale }: AppProps) {
   const downloadRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     const outside = (event: PointerEvent) => {
-      for (const menu of [downloadRef.current, routeMenuRef.current]) {
+      for (const menu of [
+        downloadRef.current,
+        routeMenuRef.current,
+        insertionMenu.current,
+      ]) {
         if (menu?.open && !event.composedPath().includes(menu))
           menu.open = false;
       }
     };
     const escape = (event: KeyboardEvent) => {
-      const menu = routeMenuRef.current?.open
-        ? routeMenuRef.current
-        : downloadRef.current;
+      const menu = insertionMenu.current?.open
+        ? insertionMenu.current
+        : routeMenuRef.current?.open
+          ? routeMenuRef.current
+          : downloadRef.current;
       if (event.key === "Escape" && menu?.open) {
         menu.open = false;
         menu.querySelector("summary")?.focus();
@@ -395,6 +415,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     }
   };
   const accept = (r: RouteData, navigate = true) => {
+    setVideoSeek(null);
     if (navigate) setRouteUrl(r.id);
     setSaveFailed(false);
     setOverviewOpen(false);
@@ -497,6 +518,29 @@ function Workspace({ token, initialLocale }: AppProps) {
   const coordinate = (lat: number, lon: number) => {
     lon = ((lon + 540) % 360) - 180;
     if (!route) return;
+    if (mode === "insert" || mode === "pin") {
+      const points = route.geometry.flat();
+      const closest = points.reduce(
+        (best, p) =>
+          Math.hypot(p.lat - lat, p.lon - lon) <
+          Math.hypot(best.lat - lat, best.lon - lon)
+            ? p
+            : best,
+        points[0],
+      );
+      if (!closest) return;
+      setSelected(closest.id);
+      setEnd(undefined);
+      setNoteId(undefined);
+      setNoteText(locale === "ru" ? "Метка" : "Marker");
+      setNoteColor("#ed704c");
+      setNotePosition({ lat, lon });
+      setNoteTime("");
+      setTimeRequired(insertTimed && !!route.youtubeUrl);
+      setNoteOpen(true);
+      setMode("view");
+      return;
+    }
     const g = structuredClone(route.geometry),
       p = { id: uid(), lat, lon };
     if (mode === "draw") {
@@ -507,7 +551,6 @@ function Workspace({ token, initialLocale }: AppProps) {
       if (si < 0) return;
       const pi = g[si].findIndex((p) => p.id === selected);
       if (mode === "move") g[si][pi] = { ...p, id: selected! };
-      else if (mode === "insert") g[si].splice(pi + 1, 0, p);
     }
     updateGeometry(g);
   };
@@ -734,13 +777,18 @@ function Workspace({ token, initialLocale }: AppProps) {
                 geometry={publicRoute.geometry}
                 annotations={publicRoute.annotations}
                 focusAnnotation={focusedAnnotation}
+                onVideoSeek={publicRoute.youtubeUrl ? seekVideo : undefined}
                 fitKey={token}
                 errorLabel={t.mapUnavailable}
               />
             </div>
             {publicRoute.youtubeUrl && (
               <div className="public-video">
-                <RouteVideo value={publicRoute.youtubeUrl} locale={locale} />
+                <RouteVideo
+                  value={publicRoute.youtubeUrl}
+                  locale={locale}
+                  seek={videoSeek}
+                />
               </div>
             )}
             {publicRoute.annotations.length > 0 && (
@@ -936,6 +984,11 @@ function Workspace({ token, initialLocale }: AppProps) {
   const selectedPoint = route?.geometry.flat().find((p) => p.id === selected);
   const shownGeometry = transformPreview || route?.geometry || [];
   const openNote = (a?: Annotation) => {
+    setNotePosition(a?.position);
+    setNoteTime(
+      a?.videoSeconds !== undefined ? formatVideoTime(a.videoSeconds) : "",
+    );
+    setTimeRequired(false);
     setNoteId(a?.id);
     setNoteText(a?.text || "");
     setNoteColor(a?.color || "#ed704c");
@@ -1321,6 +1374,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   mode={mode}
                   onSelect={selectPoint}
                   onCoordinate={coordinate}
+                  onVideoSeek={route.youtubeUrl ? seekVideo : undefined}
                   fitKey={route.id}
                   errorLabel={t.mapUnavailable}
                 />
@@ -1347,7 +1401,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                         ["view", t.view, Route],
                         ["select", t.select, MousePointer2],
                         ["move", t.move, Move],
-                        ["insert", t.insert, Plus],
                       ].map(([m, label, Icon]) => {
                         const I = Icon as typeof Route;
                         return (
@@ -1365,6 +1418,72 @@ function Workspace({ token, initialLocale }: AppProps) {
                           </button>
                         );
                       })}
+                      <details
+                        ref={insertionMenu}
+                        className="download-menu insert-menu"
+                      >
+                        <summary
+                          className="tool-button"
+                          aria-label={
+                            locale === "ru" ? "Добавить метку" : "Add marker"
+                          }
+                        >
+                          <Plus size={17} />
+                          <span>
+                            {locale === "ru" ? "Добавить метку" : "Add marker"}
+                          </span>
+                        </summary>
+                        <div>
+                          {[
+                            [
+                              "insert",
+                              false,
+                              locale === "ru" ? "На маршруте" : "On the route",
+                            ],
+                            [
+                              "insert",
+                              true,
+                              locale === "ru"
+                                ? "На маршруте · время видео"
+                                : "On the route · video time",
+                            ],
+                            [
+                              "pin",
+                              false,
+                              locale === "ru"
+                                ? "В любом месте"
+                                : "Anywhere on the map",
+                            ],
+                            [
+                              "pin",
+                              true,
+                              locale === "ru"
+                                ? "В любом месте · время видео"
+                                : "Anywhere · video time",
+                            ],
+                          ].map(([placement, timed, label]) => (
+                            <button
+                              key={String(label)}
+                              disabled={!!timed && !route.youtubeUrl}
+                              title={
+                                timed && !route.youtubeUrl
+                                  ? locale === "ru"
+                                    ? "Сначала добавьте видео"
+                                    : "Add a video first"
+                                  : undefined
+                              }
+                              onClick={() => {
+                                setMode(placement as MapMode);
+                                setInsertTimed(!!timed);
+                                if (insertionMenu.current)
+                                  insertionMenu.current.open = false;
+                              }}
+                            >
+                              {String(label)}
+                            </button>
+                          ))}
+                        </div>
+                      </details>
                     </>
                   )}
                   <div className="toolbar-divider" />
@@ -1402,7 +1521,17 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </div>
                 {mode !== "view" && mode !== "draw" && (
                   <div className="map-hint">
-                    {choosingEnd ? t.range : t.editHelp}
+                    {choosingEnd
+                      ? t.range
+                      : mode === "insert"
+                        ? locale === "ru"
+                          ? "Нажмите на маршрут, чтобы поставить метку."
+                          : "Click the route to place a marker."
+                        : mode === "pin"
+                          ? locale === "ru"
+                            ? "Нажмите на карту, чтобы поставить метку."
+                            : "Click anywhere on the map to place a marker."
+                          : t.editHelp}
                   </div>
                 )}
                 {selectedPoint && mode !== "view" && (
@@ -1508,8 +1637,12 @@ function Workspace({ token, initialLocale }: AppProps) {
                 <RouteVideo
                   key={route.id}
                   value={route.youtubeUrl}
+                  seek={videoSeek}
                   locale={locale}
-                  onChange={(url) => update({ ...route, youtubeUrl: url })}
+                  onChange={(url) => {
+                    setVideoSeek(null);
+                    update({ ...route, youtubeUrl: url });
+                  }}
                 />
                 <section className="notes-section">
                   <div className="notes-heading">
@@ -1832,6 +1965,31 @@ function Workspace({ token, initialLocale }: AppProps) {
             <p id="note-length" className="note-length">
               {noteText.length} / {NOTE_MAX_LENGTH} {t.characters}
             </p>
+            {route.youtubeUrl && (
+              <label>
+                {locale === "ru"
+                  ? "Время в видео (м:с или ч:м:с)"
+                  : "Video time (m:ss or h:mm:ss)"}
+                <input
+                  value={noteTime}
+                  placeholder="1:30"
+                  maxLength={10}
+                  onChange={(e) => setNoteTime(e.target.value)}
+                  aria-invalid={
+                    (timeRequired || !!noteTime) &&
+                    parseVideoTime(noteTime) === undefined
+                  }
+                />
+                {(timeRequired || !!noteTime) &&
+                  parseVideoTime(noteTime) === undefined && (
+                    <span role="alert">
+                      {locale === "ru"
+                        ? "Укажите время, например 1:30 (до 24 часов)."
+                        : "Enter a time such as 1:30 (up to 24 hours)."}
+                    </span>
+                  )}
+              </label>
+            )}
             <label className="color-field">
               {t.color}
               <input
@@ -1856,15 +2014,30 @@ function Workspace({ token, initialLocale }: AppProps) {
             </div>
             <button
               className="button dark full"
-              disabled={!selected || !validNoteText(noteText)}
+              disabled={
+                !selected ||
+                !validNoteText(noteText) ||
+                ((timeRequired || !!noteTime) &&
+                  parseVideoTime(noteTime) === undefined)
+              }
               onClick={() => {
-                if (!selected || !validNoteText(noteText)) return;
+                if (
+                  !selected ||
+                  !validNoteText(noteText) ||
+                  ((timeRequired || !!noteTime) &&
+                    parseVideoTime(noteTime) === undefined)
+                )
+                  return;
                 const a = {
                   id: noteId || uid(),
                   startId: selected!,
                   endId: end || selected!,
                   text: noteText.trim(),
                   color: noteColor,
+                  ...(notePosition ? { position: notePosition } : {}),
+                  ...(route.youtubeUrl && noteTime
+                    ? { videoSeconds: parseVideoTime(noteTime) }
+                    : {}),
                 };
                 update({
                   ...route,

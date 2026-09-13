@@ -94,6 +94,22 @@ export function validateAnnotations(value: unknown, g: Geometry): Annotation[] {
       !/^#[0-9a-f]{6}$/i.test(a.color)
     )
       throw Error("invalidAnnotations");
+    if (
+      a.position !== undefined &&
+      (!a.position ||
+        !Number.isFinite(a.position.lat) ||
+        Math.abs(a.position.lat) > 85 ||
+        !Number.isFinite(a.position.lon) ||
+        Math.abs(a.position.lon) > 180)
+    )
+      throw Error("invalidAnnotations");
+    if (
+      a.videoSeconds !== undefined &&
+      (!Number.isInteger(a.videoSeconds) ||
+        a.videoSeconds < 0 ||
+        a.videoSeconds > 86400)
+    )
+      throw Error("invalidAnnotations");
     ids.add(a.id);
     return {
       id: a.id,
@@ -101,6 +117,10 @@ export function validateAnnotations(value: unknown, g: Geometry): Annotation[] {
       endId: a.endId,
       text: a.text,
       color: a.color,
+      ...(a.position
+        ? { position: { lat: a.position.lat, lon: a.position.lon } }
+        : {}),
+      ...(a.videoSeconds !== undefined ? { videoSeconds: a.videoSeconds } : {}),
     };
   });
 }
@@ -253,6 +273,15 @@ export function publicSnapshot(
   if (!output.length) throw Error("nothingToShare");
   const publicAnnotations: Annotation[] = [];
   for (const a of annotations) {
+    if (
+      a.position &&
+      zones.some(
+        ([center, radius]) =>
+          radius > 0 &&
+          distance(center, { id: a.id, ...a.position! }) <= radius + 1,
+      )
+    )
+      continue;
     const start = originalToPublic.get(a.startId),
       end = originalToPublic.get(a.endId);
     if (!start || !end) continue;
