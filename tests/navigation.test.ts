@@ -23,7 +23,7 @@ test("private route URLs and legacy navigation resolve without affecting public 
     null,
   );
   const shared = sharePath("abcdefghijklmnop", "ru");
-  assert.equal(shared, "/s/abcdefghijklmnop?lang=ru");
+  assert.equal(shared, "/s/abcdefghijklmnop/ru");
   assert.equal(safeShareReturn(shared), shared);
 });
 
@@ -40,6 +40,37 @@ test("old private URLs redirect to clean paths while shared language stays intac
     new NextRequest("https://app.spiderroute.com/s/abcdefghijklmnop?lang=ru"),
   );
   assert.equal(result.headers.get("location"), null);
+  assert.equal(
+    result.headers.get("x-middleware-request-x-spiderroute-locale"),
+    "ru",
+  );
+});
+
+test("app workspace redirects home while keeping authentication and old route links intact", () => {
+  for (const suffix of [
+    "",
+    "?returnTo=%2Fs%2Fabcdefghijklmnop%2Fru",
+    "?error=accountLink",
+    "?lang=ru",
+  ]) {
+    const result = proxy(
+      new NextRequest(`https://app.spiderroute.com/workspace${suffix}`),
+    );
+    assert.equal(
+      result.headers.get("location"),
+      `https://app.spiderroute.com/${suffix}`,
+    );
+  }
+  for (const address of [
+    "https://app.spiderroute.com/",
+    "https://spiderroute.com/",
+    "http://localhost:3210/workspace",
+  ]) {
+    assert.equal(proxy(new NextRequest(address)).headers.get("location"), null);
+  }
+  const result = proxy(
+    new NextRequest("https://app.spiderroute.com/s/abcdefghijklmnop/ru"),
+  );
   assert.equal(
     result.headers.get("x-middleware-request-x-spiderroute-locale"),
     "ru",

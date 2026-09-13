@@ -97,11 +97,13 @@ type AppProps = {
   token?: string;
   initialLocale?: Locale;
   initialRouteId?: string;
+  homeHref?: string;
 };
 export default function App({
   token,
   initialLocale,
   initialRouteId,
+  homeHref = "/",
 }: AppProps) {
   return (
     <SessionProvider>
@@ -109,11 +111,17 @@ export default function App({
         token={token}
         initialLocale={initialLocale}
         initialRouteId={initialRouteId}
+        homeHref={homeHref}
       />
     </SessionProvider>
   );
 }
-function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
+function Workspace({
+  token,
+  initialLocale,
+  initialRouteId,
+  homeHref = "/",
+}: AppProps) {
   const { data: session, status } = useSession();
   const { theme, applyTheme } = useTheme();
   const [locale, setLocale] = useState<Locale>(initialLocale ?? "en"),
@@ -211,7 +219,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
   };
   const setRouteUrl = (id?: string, replace = false) => {
     const url = new URL(location.href);
-    url.pathname = id && id !== "new" ? privateRoutePath(id) : "/workspace";
+    url.pathname = id && id !== "new" ? privateRoutePath(id) : homeHref;
     url.search = "";
     if (url.href !== location.href)
       window.history[replace ? "replaceState" : "pushState"](
@@ -493,8 +501,10 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
     setLocale(l);
     rememberLanguage(l);
     const target = new URL(location.href);
-    if (token) target.searchParams.set("lang", l);
-    else target.searchParams.delete("lang");
+    if (token) {
+      target.pathname = sharePath(token, l);
+      target.search = "";
+    } else target.searchParams.delete("lang");
     window.history.replaceState(null, "", target.pathname + target.search);
   };
   const changeLocale = () => {
@@ -806,7 +816,8 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
     run(async () => {
       if (!session) {
         location.href =
-          "/workspace?returnTo=" +
+          homeHref +
+          "?returnTo=" +
           encodeURIComponent(sharePath(token!, locale));
         return;
       }
@@ -844,7 +855,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
     </details>
   );
   const workspaceHref =
-    "/workspace" +
+    homeHref +
     (!session && token
       ? "?returnTo=" + encodeURIComponent(sharePath(token, locale))
       : "");
@@ -882,7 +893,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
         className={`public-shell${publicRoute?.youtubeUrl ? " has-video" : ""}`}
       >
         <header className="app-header">
-          <a href="/workspace">
+          <a href={homeHref}>
             <Brand />
           </a>
           <div>
@@ -928,7 +939,8 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
                   onError={() => notify("favoriteError")}
                   onSignIn={() => {
                     location.href =
-                      "/workspace?returnTo=" +
+                      homeHref +
+                      "?returnTo=" +
                       encodeURIComponent(sharePath(token!, locale));
                   }}
                 />
@@ -1051,7 +1063,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
     return (
       <div className="signin-shell">
         <header className="site-header">
-          <a href="/workspace">
+          <a href={homeHref}>
             <Brand />
           </a>
           <nav
@@ -1213,7 +1225,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
         >
           <Menu size={22} />
         </button>
-        <a href="/workspace">
+        <a href={homeHref}>
           <Brand />
         </a>
         <div>

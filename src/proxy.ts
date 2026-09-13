@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 export function proxy(req: NextRequest) {
-  const host = (req.headers.get("host") || "").split(":")[0];
+  const host = (req.headers.get("host") || req.nextUrl.hostname).split(":")[0];
   if (host === "www.spiderroute.com")
     return NextResponse.redirect(
       new URL(
@@ -35,11 +35,19 @@ export function proxy(req: NextRequest) {
     target.search = "";
     return NextResponse.redirect(target, 307);
   }
+  if (host === "app.spiderroute.com" && req.nextUrl.pathname === "/workspace") {
+    const target = req.nextUrl.clone();
+    target.pathname = "/";
+    return NextResponse.redirect(target, 307);
+  }
   const requestHeaders = new Headers(req.headers);
+  const sharedPathLocale = /^\/s\/[^/]+\/(en|ru)\/?$/.exec(
+    req.nextUrl.pathname,
+  )?.[1];
   requestHeaders.set(
     "x-spiderroute-locale",
     req.nextUrl.pathname.startsWith("/s/")
-      ? req.nextUrl.searchParams.get("lang") === "ru"
+      ? (sharedPathLocale ?? req.nextUrl.searchParams.get("lang")) === "ru"
         ? "ru"
         : "en"
       : host.startsWith("ru.")

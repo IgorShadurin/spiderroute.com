@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { readShare } from "@/server/routes";
+import { workspaceHomePath } from "@/server/workspace-page";
 import App from "@/components/App";
 import { shareLocale, sharedMetadata } from "@/lib/sharing";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ export default async function SharedPage({ params, searchParams }: Props) {
   }
   return (
     <App
+      homeHref={await workspaceHomePath()}
       token={(await params).token}
       initialLocale={shareLocale((await searchParams).lang)}
     />

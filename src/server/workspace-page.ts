@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 import { sql } from "./db";
@@ -38,4 +38,8 @@ export async function workspaceMetadata(routeId?: string) {
     title: { absolute: title },
     robots: { index: false, follow: false },
   };
+}
+
+export async function workspaceHomePath() {
+  return (await headers()).get("host")?.startsWith("app.") ? "/" : "/workspace";
 }

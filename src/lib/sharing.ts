@@ -6,15 +6,15 @@ export function shareLocale(value: string | string[] | undefined): Locale {
 }
 
 export function sharePath(token: string, locale: Locale): string {
-  return `/s/${encodeURIComponent(token)}?lang=${locale}`;
+  return `/s/${encodeURIComponent(token)}/${locale}`;
 }
 
 export function shareUrl(token: string, locale: Locale): string {
-  return `https://spiderroute.com/${encodeURIComponent(token)}?lang=${locale}`;
+  return `https://spiderroute.com/${encodeURIComponent(token)}/${locale}`;
 }
 export function safeShareReturn(value: string | null): string | undefined {
   if (!value) return;
-  return /^\/s\/(?:[A-Za-z0-9_-]{16}|[A-Za-z0-9_-]{32})(?:\?lang=(?:en|ru))?$/.test(
+  return /^\/s\/(?:[A-Za-z0-9_-]{16}|[A-Za-z0-9_-]{32})(?:\/(?:en|ru)|\?lang=(?:en|ru))?$/.test(
     value,
   )
     ? value

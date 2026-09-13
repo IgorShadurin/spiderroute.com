@@ -83,7 +83,7 @@ export default async function Home({ searchParams }: Props) {
   }
   const app = local
     ? `/workspace?lang=${locale}`
-    : `https://app.spiderroute.com/workspace?lang=${locale}`;
+    : `https://app.spiderroute.com/?lang=${locale}`;
   const url = ru ? "https://ru.spiderroute.com" : "https://spiderroute.com";
   const icons = [PencilLine, MapPin, ShieldCheck, Copy];
   const structuredData = {
