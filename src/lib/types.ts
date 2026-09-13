@@ -16,6 +16,7 @@ export type Annotation = {
   color: string;
   position?: { lat: number; lon: number };
   videoSeconds?: number;
+  videoEndSeconds?: number;
 };
 export type Stats = {
   distance: number;

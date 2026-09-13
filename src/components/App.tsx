@@ -41,7 +41,11 @@ import {
   PenLine,
 } from "lucide-react";
 import { sortLibrary, libraryDate, type LibrarySort } from "@/lib/library-sort";
-import { parseVideoTime, formatVideoTime } from "@/lib/video-time";
+import {
+  parseVideoTime,
+  formatVideoTime,
+  validVideoTimes,
+} from "@/lib/video-time";
 import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
 import { RouteVideo } from "./RouteVideo";
@@ -129,24 +133,40 @@ function Workspace({ token, initialLocale }: AppProps) {
     [noteOpen, setNoteOpen] = useState(false),
     [noteId, setNoteId] = useState<string>(),
     [noteText, setNoteText] = useState(""),
-    [noteColor, setNoteColor] = useState("#ed704c"),
+    [noteColor, setNoteColor] = useState("#3b82f6"),
     [providers, setProviders] = useState<any>({});
   const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [sorts, setSorts] = useState<
     Record<"routes" | "favorites", LibrarySort>
   >({ routes: "date-desc", favorites: "date-desc" });
+  const [segmentStart, setSegmentStart] = useState<string>();
+  const [noteEndTime, setNoteEndTime] = useState("");
   const [insertTimed, setInsertTimed] = useState(false);
   const [notePosition, setNotePosition] = useState<Annotation["position"]>();
   const [noteTime, setNoteTime] = useState("");
   const [timeRequired, setTimeRequired] = useState(false);
   const [videoSeek, setVideoSeek] = useState<{
     seconds: number;
+    endSeconds?: number;
     nonce: number;
   } | null>(null);
   const seekVideo = useCallback(
-    (seconds: number) => setVideoSeek({ seconds, nonce: Date.now() }),
+    (seconds: number, endSeconds?: number) =>
+      setVideoSeek({ seconds, endSeconds, nonce: Date.now() }),
     [],
   );
+  useEffect(() => {
+    if (mode !== "segment") return;
+    const cancel = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setSegmentStart(undefined);
+      setSelected(undefined);
+      setEnd(undefined);
+      setMode("view");
+    };
+    document.addEventListener("keydown", cancel);
+    return () => document.removeEventListener("keydown", cancel);
+  }, [mode]);
   const insertionMenu = useRef<HTMLDetailsElement>(null);
   const routeRef = useRef<RouteData | null>(null);
   const dirtyRef = useRef(false);
@@ -439,6 +459,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     }
   };
   const accept = (r: RouteData, navigate = true) => {
+    setSegmentStart(undefined);
     setVideoSeek(null);
     if (navigate) setRouteUrl(r.id);
     setSaveFailed(false);
@@ -539,9 +560,40 @@ function Workspace({ token, initialLocale }: AppProps) {
       setEnd(undefined);
     }
   };
-  const coordinate = (lat: number, lon: number) => {
+  const coordinate = (lat: number, lon: number, anchorId?: string) => {
     lon = ((lon + 540) % 360) - 180;
     if (!route) return;
+    if (mode === "segment") {
+      if (!anchorId) return;
+      if (!segmentStart) {
+        setSegmentStart(anchorId);
+        setSelected(anchorId);
+        setEnd(undefined);
+        return;
+      }
+      if (
+        anchorId === segmentStart ||
+        !route.geometry.some(
+          (s) =>
+            s.some((p) => p.id === segmentStart) &&
+            s.some((p) => p.id === anchorId),
+        )
+      )
+        return;
+      setSelected(segmentStart);
+      setEnd(anchorId);
+      setSegmentStart(undefined);
+      setNoteId(undefined);
+      setNotePosition(undefined);
+      setNoteText(locale === "ru" ? "Участок" : "Segment");
+      setNoteColor("#3b82f6");
+      setNoteTime("");
+      setNoteEndTime("");
+      setTimeRequired(insertTimed && !!route.youtubeUrl);
+      setNoteOpen(true);
+      setMode("view");
+      return;
+    }
     if (mode === "insert" || mode === "pin") {
       const points = route.geometry.flat();
       const closest = points.reduce(
@@ -557,9 +609,10 @@ function Workspace({ token, initialLocale }: AppProps) {
       setEnd(undefined);
       setNoteId(undefined);
       setNoteText(locale === "ru" ? "Метка" : "Marker");
-      setNoteColor("#ed704c");
+      setNoteColor("#3b82f6");
       setNotePosition({ lat, lon });
       setNoteTime("");
+      setNoteEndTime("");
       setTimeRequired(insertTimed && !!route.youtubeUrl);
       setNoteOpen(true);
       setMode("view");
@@ -593,6 +646,7 @@ function Workspace({ token, initialLocale }: AppProps) {
       updatedAt: new Date().toISOString(),
     };
     accept(r);
+    setSegmentStart(undefined);
     setMode("draw");
   };
   const upload = async (file: File) => {
@@ -1008,6 +1062,11 @@ function Workspace({ token, initialLocale }: AppProps) {
   const selectedPoint = route?.geometry.flat().find((p) => p.id === selected);
   const shownGeometry = transformPreview || route?.geometry || [];
   const openNote = (a?: Annotation) => {
+    setNoteEndTime(
+      a?.videoEndSeconds !== undefined
+        ? formatVideoTime(a.videoEndSeconds)
+        : "",
+    );
     setNotePosition(a?.position);
     setNoteTime(
       a?.videoSeconds !== undefined ? formatVideoTime(a.videoSeconds) : "",
@@ -1015,7 +1074,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     setTimeRequired(false);
     setNoteId(a?.id);
     setNoteText(a?.text || "");
-    setNoteColor(a?.color || "#ed704c");
+    setNoteColor(a?.color || "#3b82f6");
     if (a) {
       setSelected(a.startId);
       setEnd(a.endId);
@@ -1502,6 +1561,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                         const I = Icon as typeof Route;
                         return (
                           <button
+                            disabled={!!segmentStart}
                             key={String(m)}
                             className={
                               "tool-button " + (mode === m ? "active" : "")
@@ -1522,6 +1582,10 @@ function Workspace({ token, initialLocale }: AppProps) {
                       >
                         <summary
                           className="tool-button"
+                          aria-disabled={!!segmentStart}
+                          onClick={(event) => {
+                            if (segmentStart) event.preventDefault();
+                          }}
                           aria-label={
                             locale === "ru" ? "Добавить метку" : "Add marker"
                           }
@@ -1564,10 +1628,26 @@ function Workspace({ token, initialLocale }: AppProps) {
                                 ? "В любом месте · время видео"
                                 : "Anywhere · video time",
                             ],
+                            [
+                              "segment",
+                              false,
+                              locale === "ru"
+                                ? "Участок маршрута"
+                                : "Route segment",
+                            ],
+                            [
+                              "segment",
+                              true,
+                              locale === "ru"
+                                ? "Участок · время видео"
+                                : "Segment · video time",
+                            ],
                           ].map(([placement, timed, label]) => (
                             <button
                               key={String(label)}
-                              disabled={!!timed && !route.youtubeUrl}
+                              disabled={
+                                !!segmentStart || (!!timed && !route.youtubeUrl)
+                              }
                               title={
                                 timed && !route.youtubeUrl
                                   ? locale === "ru"
@@ -1576,6 +1656,10 @@ function Workspace({ token, initialLocale }: AppProps) {
                                   : undefined
                               }
                               onClick={() => {
+                                setSegmentStart(undefined);
+                                setSelected(undefined);
+                                setEnd(undefined);
+                                setChoosingEnd(false);
                                 setMode(placement as MapMode);
                                 setInsertTimed(!!timed);
                                 if (insertionMenu.current)
@@ -1586,7 +1670,9 @@ function Workspace({ token, initialLocale }: AppProps) {
                                 className="insert-option-icons"
                                 aria-hidden="true"
                               >
-                                {placement === "insert" ? (
+                                {placement === "segment" ? (
+                                  <Scissors size={16} />
+                                ) : placement === "insert" ? (
                                   <Route size={16} />
                                 ) : (
                                   <MapPin size={16} />
@@ -1605,7 +1691,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                     className="icon-button"
                     aria-label={t.undo}
                     title={t.undo}
-                    disabled={!history.length}
+                    disabled={!!segmentStart || !history.length}
                     onClick={() => {
                       setFuture((f) => [route, ...f]);
                       setRoute({
@@ -1622,7 +1708,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                     className="icon-button"
                     aria-label={t.redo}
                     title={t.redo}
-                    disabled={!future.length}
+                    disabled={!!segmentStart || !future.length}
                     onClick={() => {
                       setHistory((h) => [...h, route]);
                       setRoute({ ...future[0], revision: route.revision });
@@ -1635,20 +1721,41 @@ function Workspace({ token, initialLocale }: AppProps) {
                 </div>
                 {mode !== "view" && mode !== "draw" && (
                   <div className="map-hint">
-                    {choosingEnd
-                      ? t.range
-                      : mode === "insert"
-                        ? locale === "ru"
-                          ? "Нажмите на маршрут, чтобы поставить метку."
-                          : "Click the route to place a marker."
-                        : mode === "pin"
+                    {mode === "segment"
+                      ? locale === "ru"
+                        ? segmentStart
+                          ? "Выберите конец участка на том же маршруте."
+                          : "Выберите начало участка на маршруте."
+                        : segmentStart
+                          ? "Choose the end on the same route section."
+                          : "Choose the segment start on the route."
+                      : choosingEnd
+                        ? t.range
+                        : mode === "insert"
                           ? locale === "ru"
-                            ? "Нажмите на карту, чтобы поставить метку."
-                            : "Click anywhere on the map to place a marker."
-                          : t.editHelp}
+                            ? "Нажмите на маршрут, чтобы поставить метку."
+                            : "Click the route to place a marker."
+                          : mode === "pin"
+                            ? locale === "ru"
+                              ? "Нажмите на карту, чтобы поставить метку."
+                              : "Click anywhere on the map to place a marker."
+                            : t.editHelp}
+                    {mode === "segment" && (
+                      <button
+                        className="segment-cancel"
+                        onClick={() => {
+                          setSegmentStart(undefined);
+                          setSelected(undefined);
+                          setEnd(undefined);
+                          setMode("view");
+                        }}
+                      >
+                        {t.cancel}
+                      </button>
+                    )}
                   </div>
                 )}
-                {selectedPoint && mode !== "view" && (
+                {selectedPoint && mode !== "view" && mode !== "segment" && (
                   <div className="point-panel">
                     <div>
                       <strong>{end ? t.segments : t.selected}</strong>
@@ -2101,8 +2208,12 @@ function Workspace({ token, initialLocale }: AppProps) {
             {route.youtubeUrl && (
               <label>
                 {locale === "ru"
-                  ? "Время в видео (м:с или ч:м:с)"
-                  : "Video time (m:ss or h:mm:ss)"}
+                  ? end && end !== selected
+                    ? "Начало в видео (м:с или ч:м:с)"
+                    : "Время в видео (м:с или ч:м:с)"
+                  : end && end !== selected
+                    ? "Video start (m:ss or h:mm:ss)"
+                    : "Video time (m:ss or h:mm:ss)"}
                 <input
                   value={noteTime}
                   placeholder="1:30"
@@ -2123,6 +2234,34 @@ function Workspace({ token, initialLocale }: AppProps) {
                   )}
               </label>
             )}
+            {route.youtubeUrl && end && end !== selected && (
+              <label>
+                {locale === "ru"
+                  ? "Конец в видео (м:с или ч:м:с)"
+                  : "Video end (m:ss or h:mm:ss)"}
+                <input
+                  value={noteEndTime}
+                  placeholder="2:30"
+                  maxLength={10}
+                  onChange={(e) => setNoteEndTime(e.target.value)}
+                  aria-invalid={
+                    !validVideoTimes(noteTime, noteEndTime, timeRequired, true)
+                  }
+                />
+                {!validVideoTimes(
+                  noteTime,
+                  noteEndTime,
+                  timeRequired,
+                  true,
+                ) && (
+                  <span role="alert">
+                    {locale === "ru"
+                      ? "Укажите начало и конец. Конец должен быть позже начала."
+                      : "Enter a start and end time. The end must be later than the start."}
+                  </span>
+                )}
+              </label>
+            )}
             <label className="color-field">
               {t.color}
               <input
@@ -2132,33 +2271,46 @@ function Workspace({ token, initialLocale }: AppProps) {
               />
             </label>
             <div className="color-presets" role="group" aria-label={t.color}>
-              {["#ed704c", "#287b5d", "#4777c5", "#9860ac", "#c69a2d"].map(
-                (color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    aria-label={`${t.color} ${color}`}
-                    aria-pressed={noteColor === color}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setNoteColor(color)}
-                  />
-                ),
-              )}
+              {[
+                "#3b82f6",
+                "#06b6d4",
+                "#22c55e",
+                "#a855f7",
+                "#ec4899",
+                "#f59e0b",
+              ].map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  aria-label={`${t.color} ${color}`}
+                  aria-pressed={noteColor === color}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setNoteColor(color)}
+                />
+              ))}
             </div>
             <button
               className="button dark full"
               disabled={
                 !selected ||
                 !validNoteText(noteText) ||
-                ((timeRequired || !!noteTime) &&
-                  parseVideoTime(noteTime) === undefined)
+                !validVideoTimes(
+                  noteTime,
+                  noteEndTime,
+                  timeRequired,
+                  !!end && end !== selected,
+                )
               }
               onClick={() => {
                 if (
                   !selected ||
                   !validNoteText(noteText) ||
-                  ((timeRequired || !!noteTime) &&
-                    parseVideoTime(noteTime) === undefined)
+                  !validVideoTimes(
+                    noteTime,
+                    noteEndTime,
+                    timeRequired,
+                    !!end && end !== selected,
+                  )
                 )
                   return;
                 const a = {
@@ -2169,7 +2321,12 @@ function Workspace({ token, initialLocale }: AppProps) {
                   color: noteColor,
                   ...(notePosition ? { position: notePosition } : {}),
                   ...(route.youtubeUrl && noteTime
-                    ? { videoSeconds: parseVideoTime(noteTime) }
+                    ? {
+                        videoSeconds: parseVideoTime(noteTime),
+                        ...(end && end !== selected && noteEndTime
+                          ? { videoEndSeconds: parseVideoTime(noteEndTime) }
+                          : {}),
+                      }
                     : {}),
                 };
                 update({

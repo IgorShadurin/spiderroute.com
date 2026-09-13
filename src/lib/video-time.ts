@@ -9,3 +9,15 @@ export function parseVideoTime(value: string): number | undefined {
 export function formatVideoTime(seconds: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
+
+export function validVideoTimes(
+  start: string,
+  end: string,
+  required: boolean,
+  segment: boolean,
+): boolean {
+  if (!required && !start && !end) return true;
+  const from = parseVideoTime(start),
+    to = parseVideoTime(end);
+  return from !== undefined && (!segment || (to !== undefined && to > from));
+}

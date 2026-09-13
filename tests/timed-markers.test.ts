@@ -58,3 +58,43 @@ test("off-route pins inside private endpoint circles never enter public snapshot
   const shared = publicSnapshot("Ride", geometry, [hidden], 100, 0);
   assert.equal(shared.annotations.length, 0);
 });
+
+test("video segments preserve valid ranges and reject incomplete or reversed ranges", () => {
+  const segment = {
+    ...marker,
+    position: undefined,
+    startId: "a",
+    endId: "c",
+    videoEndSeconds: 150,
+  };
+  const [validated] = validateAnnotations([segment], geometry);
+  assert.equal(validated.videoEndSeconds, 150);
+  assert.equal(
+    publicSnapshot("Ride", geometry, [validated], 0, 0).annotations[0]
+      .videoEndSeconds,
+    150,
+  );
+  for (const change of [
+    { videoEndSeconds: 90 },
+    { videoEndSeconds: 80 },
+    { videoEndSeconds: 86401 },
+    { videoEndSeconds: 100.5 },
+    { videoSeconds: undefined },
+    { endId: "a" },
+    { position: { lat: 0, lon: 0 } },
+  ])
+    assert.throws(
+      () => validateAnnotations([{ ...segment, ...change }], geometry),
+      /invalidAnnotations/,
+    );
+});
+
+test("video range form requires both times only for timed segments", async () => {
+  const { validVideoTimes } = await import("../src/lib/video-time");
+  assert.equal(validVideoTimes("", "", false, true), true);
+  assert.equal(validVideoTimes("1:30", "2:30", true, true), true);
+  assert.equal(validVideoTimes("1:30", "", true, true), false);
+  assert.equal(validVideoTimes("1:30", "1:20", false, true), false);
+  assert.equal(validVideoTimes("", "2:30", false, true), false);
+  assert.equal(validVideoTimes("1:30", "", true, false), true);
+});

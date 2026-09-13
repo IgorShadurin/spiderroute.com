@@ -8,7 +8,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Annotation, Geometry, MapConfig, Point } from "@/lib/types";
 import { privacyCircle } from "@/lib/geo";
 maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
-export type MapMode = "view" | "select" | "move" | "insert" | "pin" | "draw";
+export type MapMode =
+  "view" | "select" | "move" | "insert" | "segment" | "pin" | "draw";
 export default function RouteMap({
   fullscreenView = false,
   onExitFullscreen,
@@ -44,8 +45,8 @@ export default function RouteMap({
   endSelected?: string;
   mode?: MapMode;
   onSelect?: (id: string) => void;
-  onCoordinate?: (lat: number, lon: number) => void;
-  onVideoSeek?: (seconds: number) => void;
+  onCoordinate?: (lat: number, lon: number, anchorId?: string) => void;
+  onVideoSeek?: (seconds: number, endSeconds?: number) => void;
   fitKey?: string;
   errorLabel?: string;
   locale?: "en" | "ru";
@@ -157,9 +158,9 @@ export default function RouteMap({
             p.onCoordinate?.(e.lngLat.lat, e.lngLat.lng);
             return;
           }
-          if (p.mode === "insert") {
+          if (p.mode === "insert" || p.mode === "segment") {
             let best = 24;
-            let snapped: { x: number; y: number } | undefined;
+            let snapped: { x: number; y: number; anchorId: string } | undefined;
             for (const segment of p.geometry)
               for (let i = 1; i < segment.length; i++) {
                 const a = m.project([segment[i - 1].lon, segment[i - 1].lat]);
@@ -179,12 +180,12 @@ export default function RouteMap({
                 const d = Math.hypot(x - e.point.x, y - e.point.y);
                 if (d < best) {
                   best = d;
-                  snapped = { x, y };
+                  snapped = { x, y, anchorId: segment[t < 0.5 ? i - 1 : i].id };
                 }
               }
             if (snapped) {
               const point = m.unproject([snapped.x, snapped.y]);
-              p.onCoordinate?.(point.lat, point.lng);
+              p.onCoordinate?.(point.lat, point.lng, snapped.anchorId);
             }
             return;
           }
@@ -383,7 +384,9 @@ export default function RouteMap({
         props.current.onCoordinate?.(ll.lat, ll.lng);
       });
     }
-    m.getCanvas().style.cursor = ["draw", "insert", "pin"].includes(mode)
+    m.getCanvas().style.cursor = ["draw", "insert", "segment", "pin"].includes(
+      mode,
+    )
       ? "crosshair"
       : mode === "view"
         ? "grab"
@@ -425,7 +428,7 @@ export default function RouteMap({
         event.stopPropagation();
         if (annotation.videoSeconds !== undefined && onVideoSeek) {
           if (fullscreenView) onExitFullscreen?.();
-          onVideoSeek(annotation.videoSeconds);
+          onVideoSeek(annotation.videoSeconds, annotation.videoEndSeconds);
         }
       });
       button.setAttribute("aria-label", `${index + 1}. ${annotation.text}`);
@@ -442,6 +445,8 @@ export default function RouteMap({
         (annotation.videoSeconds !== undefined
           ? ` · ▶ ${Math.floor(annotation.videoSeconds / 60)}:${String(annotation.videoSeconds % 60).padStart(2, "0")}`
           : "");
+      if (annotation.videoEndSeconds !== undefined)
+        body.textContent += ` – ${Math.floor(annotation.videoEndSeconds / 60)}:${String(annotation.videoEndSeconds % 60).padStart(2, "0")}`;
       body.tabIndex = 0;
       const sizeBody = () => {
         body.style.maxHeight = `${Math.max(64, Math.min(240, m.getContainer().clientHeight / 2 - 90))}px`;

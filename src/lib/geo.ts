@@ -110,6 +110,16 @@ export function validateAnnotations(value: unknown, g: Geometry): Annotation[] {
         a.videoSeconds > 86400)
     )
       throw Error("invalidAnnotations");
+    if (
+      a.videoEndSeconds !== undefined &&
+      (!Number.isInteger(a.videoEndSeconds) ||
+        a.videoEndSeconds > 86400 ||
+        a.videoSeconds === undefined ||
+        a.videoEndSeconds <= a.videoSeconds ||
+        a.startId === a.endId ||
+        a.position !== undefined)
+    )
+      throw Error("invalidAnnotations");
     ids.add(a.id);
     return {
       id: a.id,
@@ -121,6 +131,9 @@ export function validateAnnotations(value: unknown, g: Geometry): Annotation[] {
         ? { position: { lat: a.position.lat, lon: a.position.lon } }
         : {}),
       ...(a.videoSeconds !== undefined ? { videoSeconds: a.videoSeconds } : {}),
+      ...(a.videoEndSeconds !== undefined
+        ? { videoEndSeconds: a.videoEndSeconds }
+        : {}),
     };
   });
 }

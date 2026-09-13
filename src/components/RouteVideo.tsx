@@ -8,7 +8,7 @@ export function RouteVideo({
   onChange,
   seek,
 }: {
-  seek?: { seconds: number; nonce: number } | null;
+  seek?: { seconds: number; endSeconds?: number; nonce: number } | null;
   value?: string | null;
   locale: string;
   onChange?: (url: string | null) => void;
@@ -102,7 +102,7 @@ export function RouteVideo({
           <iframe
             ref={player}
             key={`${id}-${seek?.nonce ?? 0}`}
-            src={`https://www.youtube-nocookie.com/embed/${id}${seek ? `?start=${seek.seconds}&autoplay=1` : ""}`}
+            src={`https://www.youtube-nocookie.com/embed/${id}${seek ? `?start=${seek.seconds}${seek.endSeconds !== undefined ? `&end=${seek.endSeconds}` : ""}&autoplay=1` : ""}`}
             title={locale === "ru" ? "Видео поездки" : "Ride video"}
             loading="lazy"
             referrerPolicy="strict-origin-when-cross-origin"

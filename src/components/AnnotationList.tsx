@@ -50,6 +50,8 @@ export default function AnnotationList({
               {annotation.videoSeconds !== undefined && (
                 <small className="annotation-time">
                   ▶ {formatVideoTime(annotation.videoSeconds)}
+                  {annotation.videoEndSeconds !== undefined &&
+                    ` – ${formatVideoTime(annotation.videoEndSeconds)}`}
                 </small>
               )}
             </p>

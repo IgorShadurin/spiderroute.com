@@ -3494,3 +3494,14 @@ html[data-theme] .toast.toast-success button {
 .insert-menu[open] > summary {
   background: var(--line);
 }
+
+.segment-cancel {
+  margin-left: 12px;
+  text-decoration: underline;
+  font-size: inherit;
+}
+.tool-button:disabled,
+.insert-menu summary[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
