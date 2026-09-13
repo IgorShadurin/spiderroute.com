@@ -824,8 +824,14 @@ function Workspace({ token, initialLocale }: AppProps) {
           <a href="/workspace">
             <Brand />
           </a>
-          <ThemeToggle locale={locale} account={!!session} />
-          {languageButton}
+          <nav
+            aria-label={
+              locale === "ru" ? "Настройки отображения" : "Display settings"
+            }
+          >
+            <ThemeToggle locale={locale} account={!!session} />
+            {languageButton}
+          </nav>
         </header>
         <main className="signin-main">
           <div className="signin-art">
@@ -852,7 +858,6 @@ function Workspace({ token, initialLocale }: AppProps) {
             </div>
           </div>
           <section className="signin-form">
-            <ShieldCheck className="signin-icon" size={34} />
             <h1>{t.signin}</h1>
             <p>{t.signinText}</p>
             {providers?.google && (

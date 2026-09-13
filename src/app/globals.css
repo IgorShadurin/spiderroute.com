@@ -978,10 +978,6 @@ input[type="range"] {
 .signin-form {
   max-width: 370px;
 }
-.signin-icon {
-  color: var(--ink);
-  margin-bottom: 20px;
-}
 .signin-form h1 {
   font-size: 34px;
   margin-bottom: 15px;
