@@ -19,6 +19,8 @@ import {
   ArrowUpRight,
   Check,
   ChevronRight,
+  ChevronDown,
+  Timer,
   Download,
   Heart,
   MapPin,
@@ -176,6 +178,20 @@ function Workspace({ token, initialLocale }: AppProps) {
   };
   const routeMenuRef = useRef<HTMLDetailsElement>(null);
   const downloadRef = useRef<HTMLDetailsElement>(null);
+  const positionInsertionMenu = () => {
+    const menu = insertionMenu.current;
+    const panel = menu?.querySelector<HTMLDivElement>(":scope > div");
+    if (!menu?.open || !panel) return;
+    const trigger = menu.getBoundingClientRect();
+    const bounds = menu.closest(".editor-map")?.getBoundingClientRect();
+    const min = Math.max(8, (bounds?.left ?? 0) + 8);
+    const max =
+      Math.min(
+        window.innerWidth - 8,
+        (bounds?.right ?? window.innerWidth) - 8,
+      ) - panel.offsetWidth;
+    panel.style.left = `${Math.max(min, Math.min(trigger.left, max)) - trigger.left}px`;
+  };
   useEffect(() => {
     const outside = (event: PointerEvent) => {
       for (const menu of [
@@ -199,9 +215,11 @@ function Workspace({ token, initialLocale }: AppProps) {
         event.preventDefault();
       }
     };
+    window.addEventListener("resize", positionInsertionMenu);
     document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", escape);
     return () => {
+      window.removeEventListener("resize", positionInsertionMenu);
       document.removeEventListener("pointerdown", outside);
       document.removeEventListener("keydown", escape);
     };
@@ -1498,6 +1516,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                         );
                       })}
                       <details
+                        onToggle={positionInsertionMenu}
                         ref={insertionMenu}
                         className="download-menu insert-menu"
                       >
@@ -1511,6 +1530,11 @@ function Workspace({ token, initialLocale }: AppProps) {
                           <span>
                             {locale === "ru" ? "Добавить метку" : "Add marker"}
                           </span>
+                          <ChevronDown
+                            className="insert-chevron"
+                            size={14}
+                            aria-hidden="true"
+                          />
                         </summary>
                         <div>
                           {[
@@ -1558,7 +1582,18 @@ function Workspace({ token, initialLocale }: AppProps) {
                                   insertionMenu.current.open = false;
                               }}
                             >
-                              {String(label)}
+                              <span
+                                className="insert-option-icons"
+                                aria-hidden="true"
+                              >
+                                {placement === "insert" ? (
+                                  <Route size={16} />
+                                ) : (
+                                  <MapPin size={16} />
+                                )}
+                                {timed && <Timer size={12} />}
+                              </span>
+                              <span>{String(label)}</span>
                             </button>
                           ))}
                         </div>
