@@ -51,7 +51,6 @@ import FavoriteButton from "./FavoriteButton";
 import AnnotationList from "./AnnotationList";
 import { sharePath, shareUrl, safeShareReturn } from "@/lib/sharing";
 import { Brand } from "./Brand";
-import { Illustration } from "./Illustration";
 import { messages, type TextKey } from "@/lib/i18n";
 import { smoothSection, simplifySection, stats, uid } from "@/lib/geo";
 import type {
@@ -830,7 +829,23 @@ function Workspace({ token, initialLocale }: AppProps) {
         </header>
         <main className="signin-main">
           <div className="signin-art">
-            <Illustration />
+            <img
+              className="signin-map"
+              src="/maps/london-c3.webp"
+              alt={
+                locale === "ru"
+                  ? "Веломаршрут вдоль Темзы в Лондоне"
+                  : "Cycling route along the Thames in London"
+              }
+            />
+            <a
+              className="signin-map-credit"
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              © OpenStreetMap contributors
+            </a>
             <div>
               <span className="eyebrow">SPIDERROUTE</span>
               <h2>{t.tagline}</h2>
@@ -845,6 +860,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                 className="button light full"
                 onClick={() => startOAuth("google")}
               >
+                <img src="/brand/google.png" width={20} height={20} alt="" />
                 {t.google}
               </button>
             )}
@@ -859,53 +875,53 @@ function Workspace({ token, initialLocale }: AppProps) {
             {!providers?.google && !providers?.apple && (
               <p className="subtle">{t.oauthSoon}</p>
             )}
-            <div className="divider">
-              <span>{t.demo}</span>
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = new FormData(e.currentTarget);
-                run(async () => {
-                  const result = await signIn("credentials", {
-                    email: form.get("email"),
-                    password: form.get("password"),
-                    redirect: false,
+            <details className="demo-access">
+              <summary>{t.demo}</summary>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = new FormData(e.currentTarget);
+                  run(async () => {
+                    const result = await signIn("credentials", {
+                      email: form.get("email"),
+                      password: form.get("password"),
+                      redirect: false,
+                    });
+                    if (result?.error) throw Error("loginError");
+                    const dest = new URLSearchParams(location.search).get(
+                      "returnTo",
+                    );
+                    location.href =
+                      safeShareReturn(dest) ??
+                      location.pathname + location.search;
                   });
-                  if (result?.error) throw Error("loginError");
-                  const dest = new URLSearchParams(location.search).get(
-                    "returnTo",
-                  );
-                  location.href =
-                    safeShareReturn(dest) ??
-                    location.pathname + location.search;
-                });
-              }}
-            >
-              <label>
-                {t.email}
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  autoComplete="username"
-                />
-              </label>
-              <label>
-                {t.password}
-                <input
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                />
-              </label>
-              <button className="button coral full" disabled={busy}>
-                {busy ? t.loading : t.login}
-                <ArrowUpRight size={17} />
-              </button>
-            </form>
-            <p className="subtle">{t.demoText}</p>
+                }}
+              >
+                <label>
+                  {t.email}
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="username"
+                  />
+                </label>
+                <label>
+                  {t.password}
+                  <input
+                    name="password"
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                  />
+                </label>
+                <button className="button coral full" disabled={busy}>
+                  {busy ? t.loading : t.login}
+                  <ArrowUpRight size={17} />
+                </button>
+              </form>
+              <p className="subtle">{t.demoText}</p>
+            </details>
           </section>
         </main>
         {notifyNode}
@@ -969,7 +985,20 @@ function Workspace({ token, initialLocale }: AppProps) {
           </span>
           <button
             className="icon-button"
-            onClick={() => signOut({ callbackUrl: "/workspace" })}
+            onClick={() => {
+              if (
+                !confirm(
+                  locale === "ru"
+                    ? "Выйти из аккаунта?"
+                    : "Sign out of your account?",
+                )
+              )
+                return;
+              run(async () => {
+                await save();
+                await signOut({ callbackUrl: "/" });
+              });
+            }}
             title={t.logout}
             aria-label={t.logout}
           >

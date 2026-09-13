@@ -1,3 +1,5 @@
+import App from "@/components/App";
+import { workspaceAccount, workspaceMetadata } from "@/server/workspace-page";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import {
@@ -30,6 +32,7 @@ export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const { locale, t, host } = await landingContext(searchParams);
+  if (host.startsWith("app.")) return workspaceMetadata();
   const url =
     locale === "ru" ? "https://ru.spiderroute.com" : "https://spiderroute.com";
   return {
@@ -75,8 +78,8 @@ export default async function Home({ searchParams }: Props) {
   const { host, local, locale, t } = await landingContext(searchParams);
   const ru = locale === "ru";
   if (host.startsWith("app.")) {
-    const { redirect } = await import("next/navigation");
-    redirect("/workspace");
+    const account = await workspaceAccount();
+    return <App initialLocale={account.locale} />;
   }
   const app = local
     ? `/workspace?lang=${locale}`
