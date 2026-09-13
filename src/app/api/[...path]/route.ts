@@ -101,7 +101,7 @@ async function handler(
       }
       return json(
         sql
-          .prepare("SELECT id,name,email,locale,theme FROM users WHERE id=?")
+          .prepare("SELECT id,name,email,locale,theme,auto_video_highlights AS autoVideoHighlights FROM users WHERE id=?")
           .get(user),
       );
     }

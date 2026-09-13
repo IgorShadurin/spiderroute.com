@@ -24,6 +24,7 @@ export default function RouteMap({
   onSelect,
   onCoordinate,
   onVideoSeek,
+  activeAnnotationIds = [],
   fitKey = "",
   errorLabel = "Map background unavailable",
   locale = "en",
@@ -47,6 +48,7 @@ export default function RouteMap({
   onSelect?: (id: string) => void;
   onCoordinate?: (lat: number, lon: number, anchorId?: string) => void;
   onVideoSeek?: (seconds: number, endSeconds?: number) => void;
+  activeAnnotationIds?: string[];
   fitKey?: string;
   errorLabel?: string;
   locale?: "en" | "ru";
@@ -64,6 +66,7 @@ export default function RouteMap({
       mode,
       onSelect,
       onCoordinate,
+      onVideoSeek,
     });
   props.current = {
     privacyPreview,
@@ -74,6 +77,7 @@ export default function RouteMap({
     mode,
     onSelect,
     onCoordinate,
+    onVideoSeek,
   };
   const noteMarkers = useRef<Map<string, maplibregl.Marker>>(new Map());
   const [ready, setReady] = useState(false),
@@ -189,7 +193,28 @@ export default function RouteMap({
             }
             return;
           }
-          if (p.mode === "view") return;
+          if (p.mode === "view") {
+            if (p.onVideoSeek && m.getLayer("route-line")) {
+              const hits = m.queryRenderedFeatures(
+                [
+                  [e.point.x - 6, e.point.y - 6],
+                  [e.point.x + 6, e.point.y + 6],
+                ],
+                { layers: ["route-line"] },
+              );
+              const note = hits
+                .map((f) =>
+                  p.annotations.find(
+                    (a) =>
+                      a.id === f.properties?.annotationId &&
+                      a.videoSeconds !== undefined,
+                  ),
+                )
+                .find(Boolean);
+              if (note) p.onVideoSeek(note.videoSeconds!, note.videoEndSeconds);
+            }
+            return;
+          }
           let closest: Point | undefined,
             best = 32;
           for (const s of p.geometry)
@@ -266,6 +291,7 @@ export default function RouteMap({
         type: "Feature",
         properties: {
           color: a.color,
+          annotationId: a.id,
           kind: section.length === 1 ? "note" : "annotation",
         },
         geometry:
@@ -426,9 +452,20 @@ export default function RouteMap({
       button.title = annotation.text;
       button.addEventListener("click", (event) => {
         event.stopPropagation();
-        if (annotation.videoSeconds !== undefined && onVideoSeek) {
+        if (props.current.mode !== "view") {
+          if (props.current.mode === "select" || props.current.mode === "move")
+            props.current.onSelect?.(annotation.startId);
+          return;
+        }
+        if (
+          annotation.videoSeconds !== undefined &&
+          props.current.onVideoSeek
+        ) {
           if (fullscreenView) onExitFullscreen?.();
-          onVideoSeek(annotation.videoSeconds, annotation.videoEndSeconds);
+          props.current.onVideoSeek(
+            annotation.videoSeconds,
+            annotation.videoEndSeconds,
+          );
         }
       });
       button.setAttribute("aria-label", `${index + 1}. ${annotation.text}`);
@@ -486,6 +523,40 @@ export default function RouteMap({
       noteMarkers.current.clear();
     };
   }, [ready, geometry, annotations, locale, onVideoSeek]);
+  const activeKey = activeAnnotationIds.join(",");
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m || !m.getSource("route")) return;
+    const filter: maplibregl.FilterSpecification = [
+      "all",
+      ["==", ["geometry-type"], "LineString"],
+      ["in", ["get", "annotationId"], ["literal", activeAnnotationIds]],
+    ];
+    for (const [id, width, color] of [
+      ["video-active-halo", 15, "#ffffff"],
+      ["video-active-line", 8, null],
+    ] as const) {
+      if (!m.getLayer(id))
+        m.addLayer({
+          id,
+          type: "line",
+          source: "route",
+          filter,
+          paint: {
+            "line-width": width,
+            "line-color": color ?? ["get", "color"],
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        });
+      else m.setFilter(id, filter);
+    }
+    for (const [id, pin] of noteMarkers.current) {
+      const active = activeAnnotationIds.includes(id);
+      pin.getElement().classList.toggle("video-active", active);
+      if (active) pin.getElement().setAttribute("aria-current", "true");
+      else pin.getElement().removeAttribute("aria-current");
+    }
+  }, [ready, activeKey, geometry, annotations, locale, onVideoSeek]);
   useEffect(() => {
     if (!focusAnnotation) return;
     const marker = noteMarkers.current.get(focusAnnotation.id);
@@ -551,6 +622,7 @@ export default function RouteMap({
               onSelect={onSelect}
               onCoordinate={onCoordinate}
               onVideoSeek={onVideoSeek}
+              activeAnnotationIds={activeAnnotationIds}
               fitKey={fitKey}
               errorLabel={errorLabel}
               locale={locale}

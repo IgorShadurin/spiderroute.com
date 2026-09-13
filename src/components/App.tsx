@@ -48,6 +48,7 @@ import {
 } from "@/lib/video-time";
 import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
+import { activeVideoAnnotations } from "@/lib/video-sync";
 import { RouteVideo } from "./RouteVideo";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
 import { useTheme, ThemeToggle } from "./ThemeProvider";
@@ -139,6 +140,8 @@ function Workspace({ token, initialLocale }: AppProps) {
   const [sorts, setSorts] = useState<
     Record<"routes" | "favorites", LibrarySort>
   >({ routes: "date-desc", favorites: "date-desc" });
+  const [autoVideoHighlights, setAutoVideoHighlights] = useState(true);
+  const [playbackTime, setPlaybackTime] = useState<number | null>(null);
   const [segmentStart, setSegmentStart] = useState<string>();
   const [noteEndTime, setNoteEndTime] = useState("");
   const [insertTimed, setInsertTimed] = useState(false);
@@ -252,6 +255,41 @@ function Workspace({ token, initialLocale }: AppProps) {
   useEffect(() => () => importWorker.current?.terminate(), []);
   const uploadRef = useRef<HTMLInputElement>(null);
   const publicMapRef = useRef<HTMLDivElement>(null);
+  const currentVideoNotes = token
+    ? (publicRoute?.annotations ?? [])
+    : (route?.annotations ?? []);
+  const currentVideoUrl = token ? publicRoute?.youtubeUrl : route?.youtubeUrl;
+  const activeAnnotations =
+    autoVideoHighlights && currentVideoUrl
+      ? activeVideoAnnotations(currentVideoNotes, playbackTime)
+      : [];
+  const hasVideoNotes = currentVideoNotes.some(
+    (note) => note.videoSeconds !== undefined,
+  );
+  const highlightSaveQueue = useRef(Promise.resolve());
+  const highlightSaveVersion = useRef(0);
+  const changeVideoHighlights = async (enabled: boolean) => {
+    const version = ++highlightSaveVersion.current;
+    const before = autoVideoHighlights;
+    setAutoVideoHighlights(enabled);
+    try {
+      if (session) {
+        const save = highlightSaveQueue.current
+          .catch(() => {})
+          .then(() => api("me", "PATCH", { autoVideoHighlights: enabled }));
+        highlightSaveQueue.current = save.then(
+          () => {},
+          () => {},
+        );
+        await save;
+      } else
+        localStorage.setItem("spiderroute-video-highlights", String(enabled));
+    } catch {
+      if (version === highlightSaveVersion.current)
+        setAutoVideoHighlights(before);
+      notify("error");
+    }
+  };
   const t = messages[locale];
   const text = (key: string) => t[key as TextKey] || t.error;
   const notify = (key: string) =>
@@ -271,6 +309,11 @@ function Workspace({ token, initialLocale }: AppProps) {
     setLocale(
       initialLocale ?? (token && (q === "ru" || q === "en") ? q : stored),
     );
+    try {
+      setAutoVideoHighlights(
+        localStorage.getItem("spiderroute-video-highlights") !== "false",
+      );
+    } catch {}
     setLanguageReady(true);
     getProviders().then(setProviders);
   }, []);
@@ -296,6 +339,7 @@ function Workspace({ token, initialLocale }: AppProps) {
       api("me")
         .then((u) => {
           const saved = validLocale(u.locale) ? u.locale : "en";
+          setAutoVideoHighlights(!!(u.autoVideoHighlights ?? 1));
           setAccountLocale(saved);
           applyTheme(resolveTheme(u.theme));
           if (!token) {
@@ -461,6 +505,7 @@ function Workspace({ token, initialLocale }: AppProps) {
   const accept = (r: RouteData, navigate = true) => {
     setSegmentStart(undefined);
     setVideoSeek(null);
+    setPlaybackTime(null);
     if (navigate) setRouteUrl(r.id);
     setSaveFailed(false);
     setOverviewOpen(false);
@@ -856,6 +901,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                 annotations={publicRoute.annotations}
                 focusAnnotation={focusedAnnotation}
                 onVideoSeek={publicRoute.youtubeUrl ? seekVideo : undefined}
+                activeAnnotationIds={activeAnnotations}
                 fitKey={token}
                 errorLabel={t.mapUnavailable}
               />
@@ -866,6 +912,11 @@ function Workspace({ token, initialLocale }: AppProps) {
                   value={publicRoute.youtubeUrl}
                   locale={locale}
                   seek={videoSeek}
+                  onTime={setPlaybackTime}
+                  syncEnabled={autoVideoHighlights}
+                  onSyncChange={
+                    hasVideoNotes ? changeVideoHighlights : undefined
+                  }
                 />
               </div>
             )}
@@ -1531,6 +1582,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   onSelect={selectPoint}
                   onCoordinate={coordinate}
                   onVideoSeek={route.youtubeUrl ? seekVideo : undefined}
+                  activeAnnotationIds={activeAnnotations}
                   fitKey={route.id}
                   errorLabel={t.mapUnavailable}
                 />
@@ -1878,6 +1930,11 @@ function Workspace({ token, initialLocale }: AppProps) {
                   key={route.id}
                   value={route.youtubeUrl}
                   seek={videoSeek}
+                  onTime={setPlaybackTime}
+                  syncEnabled={autoVideoHighlights}
+                  onSyncChange={
+                    hasVideoNotes ? changeVideoHighlights : undefined
+                  }
                   locale={locale}
                   onChange={(url) => {
                     setVideoSeek(null);

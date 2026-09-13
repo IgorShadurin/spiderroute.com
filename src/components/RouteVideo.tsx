@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { YouTubePlayer } from "./YouTubePlayer";
 import { ExternalLink, Trash2, Youtube } from "lucide-react";
 import { normalizeYoutube, youtubeId } from "@/lib/route-details";
 export function RouteVideo({
@@ -7,13 +8,19 @@ export function RouteVideo({
   locale,
   onChange,
   seek,
+  onTime,
+  syncEnabled,
+  onSyncChange,
 }: {
+  onTime?: (seconds: number | null) => void;
+  syncEnabled?: boolean;
+  onSyncChange?: (enabled: boolean) => void;
   seek?: { seconds: number; endSeconds?: number; nonce: number } | null;
   value?: string | null;
   locale: string;
   onChange?: (url: string | null) => void;
 }) {
-  const player = useRef<HTMLIFrameElement>(null);
+  const player = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (seek)
       player.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -99,16 +106,26 @@ export function RouteVideo({
       )}
       {id && (
         <>
-          <iframe
-            ref={player}
-            key={`${id}-${seek?.nonce ?? 0}`}
-            src={`https://www.youtube-nocookie.com/embed/${id}${seek ? `?start=${seek.seconds}${seek.endSeconds !== undefined ? `&end=${seek.endSeconds}` : ""}&autoplay=1` : ""}`}
-            title={locale === "ru" ? "Видео поездки" : "Ride video"}
-            loading="lazy"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+          {onSyncChange && (
+            <label className="video-sync-option">
+              <input
+                type="checkbox"
+                checked={syncEnabled ?? true}
+                onChange={(event) => onSyncChange(event.target.checked)}
+              />
+              {locale === "ru"
+                ? "Подсвечивать на карте во время видео"
+                : "Highlight on the map during playback"}
+            </label>
+          )}
+          <div ref={player}>
+            <YouTubePlayer
+              id={id}
+              seek={seek}
+              onTime={onTime}
+              locale={locale}
+            />
+          </div>
           <a
             className="video-source-link"
             href={`https://www.youtube.com/watch?v=${id}`}
