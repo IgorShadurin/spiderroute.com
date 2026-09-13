@@ -116,18 +116,6 @@ export function RouteVideo({
       )}
       {id && (
         <>
-          {onSyncChange && (
-            <label className="video-sync-option">
-              <input
-                type="checkbox"
-                checked={syncEnabled ?? true}
-                onChange={(event) => onSyncChange(event.target.checked)}
-              />
-              {locale === "ru"
-                ? "Подсвечивать на карте во время видео"
-                : "Highlight on the map during playback"}
-            </label>
-          )}
           <div ref={player}>
             <YouTubePlayer
               id={id}
@@ -136,15 +124,27 @@ export function RouteVideo({
               locale={locale}
             />
           </div>
-          <a
-            className="video-source-link"
-            href={`https://www.youtube.com/watch?v=${id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink size={16} />
-            {locale === "ru" ? "Открыть на YouTube" : "Watch on YouTube"}
-          </a>
+          <div className="video-footer">
+            <a
+              className="video-source-link"
+              href={`https://www.youtube.com/watch?v=${id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink size={16} />
+              {locale === "ru" ? "Открыть на YouTube" : "Watch on YouTube"}
+            </a>
+            {onSyncChange && (
+              <label className="video-sync-option">
+                <input
+                  type="checkbox"
+                  checked={syncEnabled ?? true}
+                  onChange={(event) => onSyncChange(event.target.checked)}
+                />
+                {locale === "ru" ? "Подсветка на карте" : "Map highlights"}
+              </label>
+            )}
+          </div>
           <YouTubeSubscribe
             key={id}
             videoId={id}

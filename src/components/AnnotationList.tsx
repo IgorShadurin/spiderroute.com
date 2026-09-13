@@ -1,4 +1,5 @@
 "use client";
+import { Pencil } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { formatVideoTime } from "@/lib/video-time";
 import type { Annotation, Locale } from "@/lib/types";
@@ -6,11 +7,13 @@ import type { Annotation, Locale } from "@/lib/types";
 export default function AnnotationList({
   annotations,
   onSelect,
+  onEdit,
   label,
   locale,
 }: {
   annotations: Annotation[];
   onSelect: (annotation: Annotation) => void;
+  onEdit?: (annotation: Annotation) => void;
   label: string;
   locale: Locale;
 }) {
@@ -37,7 +40,11 @@ export default function AnnotationList({
       style={annotations.length <= 20 ? { maxHeight: "none" } : undefined}
     >
       {annotations.map((annotation, index) => (
-        <div role="listitem" key={annotation.id}>
+        <div
+          role="listitem"
+          key={annotation.id}
+          className={onEdit ? "editable-note" : undefined}
+        >
           <button className="note-card" onClick={() => onSelect(annotation)}>
             <span
               className="annotation-number"
@@ -70,6 +77,18 @@ export default function AnnotationList({
               {annotation.startId === annotation.endId ? "●" : "━"}
             </span>
           </button>
+          {onEdit && (
+            <button
+              className="icon-button note-edit"
+              onClick={() => onEdit(annotation)}
+              title={locale === "ru" ? "Редактировать заметку" : "Edit note"}
+              aria-label={
+                locale === "ru" ? "Редактировать заметку" : "Edit note"
+              }
+            >
+              <Pencil size={16} />
+            </button>
+          )}
         </div>
       ))}
     </div>

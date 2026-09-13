@@ -567,8 +567,33 @@ export default function RouteMap({
     for (const other of noteMarkers.current.values())
       if (other.getPopup()?.isOpen()) other.togglePopup();
     marker.togglePopup();
-    map.current.easeTo({ center: marker.getLngLat(), duration: 500 });
-  }, [focusAnnotation, ready, annotations]);
+    const annotation = annotations.find((a) => a.id === focusAnnotation.id);
+    const segment = geometry.find((s) =>
+      s.some((p) => p.id === annotation?.startId),
+    );
+    if (!annotation || !segment) return;
+    const start = segment.findIndex((p) => p.id === annotation.startId);
+    const end = segment.findIndex((p) => p.id === annotation.endId);
+    if (annotation.position || start === end || end < 0) {
+      map.current.easeTo({
+        center: marker.getLngLat(),
+        zoom: 16,
+        duration: 500,
+      });
+    } else {
+      const bounds = new maplibregl.LngLatBounds();
+      for (const point of segment.slice(
+        Math.min(start, end),
+        Math.max(start, end) + 1,
+      ))
+        bounds.extend([point.lon, point.lat]);
+      map.current.fitBounds(bounds, {
+        padding: { top: 110, bottom: 80, left: 65, right: 65 },
+        maxZoom: 16,
+        duration: 500,
+      });
+    }
+  }, [focusAnnotation, ready, annotations, geometry]);
   useEffect(() => {
     if (ready) fit();
   }, [ready, fitKey]);

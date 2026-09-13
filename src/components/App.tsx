@@ -276,6 +276,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
   useEffect(() => () => importWorker.current?.terminate(), []);
   const uploadRef = useRef<HTMLInputElement>(null);
   const publicMapRef = useRef<HTMLDivElement>(null);
+  const editorMapRef = useRef<HTMLDivElement>(null);
   const currentVideoNotes = token
     ? (publicRoute?.annotations ?? [])
     : (route?.annotations ?? []);
@@ -533,6 +534,7 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
   };
   const accept = (r: RouteData, navigate = true) => {
     setRouteLoad(null);
+    setFocusedAnnotation(undefined);
     setSegmentStart(undefined);
     setVideoSeek(null);
     setPlaybackTime(null);
@@ -1643,10 +1645,15 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
                   )}
                 </div>
               </div>
-              <div className="editor-map route-reveal" key={route.id}>
+              <div
+                ref={editorMapRef}
+                className="editor-map route-reveal"
+                key={route.id}
+              >
                 <RouteMap
                   locale={locale}
                   geometry={shownGeometry}
+                  focusAnnotation={focusedAnnotation}
                   annotations={route.annotations}
                   selected={selected}
                   endSelected={end}
@@ -2076,7 +2083,14 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
                       locale={locale}
                       annotations={route.annotations}
                       label={t.annotations}
-                      onSelect={openNote}
+                      onEdit={openNote}
+                      onSelect={(a) => {
+                        setFocusedAnnotation({ id: a.id });
+                        editorMapRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                      }}
                     />
                   ) : (
                     <p className="subtle">{t.noNotes}</p>

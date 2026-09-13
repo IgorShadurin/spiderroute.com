@@ -3536,3 +3536,9 @@ html[data-theme] .toast.toast-success button {
 @keyframes route-load-progress { from {transform:translateX(-100%)} to {transform:translateX(325%)} }
 @media(prefers-reduced-motion:reduce) { .route-loading-track span {animation:none; width:100%; opacity:.5;} }
 @media(max-width:600px) { .route-loading {padding:16px;} .route-loading-map {min-height:320px;} }
+.video-footer { display:flex; align-items:center; gap:24px; flex-wrap:wrap; margin-top:12px; }
+.video-footer .video-source-link,.video-footer .video-sync-option { margin:0; font-size:14px; }
+.editable-note { position:relative; }
+.editable-note .note-card { padding-right:58px; }
+.note-edit { position:absolute; right:12px; top:0; bottom:0; height:36px; margin-block:auto; }
+@media(max-width:480px) { .video-footer {gap:12px;} }
