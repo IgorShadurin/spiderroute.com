@@ -3519,6 +3519,10 @@ html[data-theme] .toast.toast-success button {
 .map-action.endpoint-action { padding-inline:12px; flex-shrink:0; }
 .route-endpoint { width:30px; height:30px; border:3px solid white; border-radius:50%; background:#16794c; color:white; display:grid; place-items:center; font-size:15px; box-shadow:0 1px 6px #0006; cursor:pointer; }
 .route-endpoint-finish { border-radius:8px; background:#173b30; font-size:21px; }
+/* MapLibre updates marker transforms every frame; never animate their position. */
+.map-canvas .maplibregl-marker {
+  transition-property: scale, filter, background-color, box-shadow, outline-color;
+}
 .map-actions { flex-wrap:wrap; }
 .map-actions { max-width:calc(100% - 20px); justify-content:flex-end; }
 .youtube-subscribe { margin-top:16px; }
