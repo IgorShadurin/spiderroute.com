@@ -3528,3 +3528,11 @@ html[data-theme] .toast.toast-success button {
 .subscription-channel summary { cursor:pointer; font-size:13px; color:var(--ink); margin-bottom:8px; }
 .subscription-channel small,.youtube-subscribe>small { display:block; margin-top:6px; color:var(--muted); font-size:12px; }
 .subscribe-heading { margin:0 0 8px; font-size:14px; font-weight:600; }
+.route-loading { padding:28px; width:100%; }
+.route-loading-heading { height:28px; width:min(360px,65%); border-radius:8px; background:var(--line); margin-bottom:24px; opacity:.65; }
+.route-loading-map { min-height:440px; height:55vh; border-radius:20px; background:var(--white); border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; color:var(--ink); }
+.route-loading-track { height:4px; width:140px; border-radius:8px; background:var(--line); overflow:hidden; }
+.route-loading-track span { display:block; width:45%; height:100%; border-radius:8px; background:var(--ink); animation:route-load-progress 1.2s ease-in-out infinite; }
+@keyframes route-load-progress { from {transform:translateX(-100%)} to {transform:translateX(325%)} }
+@media(prefers-reduced-motion:reduce) { .route-loading-track span {animation:none; width:100%; opacity:.5;} }
+@media(max-width:600px) { .route-loading {padding:16px;} .route-loading-map {min-height:320px;} }

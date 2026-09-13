@@ -52,6 +52,7 @@ import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
 import { routeEndpoints } from "@/lib/endpoints";
 import { activeVideoAnnotations } from "@/lib/video-sync";
+import { RouteLoading } from "./RouteLoading";
 import { RouteVideo } from "./RouteVideo";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
 import { useTheme, ThemeToggle } from "./ThemeProvider";
@@ -92,15 +93,27 @@ async function api(path: string, method = "GET", data?: unknown) {
   if (!r.ok) throw Error(value.error || "error");
   return value;
 }
-type AppProps = { token?: string; initialLocale?: Locale };
-export default function App({ token, initialLocale }: AppProps) {
+type AppProps = {
+  token?: string;
+  initialLocale?: Locale;
+  initialRouteId?: string;
+};
+export default function App({
+  token,
+  initialLocale,
+  initialRouteId,
+}: AppProps) {
   return (
     <SessionProvider>
-      <Workspace token={token} initialLocale={initialLocale} />
+      <Workspace
+        token={token}
+        initialLocale={initialLocale}
+        initialRouteId={initialRouteId}
+      />
     </SessionProvider>
   );
 }
-function Workspace({ token, initialLocale }: AppProps) {
+function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
   const { data: session, status } = useSession();
   const { theme, applyTheme } = useTheme();
   const [locale, setLocale] = useState<Locale>(initialLocale ?? "en"),
@@ -179,6 +192,10 @@ function Workspace({ token, initialLocale }: AppProps) {
   const dirtyRef = useRef(false);
   const saveFlight = useRef<Promise<void> | null>(null);
   const navigationVersion = useRef(0);
+  const [routeLoad, setRouteLoad] = useState<{
+    id: string;
+    status: "loading" | "error";
+  } | null>(initialRouteId ? { id: initialRouteId, status: "loading" } : null);
   const [titleEditing, setTitleEditing] = useState(false);
   const titleEditingRef = useRef(false);
   const titleBeforeEdit = useRef("");
@@ -366,6 +383,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     const load = async () => {
       const version = ++navigationVersion.current;
       const id = routeIdFromUrl(new URL(location.href));
+      setRouteLoad(id ? { id, status: "loading" } : null);
       try {
         if (dirtyRef.current) await save();
         if (version !== navigationVersion.current) return;
@@ -375,11 +393,17 @@ function Workspace({ token, initialLocale }: AppProps) {
           return;
         }
         const loaded = await api("routes/" + encodeURIComponent(id));
-        if (version === navigationVersion.current) accept(loaded, false);
+        if (version === navigationVersion.current) {
+          accept(loaded, false);
+          setRouteLoad(null);
+        }
       } catch (error) {
         if (version === navigationVersion.current) {
           notify((error as Error).message);
-          if (!dirtyRef.current) setRoute(null);
+          if (!dirtyRef.current) {
+            setRoute(null);
+            setRouteLoad(id ? { id, status: "error" } : null);
+          } else setRouteLoad(null);
         }
       }
     };
@@ -508,6 +532,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     }
   };
   const accept = (r: RouteData, navigate = true) => {
+    setRouteLoad(null);
     setSegmentStart(undefined);
     setVideoSeek(null);
     setPlaybackTime(null);
@@ -525,10 +550,20 @@ function Workspace({ token, initialLocale }: AppProps) {
   };
   const openRoute = (id: string) => {
     run(async () => {
-      await save();
       const version = ++navigationVersion.current;
-      const loaded = await api("routes/" + id);
-      if (version === navigationVersion.current) accept(loaded);
+      setRouteLoad({ id, status: "loading" });
+      setOverviewOpen(false);
+      setMobileNav(false);
+      try {
+        await save();
+        if (version !== navigationVersion.current) return;
+        const loaded = await api("routes/" + encodeURIComponent(id));
+        if (version === navigationVersion.current) accept(loaded);
+      } catch (error) {
+        if (version === navigationVersion.current)
+          setRouteLoad(dirtyRef.current ? null : { id, status: "error" });
+        throw error;
+      }
     });
   };
   const update = (r: RouteData) => {
@@ -864,7 +899,7 @@ function Workspace({ token, initialLocale }: AppProps) {
             </a>
           </div>
         ) : !publicRoute ? (
-          <div className="center-state">{t.loading}</div>
+          <RouteLoading locale={locale} />
         ) : (
           <>
             <div className="public-title">
@@ -1455,8 +1490,33 @@ function Workspace({ token, initialLocale }: AppProps) {
                 ))}
           </div>
         </aside>
-        <main className="editor" aria-busy={!!importProgress}>
-          {overviewOpen ? (
+        <main
+          className="editor"
+          aria-busy={!!importProgress || routeLoad?.status === "loading"}
+        >
+          {routeLoad?.status === "loading" ? (
+            <RouteLoading locale={locale} />
+          ) : routeLoad?.status === "error" ? (
+            <div className="center-state" role="alert">
+              <CircleAlert size={36} />
+              <h2>
+                {locale === "ru"
+                  ? "Не удалось загрузить маршрут"
+                  : "Could not load the route"}
+              </h2>
+              <p>
+                {locale === "ru"
+                  ? "Проверьте соединение и доступ к маршруту."
+                  : "Check your connection and access to this route."}
+              </p>
+              <button
+                className="button coral"
+                onClick={() => openRoute(routeLoad.id)}
+              >
+                {locale === "ru" ? "Попробовать снова" : "Try again"}
+              </button>
+            </div>
+          ) : overviewOpen ? (
             <RoutesOverview
               routes={routes}
               locale={locale}

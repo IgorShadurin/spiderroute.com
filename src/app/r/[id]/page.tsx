@@ -4,7 +4,9 @@ type Props = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Props) {
   return workspaceMetadata((await params).id);
 }
-export default async function RoutePage() {
+export default async function RoutePage({ params }: Props) {
   const account = await workspaceAccount();
-  return <App initialLocale={account.locale} />;
+  return (
+    <App initialLocale={account.locale} initialRouteId={(await params).id} />
+  );
 }
