@@ -3399,3 +3399,68 @@ html[data-theme] .toast.toast-success button {
   font-size: 13px;
   line-height: 1.5;
 }
+
+.library-sort {
+  padding: 10px 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.library-sort label {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 0;
+}
+.library-sort select {
+  flex: 1;
+  min-width: 0;
+  padding: 7px;
+  font-size: 11px;
+}
+.route-card .card-meta,
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 9px;
+  color: var(--muted);
+}
+.card-meta b {
+  font-weight: 400;
+}
+.card-meta time {
+  font-variant-numeric: tabular-nums;
+}
+.library-empty {
+  padding: 14px 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.favorite-row {
+  padding: 7px 10px;
+  min-height: 44px;
+}
+.favorite-row a {
+  min-width: 0;
+  flex: 1;
+}
+.favorite-row a > svg {
+  flex-shrink: 0;
+}
+.favorite-info {
+  min-width: 0;
+  flex: 1;
+}
+.favorite-info strong {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+.favorite-info .card-meta {
+  margin-top: 4px;
+}

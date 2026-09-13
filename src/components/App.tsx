@@ -38,6 +38,7 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import { sortLibrary, libraryDate, type LibrarySort } from "@/lib/library-sort";
 import { parseVideoTime, formatVideoTime } from "@/lib/video-time";
 import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
@@ -128,6 +129,10 @@ function Workspace({ token, initialLocale }: AppProps) {
     [noteText, setNoteText] = useState(""),
     [noteColor, setNoteColor] = useState("#ed704c"),
     [providers, setProviders] = useState<any>({});
+  const [libraryLoaded, setLibraryLoaded] = useState(false);
+  const [sorts, setSorts] = useState<
+    Record<"routes" | "favorites", LibrarySort>
+  >({ routes: "date-desc", favorites: "date-desc" });
   const [insertTimed, setInsertTimed] = useState(false);
   const [notePosition, setNotePosition] = useState<Annotation["position"]>();
   const [noteTime, setNoteTime] = useState("");
@@ -245,6 +250,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     const [r, f] = await Promise.all([api("routes"), api("favorites")]);
     setRoutes(r);
     setFavorites(f);
+    setLibraryLoaded(true);
   };
   useEffect(() => {
     if (status === "authenticated") {
@@ -1181,9 +1187,60 @@ function Workspace({ token, initialLocale }: AppProps) {
               {t.favorites}
             </button>
           </div>
+          <div className="library-sort">
+            <label htmlFor="library-sort">
+              {locale === "ru" ? "Сортировка" : "Sort by"}
+            </label>
+            <select
+              id="library-sort"
+              value={sorts[tab]}
+              onChange={(e) =>
+                setSorts({ ...sorts, [tab]: e.target.value as LibrarySort })
+              }
+            >
+              {[
+                [
+                  "date-desc",
+                  locale === "ru" ? "Сначала обновлённые" : "Recently updated",
+                ],
+                [
+                  "date-asc",
+                  locale === "ru"
+                    ? "Давно обновлённые"
+                    : "Oldest updates first",
+                ],
+                [
+                  "distance-asc",
+                  locale === "ru" ? "Сначала короткие" : "Shortest first",
+                ],
+                [
+                  "distance-desc",
+                  locale === "ru" ? "Сначала длинные" : "Longest first",
+                ],
+                ["name-asc", locale === "ru" ? "Название: А–Я" : "Name: A–Z"],
+                ["name-desc", locale === "ru" ? "Название: Я–А" : "Name: Z–A"],
+              ].map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="route-list">
+            {libraryLoaded &&
+              !(tab === "routes" ? routes : favorites).length && (
+                <p className="library-empty">
+                  {tab === "routes"
+                    ? locale === "ru"
+                      ? "Пока нет маршрутов. Загрузите трек или нарисуйте маршрут."
+                      : "No routes yet. Upload a track or draw a route."
+                    : locale === "ru"
+                      ? "Пока нет избранного. Нажмите на сердечко на странице общего маршрута."
+                      : "No favorites yet. Tap the heart on a shared route to add it here."}
+                </p>
+              )}
             {tab === "routes"
-              ? routes.map((r) => (
+              ? sortLibrary(routes, sorts.routes, locale).map((r) => (
                   <button
                     key={r.id}
                     className={
@@ -1196,26 +1253,48 @@ function Workspace({ token, initialLocale }: AppProps) {
                     </div>
                     <div>
                       <strong>{r.title}</strong>
-                      <span>
-                        {(r.stats.distance / 1000).toFixed(1)}{" "}
-                        {locale === "ru" ? "км" : "km"}
-                        {r.shared && (
-                          <>
-                            {" "}
-                            <i>·</i> {t.shared}
-                          </>
-                        )}
+                      <span className="card-meta">
+                        <b>
+                          {(r.stats.distance / 1000).toFixed(1)}{" "}
+                          {locale === "ru" ? "км" : "km"}
+                        </b>
+                        <time
+                          dateTime={r.updatedAt}
+                          title={
+                            (locale === "ru" ? "Обновлён: " : "Updated: ") +
+                            libraryDate(r.updatedAt, locale)
+                          }
+                        >
+                          {libraryDate(r.updatedAt, locale)}
+                        </time>
                       </span>
                     </div>
                     <ChevronRight size={15} />
                   </button>
                 ))
-              : favorites.map((f) => (
+              : sortLibrary(favorites, sorts.favorites, locale).map((f) => (
                   <div key={f.id} className="favorite-row">
                     {f.available ? (
                       <a href={sharePath(f.token, locale)}>
                         <Heart size={17} />
-                        {f.title}
+                        <div className="favorite-info">
+                          <strong>{f.title}</strong>
+                          <span className="card-meta">
+                            <b>
+                              {(f.stats.distance / 1000).toFixed(1)}{" "}
+                              {locale === "ru" ? "км" : "km"}
+                            </b>
+                            <time
+                              dateTime={f.updatedAt}
+                              title={
+                                (locale === "ru" ? "Обновлён: " : "Updated: ") +
+                                libraryDate(f.updatedAt, locale)
+                              }
+                            >
+                              {libraryDate(f.updatedAt, locale)}
+                            </time>
+                          </span>
+                        </div>
                       </a>
                     ) : (
                       <span>{t.unavailable}</span>

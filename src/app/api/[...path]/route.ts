@@ -127,12 +127,19 @@ async function handler(
         return json(
           sql
             .prepare(
-              "SELECT r.id,r.title,r.stats,r.updated_at,COALESCE(l.token,s.token) AS token FROM favorites f JOIN routes r ON r.id=f.route_id LEFT JOIN shares s ON s.route_id=r.id LEFT JOIN share_links l ON l.route_id=r.id WHERE f.user_id=? ORDER BY r.updated_at DESC",
+              "SELECT r.id,r.updated_at,s.route_id AS shared_id,json_extract(s.payload,'$.title') AS title,json_extract(s.payload,'$.stats.distance') AS distance,COALESCE(l.token,s.token) AS token FROM favorites f JOIN routes r ON r.id=f.route_id LEFT JOIN shares s ON s.route_id=r.id LEFT JOIN share_links l ON l.route_id=r.id WHERE f.user_id=? ORDER BY r.updated_at DESC",
             )
             .all(user)
             .map((r: any) =>
-              r.token
-                ? { id: r.id, title: r.title, token: r.token, available: true }
+              r.token && r.shared_id
+                ? {
+                    id: r.id,
+                    title: r.title,
+                    stats: { distance: r.distance },
+                    updatedAt: r.updated_at,
+                    token: r.token,
+                    available: true,
+                  }
                 : { id: r.id, available: false },
             ),
         );
