@@ -11,8 +11,8 @@ export function welcomeEmail(value: unknown) {
         : "Welcome to SpiderRoute",
     body:
       locale === "ru"
-        ? "Добро пожаловать в SpiderRoute!\n\nЗагрузите GPS-трек, отредактируйте маршрут, добавьте заметки и поделитесь картой с друзьями.\n\nОткрыть редактор: https://app.spiderroute.com/workspace?lang=ru\n\nЯзык интерфейса и писем можно изменить в настройках аккаунта."
-        : "Welcome to SpiderRoute!\n\nUpload a GPS track, edit your route, add notes and share a map with friends.\n\nOpen the editor: https://app.spiderroute.com/workspace?lang=en\n\nYou can change the language for the app and emails in account settings.",
+        ? "Добро пожаловать в SpiderRoute!\n\nЗагрузите GPS-трек, отредактируйте маршрут, добавьте заметки и поделитесь картой с друзьями.\n\nОткрыть редактор: https://app.spiderroute.com/\n\nЯзык интерфейса и писем можно изменить в настройках аккаунта."
+        : "Welcome to SpiderRoute!\n\nUpload a GPS track, edit your route, add notes and share a map with friends.\n\nOpen the editor: https://app.spiderroute.com/\n\nYou can change the language for the app and emails in account settings.",
   };
 }
 export function registerOAuthUser(

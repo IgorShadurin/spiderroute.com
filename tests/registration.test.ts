@@ -75,7 +75,9 @@ test("registration atomically saves the selected language and sends localized we
       const mail = sent.find((x) => x.to[0] === `${locale}@example.test`);
       assert.equal(mail.subject, welcomeEmail(locale).subject);
       assert.equal(mail.plain_body, welcomeEmail(locale).body);
-      assert.match(mail.plain_body, new RegExp(`lang=${locale}`));
+      assert.deepEqual(mail.plain_body.match(/https:\/\/\S+/g), [
+        "https://app.spiderroute.com/",
+      ]);
     }
     await processOutbox();
     assert.equal(sent.length, 2, "welcome emails are not sent again");
