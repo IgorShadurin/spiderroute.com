@@ -57,6 +57,7 @@ test("video updates persist, validate, update public snapshots, and clone indepe
       ...route,
       youtubeUrl: "https://youtu.be/dQw4w9WgXcQ",
       endpoints: { startId: "b", endId: "a" },
+      subscription: { enabled: true, channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw" },
       privacyStart: 0,
       privacyEnd: 0,
     });
@@ -87,7 +88,9 @@ test("video updates persist, validate, update public snapshots, and clone indepe
     );
     const token = publishRoute(route.id, "video-owner", route.revision);
     assert.equal(readShare(token).payload.youtubeUrl, route.youtubeUrl);
+    assert.deepEqual(readShare(token).payload.subscription, route.subscription);
     const clone = cloneRoute(token, "video-cloner");
+    assert.deepEqual(clone.subscription, route.subscription);
     assert.equal(
       clone.geometry.flat().find((p: any) => p.id === clone.endpoints?.startId)
         ?.lon,
@@ -98,7 +101,12 @@ test("video updates persist, validate, update public snapshots, and clone indepe
       startId: "a",
       endId: "b",
     });
-    route = saveRoute(route.id, "video-owner", { ...route, youtubeUrl: null });
+    route = saveRoute(route.id, "video-owner", {
+      ...route,
+      youtubeUrl: null,
+      subscription: { enabled: false, channelId: null },
+    });
+    assert.equal(readShare(token).payload.subscription?.enabled, false);
     assert.equal(readShare(token).payload.youtubeUrl, null);
     assert.equal(
       routeView(owned(clone.id, "video-cloner")).youtubeUrl,

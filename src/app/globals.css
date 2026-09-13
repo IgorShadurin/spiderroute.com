@@ -3276,7 +3276,7 @@ html[data-theme] .toast.toast-success button {
 .video-input input {
   min-width: 0;
 }
-.route-video iframe {
+.route-video .video-player iframe {
   display: block;
   width: 100%;
   max-width: 860px;
@@ -3521,3 +3521,10 @@ html[data-theme] .toast.toast-success button {
 .route-endpoint-finish { border-radius:8px; background:#173b30; font-size:21px; }
 .map-actions { flex-wrap:wrap; }
 .map-actions { max-width:calc(100% - 20px); justify-content:flex-end; }
+.youtube-subscribe { margin-top:16px; }
+.youtube-subscribe-widget { margin-top:14px; min-height:48px; overflow:auto; }
+.youtube-subscribe-widget a { display:inline-flex; align-items:center; gap:8px; }
+.subscription-channel { max-width:860px; margin:8px 0; }
+.subscription-channel summary { cursor:pointer; font-size:13px; color:var(--ink); margin-bottom:8px; }
+.subscription-channel small,.youtube-subscribe>small { display:block; margin-top:6px; color:var(--muted); font-size:12px; }
+.subscribe-heading { margin:0 0 8px; font-size:14px; font-weight:600; }

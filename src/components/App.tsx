@@ -143,6 +143,7 @@ function Workspace({ token, initialLocale }: AppProps) {
   const [sorts, setSorts] = useState<
     Record<"routes" | "favorites", LibrarySort>
   >({ routes: "date-desc", favorites: "date-desc" });
+  const [youtubeChannel, setYoutubeChannel] = useState<string | null>(null);
   const [autoVideoHighlights, setAutoVideoHighlights] = useState(true);
   const [playbackTime, setPlaybackTime] = useState<number | null>(null);
   const [segmentStart, setSegmentStart] = useState<string>();
@@ -343,6 +344,7 @@ function Workspace({ token, initialLocale }: AppProps) {
         .then((u) => {
           const saved = validLocale(u.locale) ? u.locale : "en";
           setAutoVideoHighlights(!!(u.autoVideoHighlights ?? 1));
+          setYoutubeChannel(u.youtubeChannel ?? null);
           setAccountLocale(saved);
           applyTheme(resolveTheme(u.theme));
           if (!token) {
@@ -919,6 +921,7 @@ function Workspace({ token, initialLocale }: AppProps) {
               <div className="public-video">
                 <RouteVideo
                   value={publicRoute.youtubeUrl}
+                  subscription={publicRoute.subscription}
                   locale={locale}
                   seek={videoSeek}
                   onTime={setPlaybackTime}
@@ -1975,6 +1978,15 @@ function Workspace({ token, initialLocale }: AppProps) {
                 <RouteVideo
                   key={route.id}
                   value={route.youtubeUrl}
+                  subscription={route.subscription}
+                  onSubscriptionChange={(subscription) =>
+                    update({ ...route, subscription })
+                  }
+                  rememberedChannel={youtubeChannel}
+                  onRememberChannel={async (id) => {
+                    await api("me", "PATCH", { youtubeChannel: id });
+                    setYoutubeChannel(id);
+                  }}
                   seek={videoSeek}
                   onTime={setPlaybackTime}
                   syncEnabled={autoVideoHighlights}
@@ -1984,7 +1996,11 @@ function Workspace({ token, initialLocale }: AppProps) {
                   locale={locale}
                   onChange={(url) => {
                     setVideoSeek(null);
-                    update({ ...route, youtubeUrl: url });
+                    update({
+                      ...route,
+                      youtubeUrl: url,
+                      subscription: { enabled: true, channelId: null },
+                    });
                   }}
                 />
                 <section className="notes-section">

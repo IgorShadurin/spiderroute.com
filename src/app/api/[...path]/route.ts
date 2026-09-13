@@ -1,3 +1,4 @@
+import { detectChannel } from "@/server/youtube-channel";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
@@ -94,6 +95,15 @@ async function handler(
       if (!rateLimit("write:" + user, 90, 60))
         return json({ error: "rateLimited" }, 429);
     }
+    if (p[0] === "youtube" && p[1] === "channel" && method === "GET") {
+      if (!rateLimit("youtube:" + user, 20, 60))
+        return json({ error: "rateLimited" }, 429);
+      return json({
+        channelId: await detectChannel(
+          req.nextUrl.searchParams.get("video") || "",
+        ),
+      });
+    }
     if (p[0] === "me") {
       if (method === "PATCH") {
         const b = JSON.parse(await body(req, 1000));
@@ -102,7 +112,7 @@ async function handler(
       return json(
         sql
           .prepare(
-            "SELECT id,name,email,locale,theme,auto_video_highlights AS autoVideoHighlights FROM users WHERE id=?",
+            "SELECT id,name,email,locale,theme,auto_video_highlights AS autoVideoHighlights,youtube_channel AS youtubeChannel FROM users WHERE id=?",
           )
           .get(user),
       );
@@ -198,6 +208,7 @@ async function handler(
               b.annotations ?? [],
               b.youtubeUrl,
               b.endpoints,
+              b.subscription,
             ),
             201,
           );

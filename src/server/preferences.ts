@@ -1,3 +1,4 @@
+import { channelId } from "../lib/youtube-channel";
 import type Database from "better-sqlite3";
 import { validLocale } from "../lib/language";
 import { validTheme } from "../lib/theme";
@@ -10,6 +11,8 @@ export function migratePreferences(db: Database.Database) {
       db.exec(
         "ALTER TABLE users ADD COLUMN auto_video_highlights INTEGER NOT NULL DEFAULT 1 CHECK(auto_video_highlights IN (0,1))",
       );
+    if (!columns.some((c) => c.name === "youtube_channel"))
+      db.exec("ALTER TABLE users ADD COLUMN youtube_channel TEXT");
     if (!columns.some((column) => column.name === "theme"))
       db.exec(
         "ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'light' CHECK(theme IN ('light','dark'))",
@@ -28,7 +31,10 @@ export function updatePreferences(
   if (
     !keys.length ||
     keys.some(
-      (key) => !["locale", "theme", "autoVideoHighlights"].includes(key),
+      (key) =>
+        !["locale", "theme", "autoVideoHighlights", "youtubeChannel"].includes(
+          key,
+        ),
     ) ||
     ("locale" in value && !validLocale(value.locale)) ||
     ("theme" in value && !validTheme(value.theme)) ||
@@ -36,7 +42,14 @@ export function updatePreferences(
       typeof value.autoVideoHighlights !== "boolean")
   )
     throw Error("invalidFile");
+  const savedChannel =
+    "youtubeChannel" in value ? channelId(value.youtubeChannel) : undefined;
   db.transaction(() => {
+    if (savedChannel !== undefined)
+      db.prepare("UPDATE users SET youtube_channel=? WHERE id=?").run(
+        savedChannel,
+        user,
+      );
     if ("autoVideoHighlights" in value)
       db.prepare("UPDATE users SET auto_video_highlights=? WHERE id=?").run(
         value.autoVideoHighlights ? 1 : 0,

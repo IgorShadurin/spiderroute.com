@@ -35,7 +35,27 @@ test("theme migration preserves existing accounts and preference updates validat
     updatePreferences(db, "a", { locale: "ru", theme: "dark" });
     assert.deepEqual(user(), { locale: "ru", theme: "dark" });
     assert.deepEqual(user("b"), { locale: "en", theme: "light" });
+    updatePreferences(db, "a", { youtubeChannel: "UC_x5XG1OV2P6uZZ5FSM9Ttw" });
     migratePreferences(db);
+    assert.equal(
+      (
+        db
+          .prepare("SELECT youtube_channel AS channel FROM users WHERE id='a'")
+          .get() as { channel: string }
+      ).channel,
+      "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+    );
+    assert.equal(
+      (
+        db
+          .prepare("SELECT youtube_channel AS channel FROM users WHERE id='b'")
+          .get() as { channel: string | null }
+      ).channel,
+      null,
+    );
+    assert.throws(() =>
+      updatePreferences(db, "a", { locale: "en", youtubeChannel: "evil" }),
+    );
     assert.deepEqual(user(), { locale: "ru", theme: "dark" });
   } finally {
     db.close();

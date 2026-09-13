@@ -28,6 +28,7 @@ export type RouteData = {
   id: string;
   title: string;
   youtubeUrl?: string | null;
+  subscription?: { enabled: boolean; channelId: string | null };
   endpoints?: { startId: string; endId: string };
   geometry: Geometry;
   annotations: Annotation[];
@@ -44,6 +45,7 @@ export type RouteData = {
 export type PublicRoute = {
   title: string;
   youtubeUrl?: string | null;
+  subscription?: { enabled: boolean; channelId: string | null };
   endpoints?: { startId: string; endId: string };
   geometry: Geometry;
   annotations: Annotation[];

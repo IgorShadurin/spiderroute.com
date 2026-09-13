@@ -45,6 +45,16 @@ sql
       sql.exec("ALTER TABLE routes ADD COLUMN endpoints TEXT");
   })
   .immediate();
+sql
+  .transaction(() => {
+    if (
+      !(
+        sql.prepare("PRAGMA table_info(routes)").all() as { name: string }[]
+      ).some((c) => c.name === "subscription")
+    )
+      sql.exec("ALTER TABLE routes ADD COLUMN subscription TEXT");
+  })
+  .immediate();
 migrateShortShares(sql);
 migratePreferences(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {

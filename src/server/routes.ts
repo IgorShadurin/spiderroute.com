@@ -1,3 +1,4 @@
+import { subscription } from "@/lib/youtube-channel";
 import { routeEndpoints, validateEndpoints } from "@/lib/endpoints";
 import { normalizeYoutube } from "@/lib/route-details";
 import { randomUUID } from "node:crypto";
@@ -26,6 +27,9 @@ export function routeView(row: any) {
     id: row.id,
     title: row.title,
     youtubeUrl: row.youtube_url ?? null,
+    subscription: subscription(
+      row.subscription ? JSON.parse(row.subscription) : undefined,
+    ),
     geometry: JSON.parse(row.geometry),
     endpoints: routeEndpoints(
       JSON.parse(row.geometry),
@@ -49,8 +53,10 @@ export function createRoute(
   annotations: unknown = [],
   youtubeUrl: unknown = null,
   endpoints?: unknown,
+  subscribe?: unknown,
 ) {
   const video = normalizeYoutube(youtubeUrl);
+  const sub = subscription(subscribe);
   const g = validateGeometry(geometry),
     a = validateAnnotations(annotations, g),
     ends = validateEndpoints(g, endpoints),
@@ -80,6 +86,9 @@ export function createRoute(
   sql
     .prepare("UPDATE routes SET youtube_url=?,endpoints=? WHERE id=?")
     .run(video, JSON.stringify(ends), id);
+  sql
+    .prepare("UPDATE routes SET subscription=? WHERE id=?")
+    .run(JSON.stringify(sub), id);
   return routeView(owned(id, user));
 }
 export function snapshot(row: any, overrides?: any): PublicRoute {
@@ -98,6 +107,10 @@ export function snapshot(row: any, overrides?: any): PublicRoute {
   );
   return {
     ...visible,
+    subscription: subscription(
+      overrides?.subscription ??
+        (row.subscription ? JSON.parse(row.subscription) : undefined),
+    ),
     youtubeUrl: normalizeYoutube(
       overrides?.youtubeUrl !== undefined
         ? overrides.youtubeUrl
@@ -120,6 +133,15 @@ export function saveRoute(id: string, user: string, input: any) {
         throw Error("invalidPrivacy");
     const video = normalizeYoutube(
       input.youtubeUrl !== undefined ? input.youtubeUrl : row.youtube_url,
+    );
+    const sub = subscription(
+      input.subscription !== undefined
+        ? input.subscription
+        : video !== row.youtube_url
+          ? undefined
+          : row.subscription
+            ? JSON.parse(row.subscription)
+            : undefined,
     );
     const geometry = validateGeometry(input.geometry),
       annotations = validateAnnotations(input.annotations, geometry),
@@ -148,6 +170,7 @@ export function saveRoute(id: string, user: string, input: any) {
             ...input,
             youtubeUrl: video,
             endpoints: ends,
+            subscription: sub,
             geometry,
             annotations,
             revision,
@@ -172,6 +195,9 @@ export function saveRoute(id: string, user: string, input: any) {
     sql
       .prepare("UPDATE routes SET youtube_url=?,endpoints=? WHERE id=?")
       .run(video, JSON.stringify(ends), id);
+    sql
+      .prepare("UPDATE routes SET subscription=? WHERE id=?")
+      .run(JSON.stringify(sub), id);
     if (payload)
       sql
         .prepare("UPDATE shares SET payload=?,revision=? WHERE route_id=?")
@@ -269,6 +295,7 @@ export function cloneRoute(token: string, user: string) {
       structuredClone(payload.annotations),
       payload.youtubeUrl,
       payload.endpoints,
+      payload.subscription,
     );
   })();
 }

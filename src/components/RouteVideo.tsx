@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { YouTubeSubscribe } from "./YouTubeSubscribe";
+import type { Subscription } from "@/lib/youtube-channel";
 import { YouTubePlayer } from "./YouTubePlayer";
 import { ExternalLink, Trash2, Youtube } from "lucide-react";
 import { normalizeYoutube, youtubeId } from "@/lib/route-details";
@@ -11,7 +13,15 @@ export function RouteVideo({
   onTime,
   syncEnabled,
   onSyncChange,
+  subscription,
+  onSubscriptionChange,
+  rememberedChannel,
+  onRememberChannel,
 }: {
+  subscription?: Subscription;
+  onSubscriptionChange?: (value: Subscription) => void;
+  rememberedChannel?: string | null;
+  onRememberChannel?: (id: string) => Promise<void>;
   onTime?: (seconds: number | null) => void;
   syncEnabled?: boolean;
   onSyncChange?: (enabled: boolean) => void;
@@ -135,6 +145,15 @@ export function RouteVideo({
             <ExternalLink size={16} />
             {locale === "ru" ? "Открыть на YouTube" : "Watch on YouTube"}
           </a>
+          <YouTubeSubscribe
+            key={id}
+            videoId={id}
+            locale={locale}
+            config={subscription}
+            onChange={onSubscriptionChange}
+            rememberedChannel={rememberedChannel}
+            onRemember={onRememberChannel}
+          />
         </>
       )}
     </section>
