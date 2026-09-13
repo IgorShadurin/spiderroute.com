@@ -1619,7 +1619,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                       (route.stats.distance / 1000).toFixed(2) +
                         (locale === "ru" ? " км" : " km"),
                     ],
-                    [t.points, route.stats.points.toLocaleString(locale)],
                     [t.segments, route.stats.segments],
                     [
                       t.ascent,
@@ -1629,7 +1628,27 @@ function Workspace({ token, initialLocale }: AppProps) {
                     ],
                   ].map(([label, value]) => (
                     <div key={label}>
-                      <span>{label}</span>
+                      <div className="stat-label">
+                        <span>{label}</span>
+                        {label === t.ascent && (
+                          <details className="stat-help">
+                            <summary
+                              aria-label={
+                                locale === "ru"
+                                  ? "Что такое набор высоты?"
+                                  : "What is elevation gain?"
+                              }
+                            >
+                              <CircleHelp size={15} aria-hidden="true" />
+                            </summary>
+                            <p>
+                              {locale === "ru"
+                                ? "Сумма всех подъёмов за маршрут по данным трека. Например, два подъёма по 50 м дают набор высоты 100 м."
+                                : "The sum of all climbs along the route, based on the track’s elevation data. Two 50 m climbs add up to 100 m of elevation gain."}
+                            </p>
+                          </details>
+                        )}
+                      </div>
                       <strong>{value}</strong>
                     </div>
                   ))}
