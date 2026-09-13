@@ -10,7 +10,7 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
-  Save,
+  MoreHorizontal,
   CircleAlert,
   TriangleAlert,
   LoaderCircle,
@@ -38,6 +38,8 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import { routePageTitle } from "@/lib/route-details";
+import { RouteVideo } from "./RouteVideo";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
 import { useTheme, ThemeToggle } from "./ThemeProvider";
 import { resolveTheme, type Theme } from "@/lib/theme";
@@ -96,7 +98,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     [routes, setRoutes] = useState<any[]>([]),
     [favorites, setFavorites] = useState<any[]>([]),
     [tab, setTab] = useState<"routes" | "favorites">("routes"),
-    [route, setRoute] = useState<RouteData | null>(null),
+    [route, setRouteState] = useState<RouteData | null>(null),
     [publicRoute, setPublicRoute] = useState<PublicRoute | null>(null),
     [focusedAnnotation, setFocusedAnnotation] = useState<{ id: string }>(),
     [publicError, setPublicError] = useState(false),
@@ -107,7 +109,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     } | null>(null),
     [mobileNav, setMobileNav] = useState(false),
     [mode, setMode] = useState<MapMode>("view"),
-    [dirty, setDirty] = useState(false),
+    [dirty, setDirtyState] = useState(false),
     [selected, setSelected] = useState<string>(),
     [end, setEnd] = useState<string>(),
     [choosingEnd, setChoosingEnd] = useState(false),
@@ -125,14 +127,47 @@ function Workspace({ token, initialLocale }: AppProps) {
     [noteText, setNoteText] = useState(""),
     [noteColor, setNoteColor] = useState("#ed704c"),
     [providers, setProviders] = useState<any>({});
+  const routeRef = useRef<RouteData | null>(null);
+  const dirtyRef = useRef(false);
+  const saveFlight = useRef<Promise<void> | null>(null);
+  const navigationVersion = useRef(0);
+  const [titleEditing, setTitleEditing] = useState(false);
+  const titleEditingRef = useRef(false);
+  const titleBeforeEdit = useRef("");
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const setRoute = (value: RouteData | null) => {
+    routeRef.current = value;
+    setRouteState(value);
+  };
+  const setDirty = (value: boolean) => {
+    dirtyRef.current = value;
+    setDirtyState(value);
+  };
+  const setRouteUrl = (id?: string, replace = false) => {
+    const url = new URL(location.href);
+    if (id && id !== "new") url.searchParams.set("route", id);
+    else url.searchParams.delete("route");
+    if (url.href !== location.href)
+      window.history[replace ? "replaceState" : "pushState"](
+        null,
+        "",
+        url.pathname + url.search,
+      );
+  };
+  const routeMenuRef = useRef<HTMLDetailsElement>(null);
   const downloadRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     const outside = (event: PointerEvent) => {
-      const menu = downloadRef.current;
-      if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+      for (const menu of [downloadRef.current, routeMenuRef.current]) {
+        if (menu?.open && !event.composedPath().includes(menu))
+          menu.open = false;
+      }
     };
     const escape = (event: KeyboardEvent) => {
-      const menu = downloadRef.current;
+      const menu = routeMenuRef.current?.open
+        ? routeMenuRef.current
+        : downloadRef.current;
       if (event.key === "Escape" && menu?.open) {
         menu.open = false;
         menu.querySelector("summary")?.focus();
@@ -191,13 +226,6 @@ function Workspace({ token, initialLocale }: AppProps) {
     const [r, f] = await Promise.all([api("routes"), api("favorites")]);
     setRoutes(r);
     setFavorites(f);
-    const initial = new URLSearchParams(location.search).get("route");
-    if (initial && !route && r.some((x: any) => x.id === initial)) {
-      setRoute(await api("routes/" + initial));
-      const target = new URL(location.href);
-      target.searchParams.delete("route");
-      window.history.replaceState(null, "", target.pathname + target.search);
-    }
   };
   useEffect(() => {
     if (status === "authenticated") {
@@ -221,6 +249,51 @@ function Workspace({ token, initialLocale }: AppProps) {
         .catch(() => {});
     }
   }, [status]);
+  useEffect(() => {
+    if (status !== "authenticated" || token) return;
+    const load = async () => {
+      const version = ++navigationVersion.current;
+      const id = new URLSearchParams(location.search).get("route");
+      try {
+        if (dirtyRef.current) await save();
+        if (version !== navigationVersion.current) return;
+        if (!id) {
+          setRoute(null);
+          setDirty(false);
+          return;
+        }
+        const loaded = await api("routes/" + encodeURIComponent(id));
+        if (version === navigationVersion.current) accept(loaded, false);
+      } catch (error) {
+        if (version === navigationVersion.current) {
+          notify((error as Error).message);
+          if (!dirtyRef.current) setRoute(null);
+        }
+      }
+    };
+    void load();
+    window.addEventListener("popstate", load);
+    return () => {
+      navigationVersion.current++;
+      window.removeEventListener("popstate", load);
+    };
+  }, [status, token]);
+  useEffect(() => {
+    if (!token)
+      document.title = route
+        ? routePageTitle(route.title)
+        : locale === "ru"
+          ? "Ваши маршруты · SpiderRoute"
+          : "Your routes · SpiderRoute";
+  }, [route?.title, locale, token]);
+  useEffect(() => {
+    if (!dirty || titleEditing || shareOpen || !route || route.id === "new")
+      return;
+    const timer = setTimeout(() => {
+      void save(false, false).catch((error) => notify(error.message));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [route, dirty, titleEditing, shareOpen]);
   useEffect(() => {
     if (token)
       api("public/" + token)
@@ -305,7 +378,9 @@ function Workspace({ token, initialLocale }: AppProps) {
   };
   const startOAuth = (provider: string) => {
     rememberLanguage(locale);
-    return signIn(provider, { callbackUrl: "/workspace" });
+    return signIn(provider, {
+      callbackUrl: location.pathname + location.search,
+    });
   };
   const run = async (fn: () => Promise<void>) => {
     if (busy) return;
@@ -318,7 +393,9 @@ function Workspace({ token, initialLocale }: AppProps) {
       setBusy(false);
     }
   };
-  const accept = (r: RouteData) => {
+  const accept = (r: RouteData, navigate = true) => {
+    if (navigate) setRouteUrl(r.id);
+    setSaveFailed(false);
     setOverviewOpen(false);
     setRoute(r);
     setDirty(false);
@@ -330,8 +407,12 @@ function Workspace({ token, initialLocale }: AppProps) {
     setMobileNav(false);
   };
   const openRoute = (id: string) => {
-    if (dirty && !confirm(t.discard)) return;
-    run(async () => accept(await api("routes/" + id)));
+    run(async () => {
+      await save();
+      const version = ++navigationVersion.current;
+      const loaded = await api("routes/" + id);
+      if (version === navigationVersion.current) accept(loaded);
+    });
   };
   const update = (r: RouteData) => {
     if (route) setHistory((h) => [...h.slice(-19), structuredClone(route)]);
@@ -351,15 +432,49 @@ function Workspace({ token, initialLocale }: AppProps) {
     }
     update({ ...route, geometry: g, stats: stats(g) });
   };
-  const save = async (confirmPrivacy = false) => {
-    if (!route) return;
-    const saved = await api("routes/" + route.id, "PUT", {
-      ...route,
-      confirmPrivacy,
-    });
-    accept(saved);
-    await refresh();
-    notify("saved");
+  const save = async (
+    confirmPrivacy = false,
+    allowFocusedTitle = true,
+  ): Promise<void> => {
+    while (saveFlight.current) await saveFlight.current;
+    if (!dirtyRef.current || !routeRef.current || routeRef.current.id === "new")
+      return;
+    const task = async () => {
+      setAutoSaving(true);
+      setSaveFailed(false);
+      try {
+        while (
+          dirtyRef.current &&
+          routeRef.current &&
+          routeRef.current.id !== "new"
+        ) {
+          if (!allowFocusedTitle && titleEditingRef.current) return;
+          const submitted = routeRef.current;
+          const saved = await api("routes/" + submitted.id, "PUT", {
+            ...submitted,
+            confirmPrivacy,
+          });
+          if (routeRef.current?.id !== submitted.id) return;
+          if (routeRef.current === submitted) {
+            setRoute(saved);
+            setDirty(false);
+          } else setRoute({ ...routeRef.current, revision: saved.revision });
+        }
+        void refresh().catch(() => {});
+      } catch (error) {
+        setSaveFailed(true);
+        throw error;
+      } finally {
+        setAutoSaving(false);
+      }
+    };
+    const flight = task();
+    saveFlight.current = flight;
+    try {
+      await flight;
+    } finally {
+      if (saveFlight.current === flight) saveFlight.current = null;
+    }
   };
   const selectPoint = (id: string) => {
     if (choosingEnd && selected) {
@@ -460,18 +575,18 @@ function Workspace({ token, initialLocale }: AppProps) {
     }
   };
   const previewShare = async () => {
-    if (!route) return;
-    setPreview(await api("routes/" + route.id + "/preview", "POST", route));
+    const current = routeRef.current;
+    if (!current) return;
+    setPreview(await api("routes/" + current.id + "/preview", "POST", current));
   };
   const startShare = () => {
     if (!route) return;
-    if (dirty) {
-      notify("saveBeforeShare");
-      return;
-    }
-    setShareOpen(true);
-    setPreview(null);
-    run(previewShare);
+    run(async () => {
+      await save();
+      setShareOpen(true);
+      setPreview(null);
+      await previewShare();
+    });
   };
   const publicAction = (action: string) =>
     run(async () => {
@@ -628,6 +743,11 @@ function Workspace({ token, initialLocale }: AppProps) {
                 errorLabel={t.mapUnavailable}
               />
             </div>
+            {publicRoute.youtubeUrl && (
+              <div className="public-video">
+                <RouteVideo value={publicRoute.youtubeUrl} locale={locale} />
+              </div>
+            )}
             {publicRoute.annotations.length > 0 && (
               <section className="public-notes">
                 <h2>{t.annotations}</h2>
@@ -760,7 +880,9 @@ function Workspace({ token, initialLocale }: AppProps) {
                   const dest = new URLSearchParams(location.search).get(
                     "returnTo",
                   );
-                  location.href = safeShareReturn(dest) ?? "/workspace";
+                  location.href =
+                    safeShareReturn(dest) ??
+                    location.pathname + location.search;
                 });
               }}
             >
@@ -1068,31 +1190,94 @@ function Workspace({ token, initialLocale }: AppProps) {
                 <div className="route-title">
                   <input
                     aria-label={t.rename}
+                    onFocus={() => {
+                      titleEditingRef.current = true;
+                      titleBeforeEdit.current = route.title;
+                      setTitleEditing(true);
+                    }}
+                    onBlur={() => {
+                      titleEditingRef.current = false;
+                      if (!route.title.trim())
+                        update({ ...route, title: titleBeforeEdit.current });
+                      setTitleEditing(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
                     value={route.title}
                     maxLength={120}
                     onChange={(e) =>
                       update({ ...route, title: e.target.value })
                     }
                   />
-                  {dirty && <span className="route-status">{t.unsaved}</span>}
                 </div>
                 <div className="action-row">
                   {route.id !== "new" && downloadMenu}
-                  {dirty && route.id !== "new" && (
-                    <button
-                      className="button dark small"
-                      disabled={busy || !canSave}
-                      onClick={() => run(() => save())}
-                    >
-                      <Save size={16} aria-hidden="true" />
-                      {t.save}
-                    </button>
-                  )}
                   {route.id !== "new" && (
                     <button className="button coral small" onClick={startShare}>
                       <Share2 size={16} />
                       {t.share}
                     </button>
+                  )}
+                  {route.id !== "new" && (
+                    <>
+                      <span
+                        className="autosave-indicator"
+                        role="status"
+                        aria-label={
+                          autoSaving
+                            ? locale === "ru"
+                              ? "Сохранение…"
+                              : "Saving…"
+                            : undefined
+                        }
+                      >
+                        {autoSaving && (
+                          <LoaderCircle size={16} className="share-spinner" />
+                        )}
+                      </span>
+                      <details
+                        className="route-actions-menu"
+                        ref={routeMenuRef}
+                      >
+                        <summary
+                          className="button light small"
+                          aria-label={
+                            locale === "ru"
+                              ? "Действия с маршрутом"
+                              : "Route actions"
+                          }
+                        >
+                          <MoreHorizontal size={20} />
+                        </summary>
+                        <div className="route-actions-popover">
+                          {saveFailed && (
+                            <button onClick={() => run(() => save())}>
+                              {locale === "ru"
+                                ? "Повторить сохранение"
+                                : "Retry saving"}
+                            </button>
+                          )}
+                          <button
+                            className="danger-link"
+                            disabled={busy || autoSaving}
+                            onClick={() => {
+                              if (confirm(t.deleteConfirm))
+                                run(async () => {
+                                  await api("routes/" + route.id, "DELETE");
+                                  setRoute(null);
+                                  setRouteUrl();
+                                  setDirty(false);
+                                  await refresh();
+                                });
+                            }}
+                          >
+                            <Trash2 size={14} />
+                            {t.delete}
+                          </button>
+                        </div>
+                      </details>
+                    </>
                   )}
                 </div>
               </div>
@@ -1160,7 +1345,10 @@ function Workspace({ token, initialLocale }: AppProps) {
                     disabled={!history.length}
                     onClick={() => {
                       setFuture((f) => [route, ...f]);
-                      setRoute(history.at(-1)!);
+                      setRoute({
+                        ...history.at(-1)!,
+                        revision: route.revision,
+                      });
                       setHistory((h) => h.slice(0, -1));
                       setDirty(true);
                     }}
@@ -1174,7 +1362,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                     disabled={!future.length}
                     onClick={() => {
                       setHistory((h) => [...h, route]);
-                      setRoute(future[0]);
+                      setRoute({ ...future[0], revision: route.revision });
                       setFuture((f) => f.slice(1));
                       setDirty(true);
                     }}
@@ -1265,6 +1453,12 @@ function Workspace({ token, initialLocale }: AppProps) {
                 )}
               </div>
               <div className="route-details">
+                <RouteVideo
+                  key={route.id}
+                  value={route.youtubeUrl}
+                  locale={locale}
+                  onChange={(url) => update({ ...route, youtubeUrl: url })}
+                />
                 <div className="stats-row">
                   {[
                     [
@@ -1306,26 +1500,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                     <p className="subtle">{t.noNotes}</p>
                   )}
                 </section>
-                <div className="route-bottom">
-                  {route.id !== "new" && (
-                    <button
-                      className="danger-link"
-                      disabled={busy}
-                      onClick={() => {
-                        if (confirm(t.deleteConfirm))
-                          run(async () => {
-                            await api("routes/" + route.id, "DELETE");
-                            setRoute(null);
-                            setDirty(false);
-                            await refresh();
-                          });
-                      }}
-                    >
-                      <Trash2 size={14} />
-                      {t.delete}
-                    </button>
-                  )}
-                </div>
               </div>
             </>
           )}
@@ -1510,8 +1684,8 @@ function Workspace({ token, initialLocale }: AppProps) {
                     })
                   }
                 >
-                  <Save size={16} aria-hidden="true" />
-                  {t.save}
+                  <Check size={16} aria-hidden="true" />
+                  {t.apply}
                 </button>
               ) : !route.shared ? (
                 <button
@@ -1672,8 +1846,8 @@ function Workspace({ token, initialLocale }: AppProps) {
                 setNoteOpen(false);
               }}
             >
-              <Save size={16} aria-hidden="true" />
-              {t.save}
+              <Check size={16} aria-hidden="true" />
+              {locale === "ru" ? "Готово" : "Done"}
             </button>
             {noteId && (
               <button

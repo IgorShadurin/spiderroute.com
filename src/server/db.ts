@@ -25,6 +25,16 @@ CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY,recipient TEXT NOT NULL,su
 CREATE TABLE IF NOT EXISTS delivery_events(id TEXT PRIMARY KEY,event TEXT NOT NULL,message_id TEXT,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS suppressions(email TEXT PRIMARY KEY,reason TEXT NOT NULL);
 `);
+sql
+  .transaction(() => {
+    if (
+      !(
+        sql.prepare("PRAGMA table_info(routes)").all() as { name: string }[]
+      ).some((c) => c.name === "youtube_url")
+    )
+      sql.exec("ALTER TABLE routes ADD COLUMN youtube_url TEXT");
+  })
+  .immediate();
 migrateShortShares(sql);
 migratePreferences(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {

@@ -1,3 +1,4 @@
+import { normalizeYoutube } from "@/lib/route-details";
 import { randomUUID } from "node:crypto";
 import { sql } from "./db";
 import { ensureShortShare, reserveShareToken } from "./share-tokens";
@@ -23,6 +24,7 @@ export function routeView(row: any) {
   return {
     id: row.id,
     title: row.title,
+    youtubeUrl: row.youtube_url ?? null,
     geometry: JSON.parse(row.geometry),
     annotations: JSON.parse(row.annotations),
     stats: JSON.parse(row.stats),
@@ -40,7 +42,9 @@ export function createRoute(
   title: string,
   geometry: Geometry,
   annotations: unknown = [],
+  youtubeUrl: unknown = null,
 ) {
+  const video = normalizeYoutube(youtubeUrl);
   const g = validateGeometry(geometry),
     a = validateAnnotations(annotations, g),
     id = randomUUID();
@@ -66,20 +70,28 @@ export function createRoute(
       JSON.stringify(stats(g)),
       new Date().toISOString(),
     );
+  sql.prepare("UPDATE routes SET youtube_url=? WHERE id=?").run(video, id);
   return routeView(owned(id, user));
 }
 export function snapshot(row: any, overrides?: any): PublicRoute {
   const original: Geometry = JSON.parse(row.original);
-  return publicSnapshot(
-    overrides?.title ?? row.title,
-    overrides?.geometry ?? JSON.parse(row.geometry),
-    overrides?.annotations ?? JSON.parse(row.annotations),
-    overrides?.privacyStart ?? row.privacy_start,
-    overrides?.privacyEnd ?? row.privacy_end,
-    original[0][0],
-    original.at(-1)!.at(-1)!,
-    overrides?.revision ?? row.revision,
-  );
+  return {
+    ...publicSnapshot(
+      overrides?.title ?? row.title,
+      overrides?.geometry ?? JSON.parse(row.geometry),
+      overrides?.annotations ?? JSON.parse(row.annotations),
+      overrides?.privacyStart ?? row.privacy_start,
+      overrides?.privacyEnd ?? row.privacy_end,
+      original[0][0],
+      original.at(-1)!.at(-1)!,
+      overrides?.revision ?? row.revision,
+    ),
+    youtubeUrl: normalizeYoutube(
+      overrides?.youtubeUrl !== undefined
+        ? overrides.youtubeUrl
+        : row.youtube_url,
+    ),
+  };
 }
 export function saveRoute(id: string, user: string, input: any) {
   return sql.transaction(() => {
@@ -94,6 +106,9 @@ export function saveRoute(id: string, user: string, input: any) {
     for (const n of [input.privacyStart, input.privacyEnd])
       if (!Number.isInteger(n) || n < 0 || n > 10000)
         throw Error("invalidPrivacy");
+    const video = normalizeYoutube(
+      input.youtubeUrl !== undefined ? input.youtubeUrl : row.youtube_url,
+    );
     const geometry = validateGeometry(input.geometry),
       annotations = validateAnnotations(input.annotations, geometry),
       revision = row.revision + 1;
@@ -110,7 +125,13 @@ export function saveRoute(id: string, user: string, input: any) {
     // Generate before mutating. Failed publication rolls back the entire save.
     const payload = shared
       ? JSON.stringify(
-          snapshot(row, { ...input, geometry, annotations, revision }),
+          snapshot(row, {
+            ...input,
+            youtubeUrl: video,
+            geometry,
+            annotations,
+            revision,
+          }),
         )
       : null;
     sql
@@ -128,6 +149,7 @@ export function saveRoute(id: string, user: string, input: any) {
         new Date().toISOString(),
         id,
       );
+    sql.prepare("UPDATE routes SET youtube_url=? WHERE id=?").run(video, id);
     if (payload)
       sql
         .prepare("UPDATE shares SET payload=?,revision=? WHERE route_id=?")
@@ -223,6 +245,7 @@ export function cloneRoute(token: string, user: string) {
       payload.title,
       structuredClone(payload.geometry),
       structuredClone(payload.annotations),
+      payload.youtubeUrl,
     );
   })();
 }

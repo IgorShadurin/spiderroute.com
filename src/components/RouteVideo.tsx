@@ -1,0 +1,89 @@
+"use client";
+import { useState, useEffect } from "react";
+import { Trash2, Youtube } from "lucide-react";
+import { normalizeYoutube, youtubeId } from "@/lib/route-details";
+export function RouteVideo({
+  value,
+  locale,
+  onChange,
+}: {
+  value?: string | null;
+  locale: string;
+  onChange?: (url: string | null) => void;
+}) {
+  const [draft, setDraft] = useState(value || "");
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    setDraft(value || "");
+    setError(false);
+  }, [value]);
+  const id = value ? youtubeId(value) : null;
+  if (!onChange && !id) return null;
+  return (
+    <section className="route-video">
+      <h3>
+        <Youtube size={19} />
+        {locale === "ru" ? "Видео поездки" : "Ride video"}
+      </h3>
+      {onChange && (
+        <div className="video-input">
+          <input
+            aria-label={locale === "ru" ? "Ссылка на YouTube" : "YouTube URL"}
+            placeholder="https://www.youtube.com/watch?v=…"
+            type="url"
+            maxLength={2048}
+            value={draft}
+            aria-invalid={error}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              setError(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            onBlur={() => {
+              try {
+                const next = normalizeYoutube(draft);
+                setDraft(next || "");
+                if (next !== (value || null)) onChange(next);
+              } catch {
+                setError(true);
+              }
+            }}
+          />
+          {value && (
+            <button
+              className="icon-button"
+              aria-label={locale === "ru" ? "Удалить видео" : "Remove video"}
+              onClick={() => {
+                setDraft("");
+                setError(false);
+                onChange(null);
+              }}
+            >
+              <Trash2 size={17} />
+            </button>
+          )}
+        </div>
+      )}
+      {error && (
+        <p role="alert">
+          {locale === "ru"
+            ? "Введите корректную HTTPS-ссылку на видео YouTube."
+            : "Enter a valid HTTPS YouTube video URL."}
+        </p>
+      )}
+      {id && (
+        <iframe
+          key={id}
+          src={`https://www.youtube-nocookie.com/embed/${id}`}
+          title={locale === "ru" ? "Видео поездки" : "Ride video"}
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      )}
+    </section>
+  );
+}

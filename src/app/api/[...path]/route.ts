@@ -182,7 +182,13 @@ async function handler(
         if (method === "POST") {
           const b = JSON.parse(await body(req));
           return json(
-            createRoute(user, b.title || "Untitled route", b.geometry),
+            createRoute(
+              user,
+              b.title || "Untitled route",
+              b.geometry,
+              b.annotations ?? [],
+              b.youtubeUrl,
+            ),
             201,
           );
         }
@@ -239,6 +245,7 @@ async function handler(
       "invalidAnnotations",
       "nothingToShare",
       "invalidTitle",
+      "invalidVideo",
       "invalidPrivacy",
       "privacyConfirmation",
       "fileTooLarge",

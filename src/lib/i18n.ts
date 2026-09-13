@@ -134,6 +134,7 @@ export const messages = {
     routeLimit: "You have reached the limit of 1,000 routes.",
     privacyConfirmation: "Preview and confirm the reduced privacy protection.",
     invalidPrivacy: "Choose a privacy distance from 0 to 10,000 m.",
+    invalidVideo: "Enter a valid HTTPS YouTube video URL.",
     invalidTitle: "Enter a route name, up to 120 characters.",
     accountLink:
       "An account already uses this email. Sign in with its original method.",
@@ -281,6 +282,7 @@ export const messages = {
     routeLimit: "Достигнут лимит в 1000 маршрутов.",
     privacyConfirmation: "Просмотрите и подтвердите уменьшение скрытых зон.",
     invalidPrivacy: "Выберите расстояние от 0 до 10 000 м.",
+    invalidVideo: "Введите корректную HTTPS-ссылку на видео YouTube.",
     invalidTitle: "Введите название до 120 символов.",
     accountLink:
       "Аккаунт с этой почтой уже есть. Используйте первоначальный способ входа.",

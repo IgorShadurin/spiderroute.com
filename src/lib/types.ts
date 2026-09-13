@@ -24,6 +24,7 @@ export type Stats = {
 export type RouteData = {
   id: string;
   title: string;
+  youtubeUrl?: string | null;
   geometry: Geometry;
   annotations: Annotation[];
   stats: Stats;
@@ -38,6 +39,7 @@ export type RouteData = {
 };
 export type PublicRoute = {
   title: string;
+  youtubeUrl?: string | null;
   geometry: Geometry;
   annotations: Annotation[];
   stats: Stats;

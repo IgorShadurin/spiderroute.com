@@ -3212,3 +3212,83 @@ html[data-theme] .toast.toast-success button {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+.autosave-indicator {
+  width: 18px;
+  min-width: 18px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--muted);
+}
+.route-actions-menu {
+  position: relative;
+}
+.route-actions-menu summary {
+  list-style: none;
+}
+.route-actions-menu summary::-webkit-details-marker {
+  display: none;
+}
+.route-actions-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 40;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 32px #0002;
+  min-width: 200px;
+}
+.route-actions-popover button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 12px;
+  width: 100%;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+.route-video {
+  padding: 22px 0;
+}
+.route-video h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 17px;
+}
+.video-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.video-input input {
+  min-width: 0;
+}
+.route-video iframe {
+  display: block;
+  width: 100%;
+  max-width: 860px;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+.route-video [role="alert"] {
+  color: #c33e43;
+  margin-top: 8px;
+}
+.public-video {
+  max-width: 1300px;
+  margin: auto;
+  padding: 0 45px;
+}
+@media (max-width: 760px) {
+  .public-video {
+    padding: 0 20px;
+  }
+}
