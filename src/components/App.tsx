@@ -878,7 +878,9 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
   );
   if (token)
     return (
-      <div className="public-shell">
+      <div
+        className={`public-shell${publicRoute?.youtubeUrl ? " has-video" : ""}`}
+      >
         <header className="app-header">
           <a href="/workspace">
             <Brand />
@@ -941,34 +943,36 @@ function Workspace({ token, initialLocale, initialRouteId }: AppProps) {
                 </button>
               </div>
             </div>
-            <div className="public-map" ref={publicMapRef}>
-              <RouteMap
-                locale={locale}
-                geometry={publicRoute.geometry}
-                annotations={publicRoute.annotations}
-                focusAnnotation={focusedAnnotation}
-                onVideoSeek={publicRoute.youtubeUrl ? seekVideo : undefined}
-                activeAnnotationIds={activeAnnotations}
-                endpoints={publicRoute.endpoints}
-                fitKey={token}
-                errorLabel={t.mapUnavailable}
-              />
-            </div>
-            {publicRoute.youtubeUrl && (
-              <div className="public-video">
-                <RouteVideo
-                  value={publicRoute.youtubeUrl}
-                  subscription={publicRoute.subscription}
+            <div className="public-media">
+              <div className="public-map" ref={publicMapRef}>
+                <RouteMap
                   locale={locale}
-                  seek={videoSeek}
-                  onTime={setPlaybackTime}
-                  syncEnabled={autoVideoHighlights}
-                  onSyncChange={
-                    hasVideoNotes ? changeVideoHighlights : undefined
-                  }
+                  geometry={publicRoute.geometry}
+                  annotations={publicRoute.annotations}
+                  focusAnnotation={focusedAnnotation}
+                  onVideoSeek={publicRoute.youtubeUrl ? seekVideo : undefined}
+                  activeAnnotationIds={activeAnnotations}
+                  endpoints={publicRoute.endpoints}
+                  fitKey={token}
+                  errorLabel={t.mapUnavailable}
                 />
               </div>
-            )}
+              {publicRoute.youtubeUrl && (
+                <div className="public-video">
+                  <RouteVideo
+                    value={publicRoute.youtubeUrl}
+                    subscription={publicRoute.subscription}
+                    locale={locale}
+                    seek={videoSeek}
+                    onTime={setPlaybackTime}
+                    syncEnabled={autoVideoHighlights}
+                    onSyncChange={
+                      hasVideoNotes ? changeVideoHighlights : undefined
+                    }
+                  />
+                </div>
+              )}
+            </div>
             {publicRoute.annotations.length > 0 && (
               <section className="public-notes">
                 <h2>{t.annotations}</h2>

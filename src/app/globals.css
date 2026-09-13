@@ -3542,3 +3542,26 @@ html[data-theme] .toast.toast-success button {
 .editable-note .note-card { padding-right:58px; }
 .note-edit { position:absolute; right:12px; top:0; bottom:0; height:36px; margin-block:auto; }
 @media(max-width:480px) { .video-footer {gap:12px;} }
+
+/* Shared routes keep the map and video visible together on wide screens. */
+.public-shell.has-video .public-title { max-width:1864px; padding-inline:32px; }
+.public-shell.has-video .public-media { max-width:1800px; margin:0 32px; display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:24px; align-items:start; }
+.public-shell.has-video .public-map { width:100%; max-width:none; margin:0; height:clamp(440px,60dvh,760px); }
+.public-shell.has-video .public-video { width:100%; min-width:0; max-width:none; margin:0; padding:0; }
+.public-shell.has-video .public-video .route-video { padding:0; }
+.public-shell.has-video .public-video .route-video>h3 { display:none; }
+.public-shell.has-video .public-video .video-player { max-width:none; margin:0; border-radius:16px; }
+.public-shell.has-video .public-video .video-player iframe { border-radius:16px; }
+.public-shell.has-video .public-notes { max-width:1800px; margin:30px 32px; }
+@media(min-width:1864px) { .public-shell.has-video .public-media,.public-shell.has-video .public-notes { margin-inline:auto; } }
+@media(max-width:1000px) {
+  .public-shell.has-video .public-title { padding-inline:24px; }
+  .public-shell.has-video .public-media { grid-template-columns:minmax(0,1fr); margin-inline:24px; gap:24px; }
+  .public-shell.has-video .public-map { height:55dvh; min-height:360px; }
+  .public-shell.has-video .public-notes { margin-inline:24px; }
+}
+@media(max-width:600px) {
+  .public-shell.has-video .public-title { padding-inline:16px; }
+  .public-shell.has-video .public-media,.public-shell.has-video .public-notes { margin-inline:16px; }
+  .public-shell.has-video .public-map { min-height:320px; border-radius:16px; }
+}
