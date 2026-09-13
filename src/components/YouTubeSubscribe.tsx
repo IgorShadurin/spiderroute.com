@@ -69,9 +69,10 @@ function SubscribeWidget({ id, locale }: { id: string; locale: string }) {
       <p className="subscribe-heading">
         {locale === "ru" ? "Подписаться на канал" : "Subscribe to the channel"}
       </p>
-      <div ref={host} />
-      {failed && (
+      <div ref={host} hidden={failed} />
+      {
         <a
+          className="button light small subscription-link"
           href={"https://www.youtube.com/channel/" + id + "?sub_confirmation=1"}
           target="_blank"
           rel="noopener noreferrer"
@@ -79,7 +80,7 @@ function SubscribeWidget({ id, locale }: { id: string; locale: string }) {
           <ExternalLink size={16} />
           {locale === "ru" ? "Подписаться на YouTube" : "Subscribe on YouTube"}
         </a>
-      )}
+      }
     </div>
   );
 }
@@ -105,10 +106,12 @@ export function YouTubeSubscribe({
   const [draft, setDraft] = useState(value.channelId ?? "");
   const [status, setStatus] = useState("");
   const [error, setError] = useState(false);
+  const [resolvedChannel, setResolvedChannel] = useState<string | null>(null);
   useEffect(() => setDraft(value.channelId ?? ""), [value.channelId]);
   useEffect(() => {
     const version = ++generation.current;
-    if (!onChange || value.channelId) return;
+    setResolvedChannel(null);
+    if (value.channelId || (!onChange && !value.enabled)) return;
     setStatus("loading");
     const controller = new AbortController();
     fetch("/api/youtube/channel?video=" + encodeURIComponent(videoId), {
@@ -124,7 +127,8 @@ export function YouTubeSubscribe({
         } catch {}
         const fallback = current.current.rememberedChannel;
         setStatus(detected ? "detected" : fallback ? "remembered" : "manual");
-        const id = detected ?? fallback;
+        const id = detected ?? (onChange ? fallback : null);
+        setResolvedChannel(id ?? null);
         if (id)
           current.current.onChange?.({
             ...current.current.value,
@@ -132,7 +136,7 @@ export function YouTubeSubscribe({
           });
       });
     return () => controller.abort();
-  }, [videoId, !!onChange]);
+  }, [videoId, !!onChange, value.channelId, value.enabled]);
   const saveChannel = async () => {
     try {
       const id = channelId(draft);
@@ -229,8 +233,11 @@ export function YouTubeSubscribe({
           </details>
         </>
       )}
-      {value.enabled && value.channelId && (
-        <SubscribeWidget id={value.channelId} locale={locale} />
+      {value.enabled && (value.channelId || resolvedChannel) && (
+        <SubscribeWidget
+          id={(value.channelId || resolvedChannel)!}
+          locale={locale}
+        />
       )}
     </div>
   );

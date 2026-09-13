@@ -1,3 +1,4 @@
+import type Database from "better-sqlite3";
 import { channelId } from "../lib/youtube-channel";
 const cache = new Map<string, { id: string | null; expires: number }>();
 async function youtubeText(url: string) {
@@ -42,10 +43,21 @@ export function authorPath(value: unknown): string | null {
     return null;
   }
 }
-export async function detectChannel(video: string): Promise<string | null> {
+export async function detectChannel(
+  video: string,
+  db?: Database.Database,
+): Promise<string | null> {
   if (!/^[A-Za-z0-9_-]{11}$/.test(video)) throw Error("invalidVideo");
+  const saved = db
+    ?.prepare(
+      "SELECT channel_id,verified_at FROM youtube_channels WHERE video_id=?",
+    )
+    .get(video) as { channel_id: string; verified_at: number } | undefined;
+  if (saved && saved.verified_at > Date.now() - 30 * 86400000)
+    return channelId(saved.channel_id);
   const hit = cache.get(video);
-  if (hit && hit.expires > Date.now()) return hit.id;
+  if (hit && hit.expires > Date.now())
+    return hit.id ?? saved?.channel_id ?? null;
   let id: string | null = null;
   try {
     const data = JSON.parse(
@@ -62,6 +74,11 @@ export async function detectChannel(video: string): Promise<string | null> {
       if (match) id = channelId(match[1]);
     }
   } catch {}
+  if (id && db)
+    db.prepare(
+      "INSERT INTO youtube_channels VALUES(?,?,?) ON CONFLICT(video_id) DO UPDATE SET channel_id=excluded.channel_id,verified_at=excluded.verified_at",
+    ).run(video, id, Date.now());
+  id = id ?? saved?.channel_id ?? null;
   if (cache.size >= 500) cache.delete(cache.keys().next().value!);
   cache.set(video, { id, expires: Date.now() + (id ? 86400000 : 60000) });
   return id;

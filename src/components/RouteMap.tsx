@@ -11,6 +11,38 @@ import { privacyCircle } from "@/lib/geo";
 maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
 export type MapMode =
   "view" | "select" | "move" | "insert" | "segment" | "pin" | "draw";
+function focusMapNote(
+  map: MapType,
+  geometry: Geometry,
+  annotation: Annotation,
+) {
+  const segment = geometry.find((s) =>
+    s.some((p) => p.id === annotation.startId),
+  );
+  if (!segment) return;
+  const start = segment.findIndex((p) => p.id === annotation.startId),
+    end = segment.findIndex((p) => p.id === annotation.endId);
+  if (end < 0) return;
+  const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? 0
+    : 500;
+  if (annotation.position || start === end) {
+    const point = annotation.position ?? segment[start];
+    map.easeTo({ center: [point.lon, point.lat], zoom: 16, duration });
+  } else {
+    const bounds = new maplibregl.LngLatBounds();
+    for (const point of segment.slice(
+      Math.min(start, end),
+      Math.max(start, end) + 1,
+    ))
+      bounds.extend([point.lon, point.lat]);
+    map.fitBounds(bounds, {
+      padding: { top: 90, bottom: 75, left: 55, right: 55 },
+      maxZoom: 16,
+      duration,
+    });
+  }
+}
 export default function RouteMap({
   fullscreenView = false,
   onExitFullscreen,
@@ -560,6 +592,20 @@ export default function RouteMap({
       else pin.getElement().removeAttribute("aria-current");
     }
   }, [ready, activeKey, geometry, annotations, locale, onVideoSeek]);
+  const followedAnnotation = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!ready || !map.current) return;
+    if (mode !== "view" || !activeAnnotationIds.length) {
+      followedAnnotation.current = undefined;
+      return;
+    }
+    const note = annotations
+      .filter((a) => activeAnnotationIds.includes(a.id))
+      .sort((a, b) => (b.videoSeconds ?? 0) - (a.videoSeconds ?? 0))[0];
+    if (!note || followedAnnotation.current === note.id) return;
+    followedAnnotation.current = note.id;
+    focusMapNote(map.current, geometry, note);
+  }, [ready, mode, activeKey, annotations, geometry]);
   useEffect(() => {
     if (!focusAnnotation) return;
     const marker = noteMarkers.current.get(focusAnnotation.id);
@@ -568,31 +614,7 @@ export default function RouteMap({
       if (other.getPopup()?.isOpen()) other.togglePopup();
     marker.togglePopup();
     const annotation = annotations.find((a) => a.id === focusAnnotation.id);
-    const segment = geometry.find((s) =>
-      s.some((p) => p.id === annotation?.startId),
-    );
-    if (!annotation || !segment) return;
-    const start = segment.findIndex((p) => p.id === annotation.startId);
-    const end = segment.findIndex((p) => p.id === annotation.endId);
-    if (annotation.position || start === end || end < 0) {
-      map.current.easeTo({
-        center: marker.getLngLat(),
-        zoom: 16,
-        duration: 500,
-      });
-    } else {
-      const bounds = new maplibregl.LngLatBounds();
-      for (const point of segment.slice(
-        Math.min(start, end),
-        Math.max(start, end) + 1,
-      ))
-        bounds.extend([point.lon, point.lat]);
-      map.current.fitBounds(bounds, {
-        padding: { top: 110, bottom: 80, left: 65, right: 65 },
-        maxZoom: 16,
-        duration: 500,
-      });
-    }
+    if (annotation) focusMapNote(map.current, geometry, annotation);
   }, [focusAnnotation, ready, annotations, geometry]);
   useEffect(() => {
     if (ready) fit();

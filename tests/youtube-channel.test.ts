@@ -59,3 +59,28 @@ test("automatic channel resolution uses only YouTube author metadata and handles
     global.fetch = original;
   }
 });
+
+test("verified channel mappings survive process-cache misses and upstream failures", async () => {
+  const { default: Database } = await import("better-sqlite3");
+  const db = new Database(":memory:");
+  const original = global.fetch;
+  db.exec(
+    "CREATE TABLE youtube_channels(video_id TEXT PRIMARY KEY,channel_id TEXT,verified_at INTEGER)",
+  );
+  try {
+    db.prepare("INSERT INTO youtube_channels VALUES(?,?,?)").run(
+      "testVideo03",
+      id,
+      Date.now(),
+    );
+    global.fetch = async () => {
+      throw Error("upstream unavailable");
+    };
+    assert.equal(await detectChannel("testVideo03", db), id);
+    db.prepare("UPDATE youtube_channels SET verified_at=0").run();
+    assert.equal(await detectChannel("testVideo03", db), id);
+  } finally {
+    global.fetch = original;
+    db.close();
+  }
+});

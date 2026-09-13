@@ -81,6 +81,18 @@ async function handler(
         );
       return json(payload);
     }
+    if (p[0] === "youtube" && p[1] === "channel" && method === "GET") {
+      const ip =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+      if (!rateLimit("youtube:" + ip, 30, 60))
+        return json({ error: "rateLimited" }, 429);
+      return json({
+        channelId: await detectChannel(
+          req.nextUrl.searchParams.get("video") || "",
+          sql,
+        ),
+      });
+    }
     const session = await getServerSession(authOptions),
       user = (session?.user as any)?.id as string | undefined;
     if (
@@ -94,15 +106,6 @@ async function handler(
       if (origin !== allowed) return json({ error: "forbidden" }, 403);
       if (!rateLimit("write:" + user, 90, 60))
         return json({ error: "rateLimited" }, 429);
-    }
-    if (p[0] === "youtube" && p[1] === "channel" && method === "GET") {
-      if (!rateLimit("youtube:" + user, 20, 60))
-        return json({ error: "rateLimited" }, 429);
-      return json({
-        channelId: await detectChannel(
-          req.nextUrl.searchParams.get("video") || "",
-        ),
-      });
     }
     if (p[0] === "me") {
       if (method === "PATCH") {

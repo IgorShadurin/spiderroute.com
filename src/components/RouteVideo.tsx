@@ -141,7 +141,7 @@ export function RouteVideo({
                   checked={syncEnabled ?? true}
                   onChange={(event) => onSyncChange(event.target.checked)}
                 />
-                {locale === "ru" ? "Подсветка на карте" : "Map highlights"}
+                {locale === "ru" ? "Следить на карте" : "Follow on map"}
               </label>
             )}
           </div>

@@ -55,6 +55,9 @@ sql
       sql.exec("ALTER TABLE routes ADD COLUMN subscription TEXT");
   })
   .immediate();
+sql.exec(
+  "CREATE TABLE IF NOT EXISTS youtube_channels(video_id TEXT PRIMARY KEY,channel_id TEXT NOT NULL,verified_at INTEGER NOT NULL)",
+);
 migrateShortShares(sql);
 migratePreferences(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {
