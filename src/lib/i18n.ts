@@ -150,7 +150,7 @@ export const messages = {
       "Your routes have a home. Import a route and make it yours. Everything stays private until you share it.",
   },
   ru: {
-    tagline: "Маршруты велосипеда и самоката.",
+    tagline: "Маршруты для поездок на велосипеде и самокате.",
     open: "Открыть SpiderRoute",
     privacy: "Конфиденциальность",
     mapCredit: "Данные карты © участники OpenStreetMap",
