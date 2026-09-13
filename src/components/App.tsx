@@ -1449,12 +1449,6 @@ function Workspace({ token, initialLocale }: AppProps) {
                 )}
               </div>
               <div className="route-details">
-                <RouteVideo
-                  key={route.id}
-                  value={route.youtubeUrl}
-                  locale={locale}
-                  onChange={(url) => update({ ...route, youtubeUrl: url })}
-                />
                 <div className="stats-row">
                   {[
                     [
@@ -1477,6 +1471,12 @@ function Workspace({ token, initialLocale }: AppProps) {
                     </div>
                   ))}
                 </div>
+                <RouteVideo
+                  key={route.id}
+                  value={route.youtubeUrl}
+                  locale={locale}
+                  onChange={(url) => update({ ...route, youtubeUrl: url })}
+                />
                 <section className="notes-section">
                   <div className="notes-heading">
                     <h3>

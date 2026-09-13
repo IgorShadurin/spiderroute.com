@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Trash2, Youtube } from "lucide-react";
+import { ExternalLink, Trash2, Youtube } from "lucide-react";
 import { normalizeYoutube, youtubeId } from "@/lib/route-details";
 export function RouteVideo({
   value,
@@ -17,6 +17,22 @@ export function RouteVideo({
     setDraft(value || "");
     setError(false);
   }, [value]);
+  const removeVideo = () => {
+    if (!onChange) return;
+    if (
+      window.confirm(
+        locale === "ru"
+          ? "Удалить видео из маршрута? Само видео останется на YouTube."
+          : "Remove this video from the route? The video will remain on YouTube.",
+      )
+    ) {
+      setDraft("");
+      setError(false);
+      onChange(null);
+    } else {
+      setDraft(value || "");
+    }
+  };
   const id = value ? youtubeId(value) : null;
   if (!onChange && !id) return null;
   return (
@@ -44,6 +60,10 @@ export function RouteVideo({
             onBlur={() => {
               try {
                 const next = normalizeYoutube(draft);
+                if (!next && value) {
+                  removeVideo();
+                  return;
+                }
                 setDraft(next || "");
                 if (next !== (value || null)) onChange(next);
               } catch {
@@ -55,11 +75,8 @@ export function RouteVideo({
             <button
               className="icon-button"
               aria-label={locale === "ru" ? "Удалить видео" : "Remove video"}
-              onClick={() => {
-                setDraft("");
-                setError(false);
-                onChange(null);
-              }}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={removeVideo}
             >
               <Trash2 size={17} />
             </button>
@@ -74,15 +91,26 @@ export function RouteVideo({
         </p>
       )}
       {id && (
-        <iframe
-          key={id}
-          src={`https://www.youtube-nocookie.com/embed/${id}`}
-          title={locale === "ru" ? "Видео поездки" : "Ride video"}
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
+        <>
+          <iframe
+            key={id}
+            src={`https://www.youtube-nocookie.com/embed/${id}`}
+            title={locale === "ru" ? "Видео поездки" : "Ride video"}
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+          <a
+            className="video-source-link"
+            href={`https://www.youtube.com/watch?v=${id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink size={16} />
+            {locale === "ru" ? "Открыть на YouTube" : "Watch on YouTube"}
+          </a>
+        </>
       )}
     </section>
   );

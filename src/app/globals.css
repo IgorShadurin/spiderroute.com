@@ -3292,3 +3292,17 @@ html[data-theme] .toast.toast-success button {
     padding: 0 20px;
   }
 }
+
+.video-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.video-source-link:hover {
+  opacity: 0.75;
+}
