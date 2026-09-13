@@ -3366,6 +3366,9 @@ html[data-theme] .toast.toast-success button {
 }
 
 .stat-label {
+  height: 24px;
+  flex: 0 0 24px;
+  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -3374,8 +3377,12 @@ html[data-theme] .toast.toast-success button {
   position: relative;
 }
 .stat-help summary {
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
   list-style: none;
   padding: 4px;
@@ -3385,6 +3392,7 @@ html[data-theme] .toast.toast-success button {
   display: none;
 }
 .stat-help p {
+  white-space: normal;
   position: absolute;
   z-index: 10;
   right: -10px;
