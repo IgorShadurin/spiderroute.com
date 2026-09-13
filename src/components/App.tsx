@@ -10,6 +10,8 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
+  CirclePlay,
+  Flag,
   MoreHorizontal,
   CircleAlert,
   TriangleAlert,
@@ -48,6 +50,7 @@ import {
 } from "@/lib/video-time";
 import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
+import { routeEndpoints } from "@/lib/endpoints";
 import { activeVideoAnnotations } from "@/lib/video-sync";
 import { RouteVideo } from "./RouteVideo";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
@@ -542,7 +545,12 @@ function Workspace({ token, initialLocale }: AppProps) {
       notify("anchorWarning");
       return;
     }
-    update({ ...route, geometry: g, stats: stats(g) });
+    update({
+      ...route,
+      geometry: g,
+      endpoints: routeEndpoints(g, route.endpoints),
+      stats: stats(g),
+    });
   };
   const save = async (
     confirmPrivacy = false,
@@ -902,6 +910,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                 focusAnnotation={focusedAnnotation}
                 onVideoSeek={publicRoute.youtubeUrl ? seekVideo : undefined}
                 activeAnnotationIds={activeAnnotations}
+                endpoints={publicRoute.endpoints}
                 fitKey={token}
                 errorLabel={t.mapUnavailable}
               />
@@ -1583,6 +1592,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   onCoordinate={coordinate}
                   onVideoSeek={route.youtubeUrl ? seekVideo : undefined}
                   activeAnnotationIds={activeAnnotations}
+                  endpoints={route.endpoints}
                   fitKey={route.id}
                   errorLabel={t.mapUnavailable}
                 />
@@ -1828,6 +1838,42 @@ function Workspace({ token, initialLocale }: AppProps) {
                       {selectedPoint.lon.toFixed(5)}
                     </span>
                     <div className="point-actions">
+                      <button
+                        className="button light small"
+                        onClick={() =>
+                          update({
+                            ...route,
+                            endpoints: {
+                              ...routeEndpoints(
+                                route.geometry,
+                                route.endpoints,
+                              )!,
+                              startId: selectedPoint.id,
+                            },
+                          })
+                        }
+                      >
+                        <CirclePlay size={14} />
+                        {locale === "ru" ? "Сделать стартом" : "Set as start"}
+                      </button>
+                      <button
+                        className="button light small"
+                        onClick={() =>
+                          update({
+                            ...route,
+                            endpoints: {
+                              ...routeEndpoints(
+                                route.geometry,
+                                route.endpoints,
+                              )!,
+                              endId: selectedPoint.id,
+                            },
+                          })
+                        }
+                      >
+                        <Flag size={14} />
+                        {locale === "ru" ? "Сделать финишем" : "Set as finish"}
+                      </button>
                       <button
                         className="button light small"
                         onClick={() => setChoosingEnd(true)}

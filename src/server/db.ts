@@ -35,6 +35,16 @@ sql
       sql.exec("ALTER TABLE routes ADD COLUMN youtube_url TEXT");
   })
   .immediate();
+sql
+  .transaction(() => {
+    if (
+      !(
+        sql.prepare("PRAGMA table_info(routes)").all() as { name: string }[]
+      ).some((c) => c.name === "endpoints")
+    )
+      sql.exec("ALTER TABLE routes ADD COLUMN endpoints TEXT");
+  })
+  .immediate();
 migrateShortShares(sql);
 migratePreferences(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {

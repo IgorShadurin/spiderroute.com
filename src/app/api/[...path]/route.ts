@@ -101,7 +101,9 @@ async function handler(
       }
       return json(
         sql
-          .prepare("SELECT id,name,email,locale,theme,auto_video_highlights AS autoVideoHighlights FROM users WHERE id=?")
+          .prepare(
+            "SELECT id,name,email,locale,theme,auto_video_highlights AS autoVideoHighlights FROM users WHERE id=?",
+          )
           .get(user),
       );
     }
@@ -195,6 +197,7 @@ async function handler(
               b.geometry,
               b.annotations ?? [],
               b.youtubeUrl,
+              b.endpoints,
             ),
             201,
           );

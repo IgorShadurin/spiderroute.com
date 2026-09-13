@@ -56,10 +56,25 @@ test("video updates persist, validate, update public snapshots, and clone indepe
     route = saveRoute(route.id, "video-owner", {
       ...route,
       youtubeUrl: "https://youtu.be/dQw4w9WgXcQ",
+      endpoints: { startId: "b", endId: "a" },
+      privacyStart: 0,
+      privacyEnd: 0,
     });
     assert.equal(
       routeView(owned(route.id, "video-owner")).youtubeUrl,
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    );
+    assert.deepEqual(routeView(owned(route.id, "video-owner")).endpoints, {
+      startId: "b",
+      endId: "a",
+    });
+    assert.throws(
+      () =>
+        saveRoute(route.id, "video-owner", {
+          ...route,
+          endpoints: { startId: "foreign", endId: "a" },
+        }),
+      /invalidGeometry/,
     );
     assert.throws(() => owned(route.id, "video-cloner"), /notFound/);
     assert.throws(
@@ -73,6 +88,16 @@ test("video updates persist, validate, update public snapshots, and clone indepe
     const token = publishRoute(route.id, "video-owner", route.revision);
     assert.equal(readShare(token).payload.youtubeUrl, route.youtubeUrl);
     const clone = cloneRoute(token, "video-cloner");
+    assert.equal(
+      clone.geometry.flat().find((p: any) => p.id === clone.endpoints?.startId)
+        ?.lon,
+      0.1,
+    );
+    sql.prepare("UPDATE routes SET endpoints=NULL WHERE id=?").run(route.id);
+    assert.deepEqual(routeView(owned(route.id, "video-owner")).endpoints, {
+      startId: "a",
+      endId: "b",
+    });
     route = saveRoute(route.id, "video-owner", { ...route, youtubeUrl: null });
     assert.equal(readShare(token).payload.youtubeUrl, null);
     assert.equal(

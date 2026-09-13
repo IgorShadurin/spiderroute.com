@@ -1,7 +1,8 @@
 "use client";
+import { routeEndpoints, type RouteEndpoints } from "@/lib/endpoints";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Maximize2, Minimize2, Route } from "lucide-react";
+import { CirclePlay, Flag, Maximize2, Minimize2, Route } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import type { Map as MapType, Marker, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -15,6 +16,7 @@ export default function RouteMap({
   onExitFullscreen,
   geometry,
   annotations = [],
+  endpoints,
   segmentColors,
   privacyPreview,
   focusAnnotation,
@@ -40,6 +42,7 @@ export default function RouteMap({
     endRadius: number;
   };
   annotations?: Annotation[];
+  endpoints?: RouteEndpoints;
   segmentColors?: string[];
   focusAnnotation?: { id: string };
   selected?: string;
@@ -569,6 +572,64 @@ export default function RouteMap({
   useEffect(() => {
     if (ready) fit();
   }, [ready, fitKey]);
+  const jumpToEndpoint = (which: "startId" | "endId") => {
+    const id = routeEndpoints(geometry, endpoints)?.[which];
+    const point = geometry.flat().find((p) => p.id === id);
+    if (point)
+      map.current?.easeTo({
+        center: [point.lon, point.lat],
+        zoom: Math.max(map.current.getZoom(), 15),
+        duration: 600,
+      });
+  };
+  useEffect(() => {
+    if (!ready || !map.current) return;
+    const ends = routeEndpoints(geometry, endpoints);
+    if (!ends) return;
+    const markers: maplibregl.Marker[] = [];
+    const first = geometry.flat().find((p) => p.id === ends.startId)!;
+    const last = geometry.flat().find((p) => p.id === ends.endId)!;
+    const sameLocation =
+      Math.abs(first.lat - last.lat) < 0.00001 &&
+      Math.abs(first.lon - last.lon) < 0.00001;
+    for (const [kind, id] of [
+      ["start", ends.startId],
+      ["finish", ends.endId],
+    ] as const) {
+      const point = geometry.flat().find((p) => p.id === id)!;
+      const el = document.createElement("button");
+      el.className = "route-endpoint route-endpoint-" + kind;
+      el.textContent = kind === "start" ? "▶" : "⚑";
+      el.title =
+        locale === "ru"
+          ? kind === "start"
+            ? "Старт"
+            : "Финиш"
+          : kind === "start"
+            ? "Start"
+            : "Finish";
+      el.setAttribute("aria-label", el.title);
+      el.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (props.current.mode === "select" || props.current.mode === "move")
+          props.current.onSelect?.(id);
+        else jumpToEndpoint(kind === "start" ? "startId" : "endId");
+      });
+      markers.push(
+        new maplibregl.Marker({
+          element: el,
+          offset: sameLocation
+            ? [kind === "start" ? -18 : 18, 0]
+            : annotations.some((a) => a.startId === id || a.endId === id)
+              ? [0, -25]
+              : [0, 0],
+        })
+          .setLngLat([point.lon, point.lat])
+          .addTo(map.current),
+      );
+    }
+    return () => markers.forEach((marker) => marker.remove());
+  }, [ready, geometry, endpoints, locale, annotations]);
   return (
     <div className="map-wrap">
       <div ref={container} className="map-canvas" />
@@ -578,6 +639,24 @@ export default function RouteMap({
         </div>
       )}
       <div className="map-actions">
+        <button
+          className="map-action endpoint-action"
+          disabled={!geometry.some((s) => s.length)}
+          onClick={() => jumpToEndpoint("startId")}
+          title={locale === "ru" ? "К старту" : "Go to start"}
+          aria-label={locale === "ru" ? "К старту" : "Go to start"}
+        >
+          <CirclePlay size={19} />
+        </button>
+        <button
+          className="map-action endpoint-action"
+          disabled={!geometry.some((s) => s.length)}
+          onClick={() => jumpToEndpoint("endId")}
+          title={locale === "ru" ? "К финишу" : "Go to finish"}
+          aria-label={locale === "ru" ? "К финишу" : "Go to finish"}
+        >
+          <Flag size={19} />
+        </button>
         <button className="map-action" onClick={fit}>
           <Route size={17} aria-hidden="true" />
           <span>{locale === "ru" ? "Весь маршрут" : "Fit route"}</span>
@@ -612,6 +691,7 @@ export default function RouteMap({
           >
             <RouteMap
               geometry={geometry}
+              endpoints={endpoints}
               segmentColors={segmentColors}
               annotations={annotations}
               privacyPreview={privacyPreview}

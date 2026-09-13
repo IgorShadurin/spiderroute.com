@@ -1,3 +1,4 @@
+import { routeEndpoints, type RouteEndpoints } from "./endpoints";
 import { validNoteText } from "./note-limits";
 import type { Annotation, Geometry, Point, PublicRoute, Stats } from "./types";
 export const uid = () => crypto.randomUUID();
@@ -188,6 +189,7 @@ export function publicSnapshot(
   startCenter?: Point,
   endCenter?: Point,
   revision = 1,
+  endpoints?: RouteEndpoints,
 ): PublicRoute {
   const first = startCenter ?? g[0][0],
     last = endCenter ?? g.at(-1)!.at(-1)!;
@@ -313,8 +315,13 @@ export function publicSnapshot(
     )
       publicAnnotations.push({ ...a, id: uid(), startId: start, endId: end });
   }
+  const detected = routeEndpoints(g, endpoints);
   return {
     title,
+    endpoints: routeEndpoints(output, {
+      startId: originalToPublic.get(detected!.startId),
+      endId: originalToPublic.get(detected!.endId),
+    }),
     geometry: output,
     annotations: publicAnnotations,
     stats: stats(output),

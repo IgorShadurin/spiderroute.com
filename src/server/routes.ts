@@ -1,3 +1,4 @@
+import { routeEndpoints, validateEndpoints } from "@/lib/endpoints";
 import { normalizeYoutube } from "@/lib/route-details";
 import { randomUUID } from "node:crypto";
 import { sql } from "./db";
@@ -26,6 +27,10 @@ export function routeView(row: any) {
     title: row.title,
     youtubeUrl: row.youtube_url ?? null,
     geometry: JSON.parse(row.geometry),
+    endpoints: routeEndpoints(
+      JSON.parse(row.geometry),
+      row.endpoints ? JSON.parse(row.endpoints) : undefined,
+    ),
     annotations: JSON.parse(row.annotations),
     stats: JSON.parse(row.stats),
     revision: row.revision,
@@ -43,10 +48,12 @@ export function createRoute(
   geometry: Geometry,
   annotations: unknown = [],
   youtubeUrl: unknown = null,
+  endpoints?: unknown,
 ) {
   const video = normalizeYoutube(youtubeUrl);
   const g = validateGeometry(geometry),
     a = validateAnnotations(annotations, g),
+    ends = validateEndpoints(g, endpoints),
     id = randomUUID();
   if (
     (
@@ -70,22 +77,27 @@ export function createRoute(
       JSON.stringify(stats(g)),
       new Date().toISOString(),
     );
-  sql.prepare("UPDATE routes SET youtube_url=? WHERE id=?").run(video, id);
+  sql
+    .prepare("UPDATE routes SET youtube_url=?,endpoints=? WHERE id=?")
+    .run(video, JSON.stringify(ends), id);
   return routeView(owned(id, user));
 }
 export function snapshot(row: any, overrides?: any): PublicRoute {
   const original: Geometry = JSON.parse(row.original);
+  const visible = publicSnapshot(
+    overrides?.title ?? row.title,
+    overrides?.geometry ?? JSON.parse(row.geometry),
+    overrides?.annotations ?? JSON.parse(row.annotations),
+    overrides?.privacyStart ?? row.privacy_start,
+    overrides?.privacyEnd ?? row.privacy_end,
+    original[0][0],
+    original.at(-1)!.at(-1)!,
+    overrides?.revision ?? row.revision,
+    overrides?.endpoints ??
+      (row.endpoints ? JSON.parse(row.endpoints) : undefined),
+  );
   return {
-    ...publicSnapshot(
-      overrides?.title ?? row.title,
-      overrides?.geometry ?? JSON.parse(row.geometry),
-      overrides?.annotations ?? JSON.parse(row.annotations),
-      overrides?.privacyStart ?? row.privacy_start,
-      overrides?.privacyEnd ?? row.privacy_end,
-      original[0][0],
-      original.at(-1)!.at(-1)!,
-      overrides?.revision ?? row.revision,
-    ),
+    ...visible,
     youtubeUrl: normalizeYoutube(
       overrides?.youtubeUrl !== undefined
         ? overrides.youtubeUrl
@@ -112,6 +124,13 @@ export function saveRoute(id: string, user: string, input: any) {
     const geometry = validateGeometry(input.geometry),
       annotations = validateAnnotations(input.annotations, geometry),
       revision = row.revision + 1;
+    const ends =
+      input.endpoints !== undefined
+        ? validateEndpoints(geometry, input.endpoints)
+        : routeEndpoints(
+            geometry,
+            row.endpoints ? JSON.parse(row.endpoints) : undefined,
+          );
     const shared = sql
       .prepare("SELECT token FROM shares WHERE route_id=?")
       .get(id);
@@ -128,6 +147,7 @@ export function saveRoute(id: string, user: string, input: any) {
           snapshot(row, {
             ...input,
             youtubeUrl: video,
+            endpoints: ends,
             geometry,
             annotations,
             revision,
@@ -149,7 +169,9 @@ export function saveRoute(id: string, user: string, input: any) {
         new Date().toISOString(),
         id,
       );
-    sql.prepare("UPDATE routes SET youtube_url=? WHERE id=?").run(video, id);
+    sql
+      .prepare("UPDATE routes SET youtube_url=?,endpoints=? WHERE id=?")
+      .run(video, JSON.stringify(ends), id);
     if (payload)
       sql
         .prepare("UPDATE shares SET payload=?,revision=? WHERE route_id=?")
@@ -246,6 +268,7 @@ export function cloneRoute(token: string, user: string) {
       structuredClone(payload.geometry),
       structuredClone(payload.annotations),
       payload.youtubeUrl,
+      payload.endpoints,
     );
   })();
 }
