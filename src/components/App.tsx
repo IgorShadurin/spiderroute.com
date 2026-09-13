@@ -38,6 +38,7 @@ import {
   Scissors,
   PenLine,
 } from "lucide-react";
+import { privateRoutePath, routeIdFromUrl } from "@/lib/navigation";
 import { routePageTitle } from "@/lib/route-details";
 import { RouteVideo } from "./RouteVideo";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
@@ -146,8 +147,8 @@ function Workspace({ token, initialLocale }: AppProps) {
   };
   const setRouteUrl = (id?: string, replace = false) => {
     const url = new URL(location.href);
-    if (id && id !== "new") url.searchParams.set("route", id);
-    else url.searchParams.delete("route");
+    url.pathname = id && id !== "new" ? privateRoutePath(id) : "/workspace";
+    url.search = "";
     if (url.href !== location.href)
       window.history[replace ? "replaceState" : "pushState"](
         null,
@@ -206,8 +207,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     const q = new URLSearchParams(location.search).get("lang"),
       stored = storedLanguage();
     setLocale(
-      initialLocale ??
-        (q === "ru" || q === "en" ? q : stored === "ru" ? "ru" : "en"),
+      initialLocale ?? (token && (q === "ru" || q === "en") ? q : stored),
     );
     setLanguageReady(true);
     getProviders().then(setProviders);
@@ -238,7 +238,7 @@ function Workspace({ token, initialLocale }: AppProps) {
           if (!token) {
             setLocale(saved);
             const target = new URL(location.href);
-            target.searchParams.set("lang", saved);
+            target.searchParams.delete("lang");
             window.history.replaceState(
               null,
               "",
@@ -253,7 +253,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     if (status !== "authenticated" || token) return;
     const load = async () => {
       const version = ++navigationVersion.current;
-      const id = new URLSearchParams(location.search).get("route");
+      const id = routeIdFromUrl(new URL(location.href));
       try {
         if (dirtyRef.current) await save();
         if (version !== navigationVersion.current) return;
@@ -356,7 +356,8 @@ function Workspace({ token, initialLocale }: AppProps) {
     setLocale(l);
     rememberLanguage(l);
     const target = new URL(location.href);
-    target.searchParams.set("lang", l);
+    if (token) target.searchParams.set("lang", l);
+    else target.searchParams.delete("lang");
     window.history.replaceState(null, "", target.pathname + target.search);
   };
   const changeLocale = () => {
@@ -373,7 +374,8 @@ function Workspace({ token, initialLocale }: AppProps) {
     setLocale(l);
     rememberLanguage(l);
     const target = new URL(location.href);
-    target.searchParams.set("lang", l);
+    if (token) target.searchParams.set("lang", l);
+    else target.searchParams.delete("lang");
     window.history.replaceState(null, "", target.pathname + target.search);
   };
   const startOAuth = (provider: string) => {
@@ -592,16 +594,13 @@ function Workspace({ token, initialLocale }: AppProps) {
     run(async () => {
       if (!session) {
         location.href =
-          "/workspace?lang=" +
-          locale +
-          "&returnTo=" +
+          "/workspace?returnTo=" +
           encodeURIComponent(sharePath(token!, locale));
         return;
       }
       const r = await api("public/" + token + "/" + action, "POST", {});
       notify(action === "clone" ? "cloned" : "favorited");
-      if (action === "clone")
-        location.href = "/workspace?lang=" + locale + "&route=" + r.id;
+      if (action === "clone") location.href = privateRoutePath(r.id);
     });
   const exportLink = (format: string) =>
     token
@@ -633,10 +632,9 @@ function Workspace({ token, initialLocale }: AppProps) {
     </details>
   );
   const workspaceHref =
-    "/workspace?lang=" +
-    locale +
+    "/workspace" +
     (!session && token
-      ? "&returnTo=" + encodeURIComponent(sharePath(token, locale))
+      ? "?returnTo=" + encodeURIComponent(sharePath(token, locale))
       : "");
   const workspaceLabel = session ? t.myRoutes : t.signInAction;
   const languageButton = (
@@ -670,7 +668,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     return (
       <div className="public-shell">
         <header className="app-header">
-          <a href={"/workspace?lang=" + locale}>
+          <a href="/workspace">
             <Brand />
           </a>
           <div>
@@ -716,9 +714,7 @@ function Workspace({ token, initialLocale }: AppProps) {
                   onError={() => notify("favoriteError")}
                   onSignIn={() => {
                     location.href =
-                      "/workspace?lang=" +
-                      locale +
-                      "&returnTo=" +
+                      "/workspace?returnTo=" +
                       encodeURIComponent(sharePath(token!, locale));
                   }}
                 />
@@ -826,7 +822,7 @@ function Workspace({ token, initialLocale }: AppProps) {
     return (
       <div className="signin-shell">
         <header className="site-header">
-          <a href={"/workspace?lang=" + locale}>
+          <a href="/workspace">
             <Brand />
           </a>
           <ThemeToggle locale={locale} account={!!session} />
@@ -956,7 +952,7 @@ function Workspace({ token, initialLocale }: AppProps) {
         >
           <Menu size={22} />
         </button>
-        <a href={"/workspace?lang=" + locale}>
+        <a href="/workspace">
           <Brand />
         </a>
         <div>

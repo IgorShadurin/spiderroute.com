@@ -12,13 +12,27 @@ export function proxy(req: NextRequest) {
   if (
     ["spiderroute.com", "ru.spiderroute.com"].includes(host) &&
     (req.nextUrl.pathname.startsWith("/workspace") ||
-      req.nextUrl.pathname.startsWith("/s/"))
+      req.nextUrl.pathname.startsWith("/s/") ||
+      req.nextUrl.pathname.startsWith("/r/"))
   ) {
     const target = new URL(
       req.nextUrl.pathname + req.nextUrl.search,
       "https://app.spiderroute.com",
     );
     if (host.startsWith("ru.")) target.searchParams.set("lang", "ru");
+    return NextResponse.redirect(target, 307);
+  }
+  const legacyId =
+    req.nextUrl.pathname === "/workspace"
+      ? req.nextUrl.searchParams.get("route")
+      : null;
+  if (
+    legacyId ||
+    (req.nextUrl.pathname.startsWith("/r/") && req.nextUrl.search)
+  ) {
+    const target = req.nextUrl.clone();
+    if (legacyId) target.pathname = `/r/${encodeURIComponent(legacyId)}`;
+    target.search = "";
     return NextResponse.redirect(target, 307);
   }
   const requestHeaders = new Headers(req.headers);
