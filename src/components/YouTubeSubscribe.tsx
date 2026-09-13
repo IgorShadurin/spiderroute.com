@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink } from "lucide-react";
 import { channelId, type Subscription } from "@/lib/youtube-channel";
 import { useTheme } from "./ThemeProvider";
 type SubscribeAPI = {
@@ -70,17 +69,6 @@ function SubscribeWidget({ id, locale }: { id: string; locale: string }) {
         {locale === "ru" ? "Подписаться на канал" : "Subscribe to the channel"}
       </p>
       <div ref={host} hidden={failed} />
-      {
-        <a
-          className="button light small subscription-link"
-          href={"https://www.youtube.com/channel/" + id + "?sub_confirmation=1"}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <ExternalLink size={16} />
-          {locale === "ru" ? "Подписаться на YouTube" : "Subscribe on YouTube"}
-        </a>
-      }
     </div>
   );
 }

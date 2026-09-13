@@ -3565,4 +3565,3 @@ html[data-theme] .toast.toast-success button {
   .public-shell.has-video .public-media,.public-shell.has-video .public-notes { margin-inline:16px; }
   .public-shell.has-video .public-map { min-height:320px; border-radius:16px; }
 }
-.youtube-subscribe-widget .subscription-link { display:flex; width:fit-content; margin-top:10px; }
