@@ -14,6 +14,7 @@ import {
   Video,
   Plus,
 } from "lucide-react";
+import { SpeedometerLink } from "@/components/SpeedometerLink";
 import { ThemeToggle } from "@/components/ThemeProvider";
 import { LandingLanguage } from "@/components/LandingLanguage";
 import { Brand } from "@/components/Brand";
@@ -123,9 +124,12 @@ export default async function Home({ searchParams }: Props) {
           <Brand />
         </a>
         <nav>
+          <SpeedometerLink locale={locale} compact />
           <ThemeToggle locale={locale} />
           <a
-            className="language-link"
+            className="icon-button language-link"
+            title={ru ? "English" : "Русский"}
+            aria-label={ru ? "English" : "Русский"}
             href={
               local
                 ? `/?lang=${ru ? "en" : "ru"}`
@@ -134,7 +138,7 @@ export default async function Home({ searchParams }: Props) {
                   : "https://ru.spiderroute.com"
             }
           >
-            {ru ? "EN" : "RU"} <span>↗</span>
+            {ru ? "EN" : "RU"}
           </a>
           <a className="button dark small" href={app} aria-label={t.open}>
             <span className="wide-label">{t.open}</span>
@@ -295,6 +299,7 @@ export default async function Home({ searchParams }: Props) {
         <Brand />
         <span>© {new Date().getFullYear()} SpiderRoute</span>
         <a href="/privacy">{t.privacy}</a>
+        <SpeedometerLink locale={locale} />
         <a href="mailto:hello@spiderroute.com">hello@spiderroute.com</a>
       </footer>
     </div>

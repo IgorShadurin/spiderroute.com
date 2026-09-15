@@ -55,6 +55,7 @@ import { activeVideoAnnotations } from "@/lib/video-sync";
 import { RouteLoading } from "./RouteLoading";
 import { RouteVideo } from "./RouteVideo";
 import { NOTE_MAX_LENGTH, validNoteText } from "@/lib/note-limits";
+import { SpeedometerLink } from "./SpeedometerLink";
 import { useTheme, ThemeToggle } from "./ThemeProvider";
 import { resolveTheme, type Theme } from "@/lib/theme";
 import { RoutesOverview } from "./RoutesOverview";
@@ -862,8 +863,9 @@ function Workspace({
   const workspaceLabel = session ? t.myRoutes : t.signInAction;
   const languageButton = (
     <button
-      className="language-link"
+      className="icon-button language-link"
       onClick={changeLocale}
+      title={locale === "en" ? "Русский" : "English"}
       aria-label={t.language}
     >
       {locale === "en" ? "RU" : "EN"}
@@ -897,6 +899,7 @@ function Workspace({
             <Brand />
           </a>
           <div>
+            <SpeedometerLink locale={locale} compact />
             <ThemeToggle locale={locale} account={!!session} />
             {languageButton}
             <a className="button dark small" href={workspaceHref}>
@@ -1071,6 +1074,7 @@ function Workspace({
               locale === "ru" ? "Настройки отображения" : "Display settings"
             }
           >
+            <SpeedometerLink locale={locale} compact />
             <ThemeToggle locale={locale} account={!!session} />
             {languageButton}
           </nav>
@@ -1229,6 +1233,7 @@ function Workspace({
           <Brand />
         </a>
         <div>
+          <SpeedometerLink locale={locale} compact />
           <ThemeToggle locale={locale} account={!!session} />
           {languageButton}
           <AccountSettings
