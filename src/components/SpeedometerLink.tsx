@@ -12,8 +12,8 @@ export function SpeedometerLink({
 }) {
   const label =
     locale === "ru"
-      ? "Speedometer — GPS-трекер в App Store"
-      : "Speedometer GPS Tracker on the App Store";
+      ? "Speedometer App — GPS-трекер в App Store"
+      : "Speedometer App — GPS Tracker on the App Store";
   return (
     <a
       className={
@@ -28,7 +28,7 @@ export function SpeedometerLink({
       <Smartphone size={19} aria-hidden="true" />
       {!compact && (
         <>
-          Speedometer <ArrowUpRight size={15} aria-hidden="true" />
+          Speedometer App <ArrowUpRight size={15} aria-hidden="true" />
         </>
       )}
     </a>
