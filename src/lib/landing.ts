@@ -39,6 +39,10 @@ export const landingCopy = {
         title: "Save a route for another ride",
         text: "Favorite a shared route or save your own editable copy. A saved copy stays in your account if the original owner removes theirs.",
       },
+      {
+        title: "Connect places to your ride video",
+        text: "Add a YouTube video and link points or sections to moments in the ride. Click a place to jump to its video time, or let the map follow along as you watch.",
+      },
     ],
     sourceTitle: "Open source on GitHub",
     sourceText:
@@ -131,6 +135,10 @@ export const landingCopy = {
       {
         title: "Сохраните маршрут для следующей поездки",
         text: "Добавьте чужой маршрут в избранное или создайте свою редактируемую копию. Копия останется у вас, даже если автор удалит оригинал.",
+      },
+      {
+        title: "Свяжите маршрут с видео поездки",
+        text: "Добавьте видео с YouTube и привяжите точки или участки к нужным моментам. Нажмите на место, чтобы перейти к нему в видео, или следите за маршрутом на карте во время просмотра.",
       },
     ],
     sourceTitle: "Открытый исходный код на GitHub",

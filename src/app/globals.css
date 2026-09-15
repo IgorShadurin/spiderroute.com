@@ -2381,6 +2381,10 @@ select,
   margin: 8px 0;
 }
 .london-preview .sport-route-sidebar > a {
+  display: inline-flex;
+  align-items: center;
+  flex-direction: row;
+  white-space: nowrap;
   width: auto;
   height: auto;
   border: 0;
