@@ -3583,3 +3583,16 @@ a.icon-button:active { scale: .97; filter: brightness(.9); }
   a.icon-button:active { scale: 1; }
 }
 .speedometer-footer-link { display:inline-flex; align-items:center; gap:8px; }
+
+.user-menu { position:relative; }
+.user-menu-trigger { display:inline-flex; align-items:center; gap:6px; padding:4px; border-radius:24px; }
+.user-menu-trigger:hover { background:var(--line); }
+.user-menu-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.user-menu-placeholder { display:grid; place-items:center; background:var(--line); color:var(--ink); }
+.user-menu-panel { position:absolute; right:0; top:calc(100% + 10px); z-index:100; width:260px; max-width:calc(100vw - 32px); padding:10px; border:1px solid var(--line); border-radius:14px; background:var(--white); color:var(--ink); box-shadow:0 12px 36px #0003; }
+.user-menu-panel[hidden] { display:none; }
+.user-menu-name { margin:0 0 6px; padding:8px 10px 12px; border-bottom:1px solid var(--line); font-weight:700; overflow-wrap:anywhere; }
+.user-menu-action,.user-menu-panel .speedometer-footer-link { display:flex; align-items:center; gap:10px; width:100%; min-height:42px; padding:10px; border-radius:8px; font-size:14px; text-align:left; }
+.user-menu-action:hover,.user-menu-panel .speedometer-footer-link:hover { background:var(--line); }
+.user-menu-row { display:flex; align-items:center; justify-content:space-between; min-height:44px; padding:2px 10px; font-size:14px; }
+.user-menu-signout { margin-top:6px; border-top:1px solid var(--line); }

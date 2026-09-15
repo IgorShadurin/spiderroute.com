@@ -9,7 +9,9 @@ export function AccountSettings({
   accountLocale,
   theme,
   onSave,
+  showLabel = false,
 }: {
+  showLabel?: boolean;
   locale: Locale;
   accountLocale: Locale;
   theme: Theme;
@@ -31,7 +33,7 @@ export function AccountSettings({
   return (
     <>
       <button
-        className="icon-button"
+        className={showLabel ? "user-menu-action" : "icon-button"}
         title={ru ? "Настройки аккаунта" : "Account settings"}
         aria-label={ru ? "Настройки аккаунта" : "Account settings"}
         onClick={() => {
@@ -42,6 +44,7 @@ export function AccountSettings({
         }}
       >
         <Settings size={19} />
+        {showLabel && (ru ? "Настройки аккаунта" : "Account settings")}
       </button>
       {open &&
         createPortal(

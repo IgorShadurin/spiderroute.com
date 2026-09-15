@@ -59,6 +59,7 @@ import { SpeedometerLink } from "./SpeedometerLink";
 import { useTheme, ThemeToggle } from "./ThemeProvider";
 import { resolveTheme, type Theme } from "@/lib/theme";
 import { RoutesOverview } from "./RoutesOverview";
+import { UserMenu } from "./UserMenu";
 import { AccountSettings } from "./AccountSettings";
 import { rememberLanguage, storedLanguage, validLocale } from "@/lib/language";
 import FavoriteButton from "./FavoriteButton";
@@ -871,6 +872,54 @@ function Workspace({
       {locale === "en" ? "RU" : "EN"}
     </button>
   );
+  const accountMenu = session && (
+    <UserMenu
+      name={session.user?.name}
+      image={session.user?.image}
+      locale={locale}
+    >
+      <a className="user-menu-action" href={homeHref}>
+        <Route size={19} />
+        {t.myRoutes}
+      </a>
+      <AccountSettings
+        showLabel
+        locale={locale}
+        accountLocale={accountLocale}
+        theme={theme}
+        onSave={saveAccountLanguage}
+      />
+      <div className="user-menu-row">
+        <span>{locale === "ru" ? "Язык" : "Language"}</span>
+        {languageButton}
+      </div>
+      <div className="user-menu-row">
+        <span>{locale === "ru" ? "Тема" : "Theme"}</span>
+        <ThemeToggle locale={locale} account />
+      </div>
+      <SpeedometerLink locale={locale} />
+      <button
+        className="user-menu-action user-menu-signout"
+        onClick={() => {
+          if (
+            !confirm(
+              locale === "ru"
+                ? "Выйти из аккаунта?"
+                : "Sign out of your account?",
+            )
+          )
+            return;
+          run(async () => {
+            if (!token) await save();
+            await signOut({ callbackUrl: homeHref });
+          });
+        }}
+      >
+        <LogOut size={19} />
+        {t.logout}
+      </button>
+    </UserMenu>
+  );
   const notifyNode = toast && (
     <div
       className={"toast toast-" + toast.tone}
@@ -899,12 +948,18 @@ function Workspace({
             <Brand />
           </a>
           <div>
-            <SpeedometerLink locale={locale} compact />
-            <ThemeToggle locale={locale} account={!!session} />
-            {languageButton}
-            <a className="button dark small" href={workspaceHref}>
-              {workspaceLabel}
-            </a>
+            {session ? (
+              accountMenu
+            ) : (
+              <>
+                <SpeedometerLink locale={locale} compact />
+                <ThemeToggle locale={locale} />
+                {languageButton}
+                <a className="button dark small" href={workspaceHref}>
+                  {workspaceLabel}
+                </a>
+              </>
+            )}
           </div>
         </header>
         {publicError ? (
@@ -1232,41 +1287,7 @@ function Workspace({
         <a href={homeHref}>
           <Brand />
         </a>
-        <div>
-          <SpeedometerLink locale={locale} compact />
-          <ThemeToggle locale={locale} account={!!session} />
-          {languageButton}
-          <AccountSettings
-            locale={locale}
-            accountLocale={accountLocale}
-            theme={theme}
-            onSave={saveAccountLanguage}
-          />
-          <span className="user-avatar" title={session.user?.name || ""}>
-            {session.user?.name?.[0]?.toUpperCase() || "S"}
-          </span>
-          <button
-            className="icon-button"
-            onClick={() => {
-              if (
-                !confirm(
-                  locale === "ru"
-                    ? "Выйти из аккаунта?"
-                    : "Sign out of your account?",
-                )
-              )
-                return;
-              run(async () => {
-                await save();
-                await signOut({ callbackUrl: "/" });
-              });
-            }}
-            title={t.logout}
-            aria-label={t.logout}
-          >
-            <LogOut size={17} />
-          </button>
-        </div>
+        <div>{accountMenu}</div>
       </header>
       {importProgress && (
         <div
