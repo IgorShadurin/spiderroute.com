@@ -39,10 +39,17 @@ export function sharedMetadata(
     name?.trim() || (ru ? "Маршрут" : "Route"),
     locale,
   );
+  const routeName = title.slice(0, title.lastIndexOf(" · "));
   const description = ru
-    ? "Посмотрите маршрут для велосипеда или самоката на карте, изучите заметки и сохраните копию в своей коллекции SpiderRoute."
-    : "View a bike or scooter route on the map, read ride notes and save a copy to your SpiderRoute collection.";
+    ? `Веломаршрут «${routeName}»: карта, заметки и GPS-трек. Посмотрите маршрут, скачайте трек или сохраните копию.`
+    : `Cycling route “${routeName}”: map, ride notes and GPS track. Explore the route, download the track or save a copy.`;
   const url = shareUrl(token, locale);
+  const image = {
+    url: "https://spiderroute.com/icon.png",
+    width: 512,
+    height: 512,
+    alt: ru ? "Логотип SpiderRoute" : "SpiderRoute logo",
+  };
   return {
     title: { absolute: title },
     description,
@@ -53,6 +60,7 @@ export function sharedMetadata(
       languages: {
         en: shareUrl(token, "en"),
         ru: shareUrl(token, "ru"),
+        "x-default": shareUrl(token, "en"),
       },
     },
     openGraph: {
@@ -62,7 +70,9 @@ export function sharedMetadata(
       url,
       siteName: "SpiderRoute",
       locale: ru ? "ru_RU" : "en_US",
+      alternateLocale: ru ? "en_US" : "ru_RU",
+      images: [image],
     },
-    twitter: { card: "summary", title, description },
+    twitter: { card: "summary", title, description, images: [image] },
   };
 }

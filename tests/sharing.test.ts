@@ -79,22 +79,36 @@ test("shared page and social titles use the bounded public route name", () => {
     "ru",
     "  Минск\n Молодечно  ",
   );
-  const expected = "Минск Молодечно · Веломаршрут · SpiderRoute";
+  const expected = "Минск Молодечно · Веломаршрут";
   assert.deepEqual(metadata.title, { absolute: expected });
   assert.equal(metadata.openGraph?.title, expected);
   assert.equal(metadata.twitter?.title, expected);
   for (const locale of ["ru", "en"] as const) {
-    const suffix =
-      locale === "ru"
-        ? " · Веломаршрут · SpiderRoute"
-        : " · Cycling route · SpiderRoute";
+    const suffix = locale === "ru" ? " · Веломаршрут" : " · Cycling route";
     for (const name of ["🚲".repeat(100), "Длинное название ".repeat(20)]) {
       const long = sharedMetadata("abcdefghijklmnop", locale, name);
       const title = (long.title as { absolute: string }).absolute;
       assert.ok(Array.from(title).length <= 70);
       assert.ok(title.endsWith("…" + suffix));
+      assert.ok(Array.from(long.description!).length <= 160);
+      assert.ok(!title.includes("SpiderRoute"));
     }
     const short = sharedMetadata("abcdefghijklmnop", locale, "Morning ride");
     assert.deepEqual(short.title, { absolute: "Morning ride" + suffix });
+  }
+});
+
+test("shared SEO fields agree across locales and refer to the public name", () => {
+  for (const locale of ["ru", "en"] as const) {
+    const metadata = sharedMetadata("abcdefghijklmnop", locale, "River ride");
+    assert.ok(metadata.description?.includes("River ride"));
+    assert.equal(metadata.openGraph?.url, shareUrl("abcdefghijklmnop", locale));
+    assert.deepEqual(metadata.alternates?.languages, {
+      en: shareUrl("abcdefghijklmnop", "en"),
+      ru: shareUrl("abcdefghijklmnop", "ru"),
+      "x-default": shareUrl("abcdefghijklmnop", "en"),
+    });
+    assert.deepEqual(metadata.openGraph?.images, metadata.twitter?.images);
+    assert.equal((metadata.twitter as { card: string }).card, "summary");
   }
 });
