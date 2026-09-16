@@ -40,6 +40,12 @@ The source is available here for you to inspect and run yourself. The operationa
 - [Development and checks](docs/development.md) — the stack, tests and safe test data.
 - [Landing-page SEO](docs/landing-seo.md) — language-specific landing pages and search metadata.
 
+## License
+
+Copyright 2026 Igor Shadurin. SpiderRoute’s original source code is licensed under the [Apache License 2.0](LICENSE).
+
+Third-party dependencies and assets retain their respective licenses. OpenStreetMap data and derived route geometry remain under ODbL; see the [map asset attribution](public/maps/README.md).
+
 ## Run locally
 
 Use Node.js 24. From a checkout of this repository:

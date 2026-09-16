@@ -2,6 +2,7 @@
   "name": "spiderroute",
   "version": "1.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "scripts": {
     "predev": "node scripts/map-assets.mjs",
     "prebuild": "node scripts/map-assets.mjs",
