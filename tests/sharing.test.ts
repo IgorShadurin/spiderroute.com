@@ -79,12 +79,22 @@ test("shared page and social titles use the bounded public route name", () => {
     "ru",
     "  Минск\n Молодечно  ",
   );
-  const expected = "Минск Молодечно · SpiderRoute";
+  const expected = "Минск Молодечно · Веломаршрут · SpiderRoute";
   assert.deepEqual(metadata.title, { absolute: expected });
   assert.equal(metadata.openGraph?.title, expected);
   assert.equal(metadata.twitter?.title, expected);
-  const long = sharedMetadata("abcdefghijklmnop", "en", "🚲".repeat(100));
-  const title = (long.title as { absolute: string }).absolute;
-  assert.equal(Array.from(title).length, 74);
-  assert.ok(title.endsWith("… · SpiderRoute"));
+  for (const locale of ["ru", "en"] as const) {
+    const suffix =
+      locale === "ru"
+        ? " · Веломаршрут · SpiderRoute"
+        : " · Cycling route · SpiderRoute";
+    for (const name of ["🚲".repeat(100), "Длинное название ".repeat(20)]) {
+      const long = sharedMetadata("abcdefghijklmnop", locale, name);
+      const title = (long.title as { absolute: string }).absolute;
+      assert.ok(Array.from(title).length <= 70);
+      assert.ok(title.endsWith("…" + suffix));
+    }
+    const short = sharedMetadata("abcdefghijklmnop", locale, "Morning ride");
+    assert.deepEqual(short.title, { absolute: "Morning ride" + suffix });
+  }
 });

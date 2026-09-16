@@ -1,12 +1,25 @@
-export function routePageTitle(name: string) {
+import type { Locale } from "./types";
+
+export function routePageTitle(name: string, locale?: Locale) {
   const clean = name
     .normalize("NFC")
     .replace(/[\u0000-\u001f\u007f-\u009f]/g, " ")
     .replace(/[\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  const chars = Array.from(clean || "Route");
-  return `${chars.length > 60 ? chars.slice(0, 59).join("").trimEnd() + "…" : chars.join("")} · SpiderRoute`;
+  const suffix = locale
+    ? ` · ${locale === "ru" ? "Веломаршрут" : "Cycling route"} · SpiderRoute`
+    : " · SpiderRoute";
+  const nameLimit = (locale ? 70 : 74) - Array.from(suffix).length;
+  const chars = Array.from(clean || (locale === "ru" ? "Маршрут" : "Route"));
+  const title =
+    chars.length > nameLimit
+      ? chars
+          .slice(0, nameLimit - 1)
+          .join("")
+          .trimEnd() + "…"
+      : chars.join("");
+  return title + suffix;
 }
 export function youtubeId(value: string): string | null {
   try {

@@ -35,7 +35,10 @@ export function sharedMetadata(
   name?: string,
 ): Metadata {
   const ru = locale === "ru";
-  const title = routePageTitle(name?.trim() || (ru ? "Маршрут" : "Route"));
+  const title = routePageTitle(
+    name?.trim() || (ru ? "Маршрут" : "Route"),
+    locale,
+  );
   const description = ru
     ? "Посмотрите маршрут для велосипеда или самоката на карте, изучите заметки и сохраните копию в своей коллекции SpiderRoute."
     : "View a bike or scooter route on the map, read ride notes and save a copy to your SpiderRoute collection.";
