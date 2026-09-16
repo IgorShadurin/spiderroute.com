@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { Locale } from "./types";
+import { routePageTitle } from "./route-details";
 
 export function shareLocale(
   value: string | string[] | undefined,
@@ -28,11 +29,13 @@ export function safeShareReturn(value: string | null): string | undefined {
     : undefined;
 }
 
-export function sharedMetadata(token: string, locale: Locale): Metadata {
+export function sharedMetadata(
+  token: string,
+  locale: Locale,
+  name?: string,
+): Metadata {
   const ru = locale === "ru";
-  const title = ru
-    ? "Маршрут на карте · SpiderRoute"
-    : "Shared route map · SpiderRoute";
+  const title = routePageTitle(name?.trim() || (ru ? "Маршрут" : "Route"));
   const description = ru
     ? "Посмотрите маршрут для велосипеда или самоката на карте, изучите заметки и сохраните копию в своей коллекции SpiderRoute."
     : "View a bike or scooter route on the map, read ride notes and save a copy to your SpiderRoute collection.";

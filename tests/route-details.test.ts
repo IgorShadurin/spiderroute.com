@@ -117,3 +117,16 @@ test("video updates persist, validate, update public snapshots, and clone indepe
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("route titles remove control and direction overrides while retaining plain text", () => {
+  assert.equal(
+    routePageTitle("  A\u202eB\u0000 C\u200b  "),
+    "AB C · SpiderRoute",
+  );
+  assert.equal(routePageTitle("Cafe\u0301"), "Café · SpiderRoute");
+  assert.equal(routePageTitle("  \n\t"), "Route · SpiderRoute");
+  assert.equal(
+    routePageTitle('Ride <test> & "friends"'),
+    'Ride <test> & "friends" · SpiderRoute',
+  );
+});

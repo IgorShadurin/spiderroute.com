@@ -1,6 +1,8 @@
 export function routePageTitle(name: string) {
   const clean = name
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .normalize("NFC")
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, " ")
+    .replace(/[\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g, "")
     .replace(/\s+/g, " ")
     .trim();
   const chars = Array.from(clean || "Route");

@@ -9,10 +9,14 @@ type Props = {
   searchParams: Promise<{ lang?: string | string[] }>;
 };
 export async function generateMetadata({ params, searchParams }: Props) {
-  return sharedMetadata(
-    (await params).token,
-    shareLocale((await searchParams).lang),
-  );
+  const { token } = await params;
+  let title: string;
+  try {
+    title = readShare(token).payload.title;
+  } catch {
+    notFound();
+  }
+  return sharedMetadata(token, shareLocale((await searchParams).lang), title);
 }
 export default async function SharedPage({ params, searchParams }: Props) {
   try {

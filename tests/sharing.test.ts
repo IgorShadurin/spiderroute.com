@@ -72,3 +72,19 @@ test("public share links round-trip their language through the hostname", () => 
   assert.equal(shareLocale("de", "ru.spiderroute.com"), "ru");
   assert.equal(shareLocale(undefined, "ru.spiderroute.com.evil.test"), "en");
 });
+
+test("shared page and social titles use the bounded public route name", () => {
+  const metadata = sharedMetadata(
+    "abcdefghijklmnop",
+    "ru",
+    "  Минск\n Молодечно  ",
+  );
+  const expected = "Минск Молодечно · SpiderRoute";
+  assert.deepEqual(metadata.title, { absolute: expected });
+  assert.equal(metadata.openGraph?.title, expected);
+  assert.equal(metadata.twitter?.title, expected);
+  const long = sharedMetadata("abcdefghijklmnop", "en", "🚲".repeat(100));
+  const title = (long.title as { absolute: string }).absolute;
+  assert.equal(Array.from(title).length, 74);
+  assert.ok(title.endsWith("… · SpiderRoute"));
+});
