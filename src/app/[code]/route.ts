@@ -21,7 +21,10 @@ export function GET(
       new URL(
         sharePath(
           code,
-          shareLocale(req.nextUrl.searchParams.get("lang") ?? undefined),
+          shareLocale(
+            req.nextUrl.searchParams.get("lang") ?? undefined,
+            req.headers.get("host") ?? req.nextUrl.hostname,
+          ),
         ),
         "https://app.spiderroute.com",
       ),

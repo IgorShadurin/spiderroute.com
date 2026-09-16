@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import type { Locale } from "./types";
 
-export function shareLocale(value: string | string[] | undefined): Locale {
-  return value === "ru" ? "ru" : "en";
+export function shareLocale(
+  value: string | string[] | undefined,
+  host?: string,
+): Locale {
+  if (value === "ru" || value === "en") return value;
+  return host?.toLowerCase().split(":")[0] === "ru.spiderroute.com"
+    ? "ru"
+    : "en";
 }
 
 export function sharePath(token: string, locale: Locale): string {
@@ -10,7 +16,8 @@ export function sharePath(token: string, locale: Locale): string {
 }
 
 export function shareUrl(token: string, locale: Locale): string {
-  return `https://spiderroute.com/${encodeURIComponent(token)}/${locale}`;
+  const host = locale === "ru" ? "ru.spiderroute.com" : "spiderroute.com";
+  return `https://${host}/${encodeURIComponent(token)}`;
 }
 export function safeShareReturn(value: string | null): string | undefined {
   if (!value) return;

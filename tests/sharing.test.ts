@@ -30,7 +30,7 @@ test("shared metadata localizes page and social previews without exposing route 
     assert.equal(metadata.openGraph?.description, metadata.description);
     assert.equal(
       metadata.alternates?.canonical,
-      `https://spiderroute.com/example-token/${locale}`,
+      `https://${locale === "ru" ? "ru." : ""}spiderroute.com/example-token`,
     );
     assert.deepEqual(metadata.robots, { index: false, follow: false });
     assert.equal(/[А-Яа-я]/.test(metadata.description!), locale === "ru");
@@ -39,7 +39,7 @@ test("shared metadata localizes page and social previews without exposing route 
 
 test("short links preserve explicit language and only safe internal share return URLs", () => {
   const code = "AbCdEfGh01234567";
-  assert.equal(shareUrl(code, "ru"), `https://spiderroute.com/${code}/ru`);
+  assert.equal(shareUrl(code, "ru"), `https://ru.spiderroute.com/${code}`);
   assert.equal(safeShareReturn(`/s/${code}?lang=en`), `/s/${code}?lang=en`);
   assert.equal(
     safeShareReturn(`/s/${"x".repeat(32)}?lang=ru`),
@@ -57,4 +57,18 @@ test("short links preserve explicit language and only safe internal share return
     "/s/" + code + "?next=https://evil.test",
   ])
     assert.equal(safeShareReturn(value), undefined);
+});
+
+test("public share links round-trip their language through the hostname", () => {
+  for (const locale of ["en", "ru"] as const) {
+    const url = new URL(shareUrl("FCCPWJRAYvkVVPKp", locale));
+    assert.equal(url.pathname, "/FCCPWJRAYvkVVPKp");
+    assert.equal(url.search, "");
+    assert.equal(shareLocale(undefined, url.host), locale);
+  }
+  assert.equal(shareLocale(undefined, "ru.spiderroute.com:3218"), "ru");
+  assert.equal(shareLocale("en", "ru.spiderroute.com"), "en");
+  assert.equal(shareLocale("ru", "spiderroute.com"), "ru");
+  assert.equal(shareLocale("de", "ru.spiderroute.com"), "ru");
+  assert.equal(shareLocale(undefined, "ru.spiderroute.com.evil.test"), "en");
 });
