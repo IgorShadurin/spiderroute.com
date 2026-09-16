@@ -7,3 +7,9 @@ Map and route data © [OpenStreetMap contributors](https://www.openstreetmap.org
 The snapshot covers one viewport, rendered once for the landing page; it is served as a local asset. Page views do not request map tiles or load a map engine. Preserve the visible attribution when using this image. Source tiles are cached privately and are not a redistributable offline tile package. Do not fetch map assets during a build or CI run.
 
 Cycleway context: [Transport for London's central London cycleway map](https://content.tfl.gov.uk/central-london-cycleways-map-a3.pdf).
+
+## Russian landing: Moscow
+
+`moscow-gorky.webp` shows a 1.1 km example route along Frunzenskaya Embankment, opposite Gorky Park, between Krymsky and Pushkinsky bridges. The connected path geometry in `moscow-gorky.geojson` comes from OpenStreetMap API 0.6, retrieved 16 September 2026, and includes the source way IDs. It is an illustrative route, not a recorded ride or an assurance of current access conditions.
+
+Map and route data © OpenStreetMap contributors; the geometry is available under ODbL 1.0, as linked above. This single viewport uses unfiltered OSM Standard tiles. Preserve the page's visible attribution. The Russian social card uses this Moscow image and embeds attribution; the English landing and social card retain London.

@@ -180,7 +180,11 @@ export default async function Home({ searchParams }: Props) {
               <p>{t.mapCaption}</p>
               <a
                 className="text-link"
-                href="https://www.openstreetmap.org/#map=15/51.5062/-0.1143"
+                href={
+                  ru
+                    ? "https://www.openstreetmap.org/#map=16/55.7300/37.5920"
+                    : "https://www.openstreetmap.org/#map=15/51.5062/-0.1143"
+                }
                 target="_blank"
                 rel="noreferrer"
               >
@@ -190,7 +194,7 @@ export default async function Home({ searchParams }: Props) {
             </figcaption>
             <div className="london-map">
               <img
-                src="/maps/london-c3.webp"
+                src={ru ? "/maps/moscow-gorky.webp" : "/maps/london-c3.webp"}
                 width="1200"
                 height="1120"
                 alt={t.mapAlt}
