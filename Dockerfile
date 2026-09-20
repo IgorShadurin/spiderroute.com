@@ -2,7 +2,9 @@ FROM node:24-bookworm-slim AS build
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
-RUN npm ci
+# Use the headers bundled with the image when native addons need compiling.
+# Avoid an extra nodejs.org download that can time out on the deploy server.
+RUN npm_config_nodedir=/usr/local npm ci
 RUN node -e "const d = new (require('better-sqlite3'))(':memory:'); d.prepare('SELECT 1').get(); d.close()"
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
