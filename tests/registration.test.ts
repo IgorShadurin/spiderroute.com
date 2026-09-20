@@ -26,7 +26,7 @@ test("registration atomically saves the selected language and sends localized we
   };
   try {
     for (const locale of ["ru", "en"] as const) {
-      const id = registerOAuthUser(
+      const id = await registerOAuthUser(
         `${locale}@example.test`,
         "Test",
         "google",
@@ -57,7 +57,7 @@ test("registration atomically saves the selected language and sends localized we
         welcomeEmail(locale).body,
       );
     }
-    assert.throws(() =>
+    await assert.rejects(() =>
       registerOAuthUser("duplicate@example.test", "Test", "google", "ru", "en"),
     );
     assert.equal(

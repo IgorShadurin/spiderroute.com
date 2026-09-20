@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
       )
         return "/workspace?error=accountLink";
       const preference = (await cookies()).get(LANGUAGE_KEY)?.value;
-      const id = registerOAuthUser(
+      const id = await registerOAuthUser(
         user.email,
         user.name || "Explorer",
         account.provider,

@@ -2785,15 +2785,54 @@ html[data-theme="light"] :focus-visible {
 html[data-theme="light"] .route-title > input:not(:focus) {
   background: transparent;
 }
-.overview-launch {
-  white-space: normal;
+.library-overview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin: 14px 16px 4px;
+  padding: 12px 10px;
   text-align: left;
-  margin-top: 14px;
-  border-style: dashed;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  transition:
+    border-color 150ms,
+    background 150ms;
 }
-.overview-launch[aria-pressed="true"] {
-  border-color: var(--coral);
+.library-overview:hover:not(:disabled),
+.library-overview[aria-pressed="true"] {
+  border-color: var(--muted);
   background: var(--green);
+}
+.library-overview > svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.library-overview-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--green);
+}
+.library-overview-copy {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.library-overview-copy strong {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.library-overview-copy > span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
 }
 .routes-overview {
   padding: 30px;
@@ -2904,9 +2943,6 @@ html[data-theme="light"] .route-title > input:not(:focus) {
 }
 .overview-map {
   height: min(48dvh, 560px);
-}
-html[data-theme="light"] .overview-launch[aria-pressed="true"] {
-  border-color: #387018;
 }
 
 .import-overlay {

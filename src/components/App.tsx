@@ -1364,20 +1364,6 @@ function Workspace({
               <PenLine size={16} />
               {t.draw}
             </button>
-            <button
-              className="button light full overview-launch"
-              aria-pressed={overviewOpen}
-              disabled={!routes.length}
-              onClick={() => {
-                setOverviewOpen(!overviewOpen);
-                setMobileNav(false);
-              }}
-            >
-              <Route size={17} />
-              {locale === "ru"
-                ? "Маршруты на одной карте"
-                : "View routes together"}
-            </button>
             <input
               ref={uploadRef}
               type="file"
@@ -1406,6 +1392,46 @@ function Workspace({
               {t.favorites}
             </button>
           </div>
+          {tab === "routes" && (
+            <button
+              className="library-overview"
+              aria-pressed={overviewOpen}
+              disabled={!routes.length}
+              onClick={() => {
+                setOverviewOpen(!overviewOpen);
+                setMobileNav(false);
+              }}
+            >
+              <span className="library-overview-icon" aria-hidden="true">
+                <Route size={21} />
+              </span>
+              <span className="library-overview-copy">
+                <strong>
+                  {locale === "ru"
+                    ? "Маршруты на одной карте"
+                    : "Routes on one map"}
+                </strong>
+                <span>
+                  {!routes.length
+                    ? locale === "ru"
+                      ? "Сначала сохраните маршрут"
+                      : "Save a route to get started"
+                    : overviewOpen
+                      ? locale === "ru"
+                        ? "Карта открыта · Вернуться к редактору"
+                        : "Map is open · Back to editor"
+                      : locale === "ru"
+                        ? "Сравните сохранённые маршруты"
+                        : "Compare your saved routes"}
+                </span>
+              </span>
+              {overviewOpen ? (
+                <ArrowLeft size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </button>
+          )}
           <div className="library-sort">
             <label htmlFor="library-sort">
               {locale === "ru" ? "Сортировка" : "Sort by"}

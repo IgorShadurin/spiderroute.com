@@ -21,3 +21,9 @@ node scripts/admin.mjs mail-test controlled-mailbox@example.test
 ```
 
 A backup is produced using SQLite's consistent backup API. Route geometry, original geometry, annotations and published snapshots are all inside SQLite. The production process runs a consistent daily backup and prunes backups older than 30 days. Configure encrypted off-host copying separately; local backups do not protect against server loss. To restore: stop the application, preserve the failed database for diagnosis, restore the selected backup to `/data/spiderroute.sqlite`, remove only stale WAL/SHM files while stopped, restore ownership, then start and verify health and account/route access. Validate this on a temporary database before replacing production. Back up before releases; code rollback does not undo database migrations.
+
+## Telegram registration alerts
+
+Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` as runtime-only secrets in Coolify. SpiderRoute reuses TextFaker's IgorCorpBot and destination chat. `TELEGRAM_REGISTRATION_NOTIFICATIONS_ENABLED=false` disables alerts; otherwise configured credentials enable them. Local secrets belong only in ignored `.env.local`.
+
+Each successful new OAuth registration sends the user ID, name, email, provider, timestamp, and total registered users. The count includes the new account and disabled accounts, excludes demo accounts, and reflects currently stored users at registration time. Existing-account sign-ins and rejected registrations do not send alerts. Local messages are labeled `(local)`. Delivery is attempted after the account and welcome email are committed, with a five-second timeout. Telegram failures are logged without credentials and do not block sign-in; failed messages are not retried.

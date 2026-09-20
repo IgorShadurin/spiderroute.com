@@ -1,3 +1,4 @@
+import { notifyTelegramRegistration } from "./telegram";
 import { resolveTheme } from "../lib/theme";
 import { randomUUID } from "node:crypto";
 import { sql } from "./db";
@@ -15,7 +16,7 @@ export function welcomeEmail(value: unknown) {
         : "Welcome to SpiderRoute!\n\nUpload a GPS track, edit your route, add notes and share a map with friends.\n\nOpen the editor: https://app.spiderroute.com/",
   };
 }
-export function registerOAuthUser(
+export async function registerOAuthUser(
   email: string,
   name: string,
   provider: string,
@@ -27,7 +28,7 @@ export function registerOAuthUser(
     now = new Date().toISOString(),
     locale = resolveLocale(preference),
     mail = welcomeEmail(locale);
-  sql.transaction(() => {
+  const totalUsers = sql.transaction(() => {
     sql
       .prepare(
         "INSERT INTO users(id,email,name,locale,created_at,theme) VALUES(?,?,?,?,?,?)",
@@ -48,6 +49,19 @@ export function registerOAuthUser(
         "INSERT INTO outbox(id,recipient,subject,body,created_at) VALUES(?,?,?,?,?)",
       )
       .run("welcome:" + id, email.toLowerCase(), mail.subject, mail.body, now);
+    return (
+      sql
+        .prepare("SELECT count(*) AS total FROM users WHERE is_demo=0")
+        .get() as { total: number }
+    ).total;
   })();
+  await notifyTelegramRegistration({
+    id,
+    email: email.toLowerCase(),
+    name,
+    provider,
+    createdAt: now,
+    totalUsers,
+  });
   return id;
 }
