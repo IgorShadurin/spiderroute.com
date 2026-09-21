@@ -34,6 +34,7 @@ export function PublicSetContent({
   const [copyError, setCopyError] = useState(false);
   const [toastKey, setToastKey] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
+  const itemHeading = useRef<HTMLHeadingElement>(null);
   const ru = locale === "ru";
   const active = set.items.find((item) => item.id === selected);
   // Keep content mounted while the native dialog fades out of the top layer.
@@ -57,7 +58,11 @@ export function PublicSetContent({
   useEffect(() => {
     const node = dialog.current;
     if (active) setLastItem(active);
-    if (active && node && !node.open) node.showModal();
+    if (active && node && !node.open) {
+      node.showModal();
+      // Start reading at the item title instead of selecting a toolbar action.
+      itemHeading.current?.focus({ preventScroll: true });
+    }
     if (!active && node?.open) node.close();
     if (!active) return;
     const previous = document.body.style.overflow;
@@ -320,7 +325,6 @@ export function PublicSetContent({
                   )}
                 </button>
                 <button
-                  autoFocus
                   className="icon-button"
                   aria-label={ru ? "Закрыть" : "Close"}
                   onClick={close}
@@ -332,7 +336,9 @@ export function PublicSetContent({
             <div className="item-modal-body">
               <div className="set-item-photo">{image(shown, false)}</div>
               <div className="item-modal-text">
-                <h2 id="public-item-title">{shown.title}</h2>
+                <h2 id="public-item-title" ref={itemHeading} tabIndex={-1}>
+                  {shown.title}
+                </h2>
                 {shown.description && <p>{shown.description}</p>}
                 {links(shown)}
               </div>

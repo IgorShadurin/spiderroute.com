@@ -3944,3 +3944,6 @@ html:has(.public-collection) { scrollbar-gutter:stable; }
 .feedback-toast .icon-button { flex: 0 0 32px; width: 32px; height: 32px; }
 @starting-style { .feedback-toast:popover-open { opacity: 0; transform: translateY(10px); } }
 @media (prefers-reduced-motion: reduce) { .feedback-toast { transition: none; } }
+
+/* Initial reading focus is structural; toolbar buttons retain keyboard rings. */
+#public-item-title:focus { outline: none; }
