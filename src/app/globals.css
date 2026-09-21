@@ -3897,7 +3897,7 @@ a.icon-button:active { scale: .97; filter: brightness(.9); }
 @media(max-width:650px) { .item-modal-body { grid-template-columns:1fr; }.item-modal-body .set-item-photo { margin:18px 18px 0; max-height:240px; }.item-modal-text { padding:20px; }.public-collection .app-header { padding:14px 16px; }.public-collection .app-header > div { gap:5px; }.public-collection .app-header .brand { font-size:19px; } }
 
 /* Reserve the native scrollbar gutter even while a dialog locks page scrolling. */
-html { scrollbar-gutter:stable; }
+html:has(.public-collection) { scrollbar-gutter:stable; }
 .item-card-image { position:relative; }
 .item-image-copy { position:absolute; top:12px; right:12px; width:34px; height:34px; border-radius:10px; background:var(--white); color:var(--ink); border:1px solid var(--line); box-shadow:0 2px 8px #0001; }
 .item-image-copy:hover { background:var(--paper); }
