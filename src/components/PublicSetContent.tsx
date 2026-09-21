@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Package, X } from "lucide-react";
+import { ItemDescription } from "./ItemDescription";
 import { Brand } from "./Brand";
 import { SpeedometerLink } from "./SpeedometerLink";
 import { ThemeToggle } from "./ThemeProvider";
@@ -33,6 +34,9 @@ export function PublicSetContent({
   const dialog = useRef<HTMLDialogElement>(null);
   const ru = locale === "ru";
   const active = set.items.find((item) => item.id === selected);
+  // Keep content mounted while the native dialog fades out of the top layer.
+  const [lastItem, setLastItem] = useState<SetItem>();
+  const shown = active || lastItem;
   useEffect(() => {
     const sync = () => {
       const id = window.location.hash.slice(1).replace(/^item-/, "");
@@ -50,6 +54,7 @@ export function PublicSetContent({
   }, [set.items, initialLocale]);
   useEffect(() => {
     const node = dialog.current;
+    if (active) setLastItem(active);
     if (active && node && !node.open) node.showModal();
     if (!active && node?.open) node.close();
     if (!active) return;
@@ -176,17 +181,39 @@ export function PublicSetContent({
               key={item.id}
               id={`item-${item.id}`}
             >
-              <a
-                className="set-item-photo"
-                href={`#item-${item.id}`}
-                aria-label={`${ru ? "Подробнее" : "View details"}: ${item.title}`}
-                onClick={(event) => {
-                  event.preventDefault();
-                  open(item.id);
-                }}
-              >
-                {image(item)}
-              </a>
+              <div className="item-card-image">
+                <a
+                  className="set-item-photo"
+                  href={`#item-${item.id}`}
+                  aria-label={`${ru ? "Подробнее" : "View details"}: ${item.title}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    open(item.id);
+                  }}
+                >
+                  {image(item)}
+                </a>
+                <button
+                  className="icon-button item-image-copy"
+                  onClick={() => copy(item.id)}
+                  aria-label={`${copied === item.id ? (ru ? "Ссылка скопирована" : "Link copied") : ru ? "Скопировать ссылку" : "Copy link"}: ${item.title}`}
+                  title={
+                    copied === item.id
+                      ? ru
+                        ? "Ссылка скопирована"
+                        : "Link copied"
+                      : ru
+                        ? "Ссылка на вещь"
+                        : "Link to this item"
+                  }
+                >
+                  {copied === item.id ? (
+                    <Check size={17} />
+                  ) : (
+                    <Copy size={17} />
+                  )}
+                </button>
+              </div>
               <div className="set-item-content">
                 <h2>
                   <a
@@ -199,32 +226,12 @@ export function PublicSetContent({
                     {item.title}
                   </a>
                 </h2>
-                <p className="item-description-preview">{item.description}</p>
-                <div className="item-card-actions">
-                  <a
-                    className="text-link"
-                    href={`#item-${item.id}`}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      open(item.id);
-                    }}
-                  >
-                    {ru ? "Подробнее" : "View details"}
-                    <ArrowUpRight size={15} />
-                  </a>
-                  <button
-                    className="icon-button"
-                    onClick={() => copy(item.id)}
-                    aria-label={`${ru ? "Скопировать ссылку" : "Copy link"}: ${item.title}`}
-                    title={ru ? "Ссылка на вещь" : "Link to this item"}
-                  >
-                    {copied === item.id ? (
-                      <Check size={18} />
-                    ) : (
-                      <Copy size={18} />
-                    )}
-                  </button>
-                </div>
+                <ItemDescription
+                  text={item.description}
+                  id={item.id}
+                  ru={ru}
+                  onOpen={() => open(item.id)}
+                />
                 <footer className="item-card-footer">
                   {links(item, true)}
                 </footer>
@@ -270,42 +277,55 @@ export function PublicSetContent({
           }
         }}
       >
-        {active && (
+        {shown && (
           <>
             <header className="item-modal-header">
               <span>{ru ? "ВЕЩЬ ИЗ ПОДБОРКИ" : "FROM THIS COLLECTION"}</span>
-              <button
-                autoFocus
-                className="icon-button"
-                aria-label={ru ? "Закрыть" : "Close"}
-                onClick={close}
-              >
-                <X size={22} />
-              </button>
+              <div className="item-modal-tools">
+                <button
+                  className="icon-button"
+                  onClick={() => copy(shown.id)}
+                  aria-label={
+                    copied === shown.id
+                      ? ru
+                        ? "Ссылка скопирована"
+                        : "Link copied"
+                      : ru
+                        ? "Скопировать ссылку на вещь"
+                        : "Copy item link"
+                  }
+                  title={
+                    copied === shown.id
+                      ? ru
+                        ? "Ссылка скопирована"
+                        : "Link copied"
+                      : ru
+                        ? "Скопировать ссылку на вещь"
+                        : "Copy item link"
+                  }
+                >
+                  {copied === shown.id ? (
+                    <Check size={18} />
+                  ) : (
+                    <Copy size={18} />
+                  )}
+                </button>
+                <button
+                  autoFocus
+                  className="icon-button"
+                  aria-label={ru ? "Закрыть" : "Close"}
+                  onClick={close}
+                >
+                  <X size={22} />
+                </button>
+              </div>
             </header>
             <div className="item-modal-body">
-              <div className="set-item-photo">{image(active, false)}</div>
+              <div className="set-item-photo">{image(shown, false)}</div>
               <div className="item-modal-text">
-                <h2 id="public-item-title">{active.title}</h2>
-                {active.description && <p>{active.description}</p>}
-                {links(active)}
-                <button
-                  className="button light item-modal-copy"
-                  onClick={() => copy(active.id)}
-                >
-                  {copied === active.id ? (
-                    <Check size={17} />
-                  ) : (
-                    <Copy size={17} />
-                  )}
-                  {copied === active.id
-                    ? ru
-                      ? "Ссылка скопирована"
-                      : "Link copied"
-                    : ru
-                      ? "Скопировать ссылку на вещь"
-                      : "Copy item link"}
-                </button>
+                <h2 id="public-item-title">{shown.title}</h2>
+                {shown.description && <p>{shown.description}</p>}
+                {links(shown)}
                 {copyError && (
                   <p role="alert">
                     {ru
