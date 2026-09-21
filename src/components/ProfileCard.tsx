@@ -1,18 +1,12 @@
-import {
-  Youtube,
-  Send,
-  Instagram,
-  Mail,
-  UserRound,
-  ArrowUpRight,
-} from "lucide-react";
+import { SocialIcon } from "./SocialIcon";
+import { UserRound, ArrowUpRight } from "lucide-react";
 import {
   socialNames,
   socialUrl,
   type PublicProfile,
   type SocialKind,
 } from "@/lib/profile";
-const icons = { youtube: Youtube, telegram: Send, instagram: Instagram };
+
 export function ProfileCard({
   profile,
   ru = false,
@@ -50,7 +44,7 @@ export function ProfileCard({
         {(["youtube", "telegram", "instagram"] as SocialKind[]).map((kind) => {
           const link = profile[kind];
           if (!link.url) return null;
-          const Icon = icons[kind];
+
           let url: string;
           try {
             url = socialUrl(kind, link.url);
@@ -64,7 +58,7 @@ export function ProfileCard({
               target="_blank"
               rel="noopener noreferrer me"
             >
-              <Icon size={18} />
+              <SocialIcon kind={kind} />
               <span>{link.name || socialNames[kind]}</span>
               <ArrowUpRight size={13} />
             </a>
@@ -72,7 +66,7 @@ export function ProfileCard({
         })}
         {profile.publicEmail && (
           <a href={`mailto:${profile.publicEmail}`}>
-            <Mail size={18} />
+            <SocialIcon kind="email" />
             <span>{profile.publicEmail}</span>
           </a>
         )}

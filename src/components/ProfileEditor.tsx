@@ -1,16 +1,7 @@
 "use client";
+import { SocialIcon } from "./SocialIcon";
 import { useRef, useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  Camera,
-  Check,
-  Settings2,
-  UserRound,
-  Youtube,
-  Send,
-  Instagram,
-  Mail,
-} from "lucide-react";
+import { ArrowLeft, Camera, Check, Settings2, UserRound } from "lucide-react";
 import { Brand } from "./Brand";
 import { ProfileCard } from "./ProfileCard";
 import { useConfirm } from "./ConfirmationProvider";
@@ -313,15 +304,10 @@ export function ProfileEditor({
               </div>
               {(["youtube", "telegram", "instagram"] as SocialKind[]).map(
                 (kind) => {
-                  const Icon = {
-                    youtube: Youtube,
-                    telegram: Send,
-                    instagram: Instagram,
-                  }[kind];
                   return (
                     <div className="profile-social-row" key={kind}>
                       <div className="profile-social-title">
-                        <Icon size={20} />
+                        <SocialIcon kind={kind} />
                         <strong>{socialNames[kind]}</strong>
                       </div>
                       <div className="profile-social-fields">
@@ -368,7 +354,7 @@ export function ProfileEditor({
               )}
               <label>
                 <span className="profile-social-title">
-                  <Mail size={18} />
+                  <SocialIcon kind="email" />
                   {ru
                     ? "Публичный email · необязательно"
                     : "Public email · optional"}

@@ -1,22 +1,15 @@
+import { PublicSetContent } from "@/components/PublicSetContent";
 import { setAuthor } from "@/server/profiles";
-import { ProfileCard } from "@/components/ProfileCard";
-import { MarketplaceLabel } from "@/components/MarketplaceLabel";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { publicSet } from "@/server/item-sets";
-import {
-  countedLabel,
-  itemPhotoUrl,
-  marketplaceUrl,
-  marketplaceOrder,
-  setDescription,
-  setSeoTitle,
-} from "@/lib/item-sets";
-import { Brand } from "@/components/Brand";
-import { ArrowUpRight, Package } from "lucide-react";
+import { itemPhotoUrl, setDescription, setSeoTitle } from "@/lib/item-sets";
 export const dynamic = "force-dynamic";
-type Props = { params: Promise<{ token: string }> };
+type Props = {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ lang?: string }>;
+};
 const read = cache((token: string) => {
   try {
     return publicSet(token);
@@ -61,10 +54,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-export default async function PublicSetPage({ params }: Props) {
+export default async function PublicSetPage({ params, searchParams }: Props) {
   const { token } = await params;
   const set = read(token);
-  const ru = set.locale === "ru";
+  const lang = (await searchParams).lang;
+  const locale = lang === "ru" || lang === "en" ? lang : set.locale;
   const author = setAuthor(set.id);
   const data = {
     "@context": "https://schema.org",
@@ -104,94 +98,14 @@ export default async function PublicSetPage({ params }: Props) {
     },
   };
   return (
-    <div className="sets-page" lang={set.locale}>
-      <header className="sets-header">
-        <a href="/">
-          <Brand />
-        </a>
-        <a className="button light" href="/sets">
-          {ru ? "Мои наборы" : "My sets"}
-          <ArrowUpRight size={16} />
-        </a>
-      </header>
-      <main className="public-set">
-        <div className="sets-eyebrow">
-          {ru ? "ПОДБОРКА ВЕЩЕЙ" : "A COLLECTION OF FINDS"}
-        </div>
-        <h1>{set.title}</h1>
-        {set.description && (
-          <p className="public-set-description">{set.description}</p>
-        )}
-        <p className="sets-muted">
-          {countedLabel(set.items.length, ru)} {ru ? "в наборе" : "in this set"}
-        </p>
-        <ProfileCard profile={author} ru={ru} />
-        <div className="public-item-grid">
-          {set.items.map((item) => (
-            <article
-              className="set-item-card"
-              key={item.id}
-              id={`item-${item.id}`}
-            >
-              <div className="set-item-photo">
-                {item.photo ? (
-                  <img
-                    src={itemPhotoUrl(item, token)}
-                    alt={item.title}
-                    loading="lazy"
-                    width="800"
-                    height="600"
-                  />
-                ) : (
-                  <Package size={48} aria-hidden="true" />
-                )}
-              </div>
-              <div className="set-item-content">
-                <h2>{item.title}</h2>
-                {item.description && <p>{item.description}</p>}
-                <div className="set-item-links">
-                  {marketplaceOrder(set.locale).map(
-                    (market) =>
-                      item[market] && (
-                        <a
-                          key={market}
-                          href={marketplaceUrl(item[market], market)}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow ugc"
-                        >
-                          <MarketplaceLabel market={market} />{" "}
-                          <ArrowUpRight size={15} />
-                        </a>
-                      ),
-                  )}
-                  {item.links.map((link, i) => (
-                    <a
-                      key={i}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow ugc"
-                    >
-                      {link.label}
-                      <ArrowUpRight size={15} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-        <footer className="sets-footer">
-          {ru
-            ? "Собрано и опубликовано в SpiderRoute"
-            : "Collected and shared with SpiderRoute"}
-        </footer>
-      </main>
+    <>
+      <PublicSetContent set={set} author={author} initialLocale={locale} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(data).replace(/</g, "\\u003c"),
         }}
       />
-    </div>
+    </>
   );
 }
