@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Package, X } from "lucide-react";
+import { FeedbackToast } from "./FeedbackToast";
 import { ItemDescription } from "./ItemDescription";
 import { Brand } from "./Brand";
 import { SpeedometerLink } from "./SpeedometerLink";
@@ -31,6 +32,7 @@ export function PublicSetContent({
   const [selected, setSelected] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyError, setCopyError] = useState(false);
+  const [toastKey, setToastKey] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const ru = locale === "ru";
   const active = set.items.find((item) => item.id === selected);
@@ -64,11 +66,6 @@ export function PublicSetContent({
       document.body.style.overflow = previous;
     };
   }, [active]);
-  useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(null), 2500);
-    return () => window.clearTimeout(timer);
-  }, [copied]);
   function open(id: string) {
     const url = new URL(window.location.href);
     url.hash = `item-${id}`;
@@ -85,11 +82,13 @@ export function PublicSetContent({
   async function copy(id: string) {
     const url = new URL(window.location.href);
     url.hash = `item-${id}`;
+    setToastKey((key) => key + 1);
     try {
       await navigator.clipboard.writeText(url.href);
       setCopied(id);
       setCopyError(false);
     } catch {
+      setCopied(null);
       setCopyError(true);
     }
   }
@@ -124,6 +123,26 @@ export function PublicSetContent({
       </div>
     );
   }
+  const toast = (copied || copyError) && (
+    <FeedbackToast
+      key={toastKey}
+      error={copyError}
+      message={
+        copyError
+          ? ru
+            ? "Не удалось скопировать. Скопируйте адрес из браузера."
+            : "Could not copy. Copy the address from your browser."
+          : ru
+            ? "Ссылка скопирована"
+            : "Link copied"
+      }
+      dismissLabel={ru ? "Закрыть уведомление" : "Dismiss notification"}
+      onDismiss={() => {
+        setCopied(null);
+        setCopyError(false);
+      }}
+    />
+  );
   const image = (item: SetItem, lazy = true) =>
     item.photo ? (
       <img
@@ -239,23 +258,13 @@ export function PublicSetContent({
             </article>
           ))}
         </div>
-        <p className="collection-copy-status" role="status">
-          {copyError
-            ? ru
-              ? "Не удалось скопировать. Откройте вещь и скопируйте адрес страницы."
-              : "Could not copy. Open the item and copy the page address."
-            : copied
-              ? ru
-                ? "Ссылка скопирована"
-                : "Link copied"
-              : ""}
-        </p>
         <footer className="sets-footer">
           {ru
             ? "Собрано и опубликовано в SpiderRoute"
             : "Collected and shared with SpiderRoute"}
         </footer>
       </main>
+      {!active && toast}
       <dialog
         ref={dialog}
         className="public-item-dialog"
@@ -326,17 +335,11 @@ export function PublicSetContent({
                 <h2 id="public-item-title">{shown.title}</h2>
                 {shown.description && <p>{shown.description}</p>}
                 {links(shown)}
-                {copyError && (
-                  <p role="alert">
-                    {ru
-                      ? "Скопируйте адрес страницы из браузера."
-                      : "Copy the page address from your browser."}
-                  </p>
-                )}
               </div>
             </div>
           </>
         )}
+        {active && toast}
       </dialog>
     </div>
   );

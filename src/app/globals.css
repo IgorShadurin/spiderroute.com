@@ -3883,7 +3883,6 @@ a.icon-button:active { scale: .97; filter: brightness(.9); }
 .item-card-footer .set-item-links a { min-width:0; overflow:hidden; font-size:12px; }
 .item-card-footer .set-item-links a > svg { flex-shrink:0; margin-left:auto; }
 .item-card-footer .marketplace-label { min-width:0; }
-.collection-copy-status { min-height:20px; margin-top:16px; font-size:13px; color:var(--muted); }
 .public-item-dialog { width:min(820px,calc(100vw - 28px)); max-height:calc(100dvh - 40px); padding:0; border:1px solid var(--line); border-radius:20px; background:var(--white); color:var(--ink); box-shadow:0 24px 100px #0005; overscroll-behavior:contain; }
 .public-item-dialog::backdrop { background:#071b1470; backdrop-filter:blur(5px); }
 .item-modal-header { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px 20px; position:sticky; top:0; z-index:1; background:var(--white); border-bottom:1px solid var(--line); }
@@ -3915,3 +3914,33 @@ html:has(.public-collection) { scrollbar-gutter:stable; }
  .public-item-dialog[open]::backdrop { background:#071b1400; backdrop-filter:blur(0); }
 }
 @media(prefers-reduced-motion:reduce) { .public-item-dialog,.public-item-dialog::backdrop { transition:none; transform:none; } }
+
+/* Non-blocking feedback lives in the top layer, even when a dialog is open. */
+.feedback-toast {
+  position: fixed;
+  inset: auto 20px max(24px, env(safe-area-inset-bottom)) auto;
+  margin: 0;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 40px));
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 12px 40px #071b1426;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .18s ease, transform .18s ease, display .18s allow-discrete, overlay .18s allow-discrete;
+}
+.feedback-toast:popover-open { display: flex; opacity: 1; transform: translateY(0); }
+.feedback-toast-icon { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 50%; background: #78b94522; color: var(--ink); }
+.feedback-toast-error .feedback-toast-icon { background: #bd3c3c18; color: #bd3c3c; }
+.feedback-toast .icon-button { flex: 0 0 32px; width: 32px; height: 32px; }
+@starting-style { .feedback-toast:popover-open { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { .feedback-toast { transition: none; } }
