@@ -30,7 +30,7 @@ Each successful new OAuth registration sends the user ID, name, email, provider,
 
 ### Item sets and photos
 
-The `/sets` editor stores sets and items in SQLite. New sets are private. Publishing creates a public `/sets/shared/<token>` page; revoking invalidates the page and its photo URLs, and publishing again creates a new token. Public pages have server-rendered content, metadata, structured data, and sitemap entries.
+The `/sets` editor stores sets and items in SQLite. New sets are private. Publishing creates a public `/sets/shared/<token>` page; revoking invalidates the page and its photo URLs, and publishing again restores the same token. The additive `item_set_share_links` reservation table backfills existing published tokens and keeps them while access is revoked; only the active `item_sets.token` grants public page/photo access. Public pages have server-rendered content, metadata, structured data, and sitemap entries.
 
 Uploaded photos are normalized to WebP under `${DATA_DIR}/set-photos` (locally `data/set-photos`). Keep this directory on the same persistent `/data` volume as the database. Item/set deletion and photo replacement remove associated files. The database-only `npm run backup` does **not** include photos: back up and restore the whole persistent data volume for complete recovery, preferably while writes are paused.
 

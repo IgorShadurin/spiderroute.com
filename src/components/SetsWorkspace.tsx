@@ -533,8 +533,8 @@ function SetEditor({
                   ? "Сохранённые изменения сразу появятся на публичной странице."
                   : "Saved changes appear on the public page immediately."
                 : ru
-                  ? "Поделитесь, когда будете готовы."
-                  : "Share it when you’re ready."}
+                  ? "При повторной публикации ссылка останется прежней."
+                  : "Publishing again restores the same link."}
             </small>
           </span>
         </div>
@@ -557,8 +557,8 @@ function SetEditor({
               await confirm(
                 set.token
                   ? ru
-                    ? "Закрыть публичный доступ? Старая ссылка и фотографии перестанут открываться. Уже скачанные копии и результаты поиска могут сохраниться."
-                    : "Revoke public access? The old link and photos will stop working. Downloaded copies and search listings may remain."
+                    ? "Закрыть публичный доступ? Набор, автор и фотографии будут скрыты. Повторная публикация восстановит эту же ссылку."
+                    : "Revoke public access? The collection, author and photos will be hidden. Publishing again restores this same link."
                   : ru
                     ? "Опубликовать этот набор? Его вещи, фотографии и ссылки будут доступны всем и могут появиться в поисковиках."
                     : "Publish this set? Its items, photos and links will be available to everyone and may appear in search engines.",

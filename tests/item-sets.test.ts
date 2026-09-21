@@ -6,7 +6,7 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { itemInput, marketplaceUrl } from "../src/lib/item-sets";
 
-test("sets remain owner-only until shared; revoke rotates links and protects photos; deletion cleans storage", async () => {
+test("sets remain owner-only until shared; revoke preserves the reserved link and protects photos; deletion cleans storage", async () => {
   const dir = mkdtempSync(join(tmpdir(), "spiderroute-sets-"));
   process.env.DATA_DIR = dir;
   const service = await import("../src/server/item-sets");
@@ -106,7 +106,23 @@ test("sets remain owner-only until shared; revoke rotates links and protects pho
     );
     assert.equal(service.publicSetsForSitemap().length, 0);
     set = service.setVisibility(set.id, "owner", true);
-    assert.notEqual(set.token, token);
+    assert.equal(set.token, token);
+    assert.equal(service.publicSet(token).items[0].id, id);
+    assert.ok(service.readItemPhoto(id, first, undefined, token));
+    assert.equal(service.publicSetsForSitemap()[0].token, token);
+    for (let cycle = 0; cycle < 3; cycle++) {
+      assert.equal(service.setVisibility(set.id, "owner", true).token, token);
+      assert.equal(service.setVisibility(set.id, "owner", false).token, null);
+      assert.equal(service.setVisibility(set.id, "owner", false).token, null);
+      assert.equal(service.ownedSet(set.id, "owner").items.length, 1);
+      assert.ok(service.readItemPhoto(id, first, "owner"));
+      assert.throws(() => service.publicSet(token), /notFound/);
+      assert.throws(
+        () => service.readItemPhoto(id, first, "other", token),
+        /notFound/,
+      );
+      assert.equal(service.setVisibility(set.id, "owner", true).token, token);
+    }
     set = await service.saveItemPhoto(set.id, "owner", id, photo);
     assert.notEqual(set.items[0].photo, first);
     assert.deepEqual(readdirSync(join(dir, "set-photos")), [
@@ -133,6 +149,14 @@ test("sets remain owner-only until shared; revoke rotates links and protects pho
     service.deleteSet(set.id, "owner");
     assert.equal(readdirSync(join(dir, "set-photos")).length, 0);
     assert.throws(() => service.publicSet(publishedToken), /notFound/);
+    assert.equal(
+      (
+        sql
+          .prepare("SELECT count(*) n FROM item_set_share_links WHERE set_id=?")
+          .get(set.id) as { n: number }
+      ).n,
+      0,
+    );
   } finally {
     sql.close();
     rmSync(dir, { recursive: true, force: true });

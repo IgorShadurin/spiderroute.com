@@ -1,4 +1,5 @@
-import { randomUUID, randomBytes } from "node:crypto";
+import { migrateSetShareLinks, reserveSetShareLink } from "./set-share-links";
+import { randomUUID } from "node:crypto";
 import { mkdirSync, writeFileSync, unlinkSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
@@ -42,6 +43,7 @@ sql
     }
   })
   .immediate();
+migrateSetShareLinks(sql);
 const photoDir = join(dataDir, "set-photos");
 function removePhoto(name: string | null) {
   if (!name) return;
@@ -137,15 +139,17 @@ export function saveSet(user: string, value: unknown, id?: string) {
   return ownedSet(id, user);
 }
 export function setVisibility(id: string, user: string, publish: boolean) {
-  const set = ownedSet(id, user);
-  if (publish && !set.items.length) throw Error("emptySet");
-  const token = publish
-    ? set.token || randomBytes(24).toString("base64url")
-    : null;
-  sql
-    .prepare("UPDATE item_sets SET token=?,updated_at=? WHERE id=?")
-    .run(token, new Date().toISOString(), id);
-  return ownedSet(id, user);
+  return sql
+    .transaction(() => {
+      const set = ownedSet(id, user);
+      if (publish && !set.items.length) throw Error("emptySet");
+      const token = publish ? reserveSetShareLink(sql, id) : null;
+      sql
+        .prepare("UPDATE item_sets SET token=?,updated_at=? WHERE id=?")
+        .run(token, new Date().toISOString(), id);
+      return ownedSet(id, user);
+    })
+    .immediate();
 }
 export function publicSet(token: string) {
   if (!/^[A-Za-z0-9_-]{32}$/.test(token)) throw Error("notFound");
