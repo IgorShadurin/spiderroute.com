@@ -35,6 +35,7 @@
     "next-auth": "4.24.15",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "sharp": "^0.35.4",
     "zod": "^4.3.0"
   },
   "devDependencies": {

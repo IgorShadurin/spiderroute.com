@@ -1,3 +1,4 @@
+import { notifyCreation } from "@/server/creation-notifications";
 import { detectChannel } from "@/server/youtube-channel";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -167,7 +168,11 @@ async function handler(
     }
     if (p[0] === "public" && method === "POST") {
       const shared = readShare(p[1]);
-      if (p[2] === "clone") return json(cloneRoute(p[1], user), 201);
+      if (p[2] === "clone") {
+        const route = cloneRoute(p[1], user);
+        await notifyCreation("route", route.id, user);
+        return json(route, 201);
+      }
       if (p[2] === "favorite") {
         sql
           .prepare("INSERT OR IGNORE INTO favorites VALUES(?,?)")
@@ -203,18 +208,17 @@ async function handler(
           );
         if (method === "POST") {
           const b = JSON.parse(await body(req));
-          return json(
-            createRoute(
-              user,
-              b.title || "Untitled route",
-              b.geometry,
-              b.annotations ?? [],
-              b.youtubeUrl,
-              b.endpoints,
-              b.subscription,
-            ),
-            201,
+          const route = createRoute(
+            user,
+            b.title || "Untitled route",
+            b.geometry,
+            b.annotations ?? [],
+            b.youtubeUrl,
+            b.endpoints,
+            b.subscription,
           );
+          await notifyCreation("route", route.id, user);
+          return json(route, 201);
         }
       }
       if (p[1] === "import" && method === "POST") {
@@ -222,7 +226,9 @@ async function handler(
         if (typeof b.content !== "string" || typeof b.filename !== "string")
           throw Error("invalidFile");
         const parsed = parseRoute(b.content, b.filename);
-        return json(createRoute(user, parsed.title, parsed.geometry), 201);
+        const route = createRoute(user, parsed.title, parsed.geometry);
+        await notifyCreation("route", route.id, user);
+        return json(route, 201);
       }
       const row = owned(p[1], user);
       if (p[2] === "preview" && method === "POST") {

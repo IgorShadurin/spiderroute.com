@@ -27,3 +27,28 @@ A backup is produced using SQLite's consistent backup API. Route geometry, origi
 Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` as runtime-only secrets in Coolify. SpiderRoute reuses TextFaker's IgorCorpBot and destination chat. `TELEGRAM_REGISTRATION_NOTIFICATIONS_ENABLED=false` disables alerts; otherwise configured credentials enable them. Local secrets belong only in ignored `.env.local`.
 
 Each successful new OAuth registration sends the user ID, name, email, provider, timestamp, and total registered users. The count includes the new account and disabled accounts, excludes demo accounts, and reflects currently stored users at registration time. Existing-account sign-ins and rejected registrations do not send alerts. Local messages are labeled `(local)`. Delivery is attempted after the account and welcome email are committed, with a five-second timeout. Telegram failures are logged without credentials and do not block sign-in; failed messages are not retried.
+
+### Item sets and photos
+
+The `/sets` editor stores sets and items in SQLite. New sets are private. Publishing creates a public `/sets/shared/<token>` page; revoking invalidates the page and its photo URLs, and publishing again creates a new token. Public pages have server-rendered content, metadata, structured data, and sitemap entries.
+
+Uploaded photos are normalized to WebP under `${DATA_DIR}/set-photos` (locally `data/set-photos`). Keep this directory on the same persistent `/data` volume as the database. Item/set deletion and photo replacement remove associated files. The database-only `npm run backup` does **not** include photos: back up and restore the whole persistent data volume for complete recovery, preferably while writes are paused.
+
+### Telegram creation alerts and switches
+
+In Coolify → SpiderRoute → Environment Variables, use these **runtime** settings. Changes take effect after restarting/redeploying the application:
+
+- `TELEGRAM_NOTIFICATIONS_ENABLED=false`: disable all Telegram alerts.
+- `TELEGRAM_REGISTRATION_NOTIFICATIONS_ENABLED=false`: disable registration alerts only.
+- `TELEGRAM_ROUTE_CREATION_NOTIFICATIONS_ENABLED=false`: disable route creation alerts only.
+- `TELEGRAM_SET_CREATION_NOTIFICATIONS_ENABLED=false`: disable set creation alerts only.
+
+All switches default to enabled when the existing bot/chat credentials are configured. Creating a route (drawing, import, or cloning a public route) or a private set sends its title, ID, creator name/email/ID, timestamp, and total route/set count. Every user is covered. Edits and publication do not trigger creation alerts. Messages contain no route geometry, photos, or access tokens. Sending happens after successful creation, with a five-second timeout; delivery failures do not roll back the content and are not retried. Local messages are labeled `(local)`.
+
+### Marketplace fields
+
+Items support one WB SKU/URL, Ozon SKU/URL, Amazon ASIN/URL, and eBay item number/URL, alongside custom links. An additive SQLite migration initializes `amazon` and `ebay` to empty strings for older items. Existing marketplace data and photos are preserved. Editor/card ordering follows the account UI language: RU shows WB/Ozon first, EN shows Amazon/eBay first. Public pages follow the set's selected content language. All four fields remain available in either language; changing the language only changes presentation order.
+
+### Public author profiles
+
+`user_profiles` is an additive table keyed to the existing account ID. Names start from the account name; the Google avatar is initialized once from the existing session/sign-in. Profile changes remain authoritative on later OAuth sign-ins. Login emails are separate from the optional public contact email. Avatar uploads are normalized to 512px WebP in `${DATA_DIR}/avatars`; include this directory in persistent-volume backups together with SQLite and `set-photos`. Replacing/removing an avatar cleans up the previous uploaded file. `/settings` is private; only saved public profile fields appear beside published collections.

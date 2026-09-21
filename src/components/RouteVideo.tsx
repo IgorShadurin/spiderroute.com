@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "./ConfirmationProvider";
 import { useState, useEffect, useRef } from "react";
 import { YouTubeSubscribe } from "./YouTubeSubscribe";
 import type { Subscription } from "@/lib/youtube-channel";
@@ -30,6 +31,7 @@ export function RouteVideo({
   locale: string;
   onChange?: (url: string | null) => void;
 }) {
+  const confirm = useConfirm(locale);
   const player = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (seek)
@@ -41,10 +43,10 @@ export function RouteVideo({
     setDraft(value || "");
     setError(false);
   }, [value]);
-  const removeVideo = () => {
+  const removeVideo = async () => {
     if (!onChange) return;
     if (
-      window.confirm(
+      await confirm(
         locale === "ru"
           ? "Удалить видео из маршрута? Само видео останется на YouTube."
           : "Remove this video from the route? The video will remain on YouTube.",

@@ -1,3 +1,4 @@
+import { ConfirmationProvider } from "@/components/ConfirmationProvider";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { THEME_KEY, resolveTheme } from "@/lib/theme";
@@ -26,7 +27,9 @@ export default async function RootLayout({
   return (
     <html lang={locale} data-theme={theme}>
       <body>
-        <ThemeProvider initialTheme={theme}>{children}</ThemeProvider>
+        <ThemeProvider initialTheme={theme}>
+          <ConfirmationProvider>{children}</ConfirmationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

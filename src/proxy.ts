@@ -13,7 +13,10 @@ export function proxy(req: NextRequest) {
     ["spiderroute.com", "ru.spiderroute.com"].includes(host) &&
     (req.nextUrl.pathname.startsWith("/workspace") ||
       req.nextUrl.pathname.startsWith("/s/") ||
-      req.nextUrl.pathname.startsWith("/r/"))
+      req.nextUrl.pathname.startsWith("/r/") ||
+      req.nextUrl.pathname === "/settings" ||
+      req.nextUrl.pathname === "/sets" ||
+      req.nextUrl.pathname.startsWith("/sets/"))
   ) {
     const target = new URL(
       req.nextUrl.pathname + req.nextUrl.search,
@@ -54,6 +57,14 @@ export function proxy(req: NextRequest) {
         ? "ru"
         : "en",
   );
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  if (
+    req.nextUrl.pathname === "/settings" ||
+    req.nextUrl.pathname === "/sets" ||
+    req.nextUrl.pathname.startsWith("/sets/")
+  ) {
+    response.headers.set("Cache-Control", "private, no-store");
+  }
+  return response;
 }
 export const config = { matcher: ["/((?!api|_next|icon.svg).*)"] };

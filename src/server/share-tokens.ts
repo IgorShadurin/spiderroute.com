@@ -46,5 +46,5 @@ export function migrateShortShares(db: Database.Database) {
       .all() as { route_id: string }[];
     for (const row of missing) ensureShortShare(db, row.route_id);
     db.prepare("INSERT OR IGNORE INTO schema_version(version) VALUES(2)").run();
-  })();
+  }).immediate();
 }

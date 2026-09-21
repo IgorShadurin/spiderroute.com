@@ -1,3 +1,4 @@
+import { ensureProfile, getProfile } from "./profiles";
 import { THEME_KEY } from "../lib/theme";
 import { cookies } from "next/headers";
 import { LANGUAGE_KEY } from "../lib/language";
@@ -93,6 +94,7 @@ export const authOptions: NextAuthOptions = {
         .get(account.provider, account.providerAccountId) as any;
       if (existing) {
         user.id = existing.user_id;
+        ensureProfile(user.id, user.image);
         return true;
       }
       // Never implicitly link an OAuth identity to an existing email account.
@@ -112,6 +114,7 @@ export const authOptions: NextAuthOptions = {
         (await cookies()).get(THEME_KEY)?.value,
       );
       user.id = id;
+      ensureProfile(id, user.image);
       return true;
     },
     async jwt({ token, user }) {
@@ -119,7 +122,22 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).id = token.uid;
+      if (session.user) {
+        (session.user as any).id = token.uid;
+        if (typeof token.uid === "string") {
+          try {
+            ensureProfile(
+              token.uid,
+              typeof token.picture === "string" ? token.picture : undefined,
+            );
+            const profile = getProfile(token.uid);
+            session.user.name = [profile.firstName, profile.lastName]
+              .filter(Boolean)
+              .join(" ");
+            session.user.image = profile.avatarUrl;
+          } catch {}
+        }
+      }
       return session;
     },
   },

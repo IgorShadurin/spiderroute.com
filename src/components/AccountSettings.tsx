@@ -83,6 +83,9 @@ export function AccountSettings({
             <h2 id="account-settings-title">
               {ru ? "Настройки аккаунта" : "Account settings"}
             </h2>
+            <a className="button light profile-settings-link" href="/settings">
+              {ru ? "Профиль, фото и ссылки" : "Profile, photo & links"}
+            </a>
             <form
               onSubmit={async (event) => {
                 event.preventDefault();

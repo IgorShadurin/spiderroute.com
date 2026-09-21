@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/workspace", "/s/", "/api/"],
+      disallow: ["/workspace", "/s/", "/api/", "/sets$"],
     },
     sitemap: "https://spiderroute.com/sitemap.xml",
   };

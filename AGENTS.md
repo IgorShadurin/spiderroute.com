@@ -15,3 +15,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Local `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` belong in ignored `.env.local` only. Preserve the existing local `NEXTAUTH_SECRET`; do not overwrite `.env.local` with the example file or commit/log credentials.
 - Coolify production settings are read-only when configuring local development. Do not change production variables or rotate credentials. Preserve the production OAuth origin and callback when editing localhost URLs.
 - Check `/api/auth/providers` for the Google provider and its localhost callback before handing off the local app. Reuse an existing server on port 3210 when possible.
+
+## Local Telegram notifications
+
+- Keep `TELEGRAM_NOTIFICATIONS_ENABLED=false` in ignored `.env.local` during local testing. This disables registration, route and set creation messages without changing production settings.
+- Re-enable only when requested by setting it to `true`, then restart `npm run dev` on port 3210. Keep the existing bot token, chat ID and per-event switches intact.

@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "./ConfirmationProvider";
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { flushSync } from "react-dom";
@@ -10,6 +11,7 @@ import {
   getProviders,
 } from "next-auth/react";
 import {
+  Package,
   CirclePlay,
   Flag,
   MoreHorizontal,
@@ -162,6 +164,7 @@ function Workspace({
     [noteText, setNoteText] = useState(""),
     [noteColor, setNoteColor] = useState("#3b82f6"),
     [providers, setProviders] = useState<any>({});
+  const confirm = useConfirm(locale);
   const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [sorts, setSorts] = useState<
     Record<"routes" | "favorites", LibrarySort>
@@ -735,8 +738,8 @@ function Workspace({
     }
     updateGeometry(g);
   };
-  const newDrawing = () => {
-    if (dirty && !confirm(t.discard)) return;
+  const newDrawing = async () => {
+    if (dirty && !(await confirm(t.discard, "discard"))) return;
     const r: RouteData = {
       id: "new",
       title: t.newRoute,
@@ -758,7 +761,7 @@ function Workspace({
       notify("fileTooLarge");
       return;
     }
-    if (dirty && !confirm(t.discard)) return;
+    if (dirty && !(await confirm(t.discard, "discard"))) return;
     if (busy || importWorker.current) return;
     flushSync(() => {
       setBusy(true);
@@ -882,6 +885,10 @@ function Workspace({
         <Route size={19} />
         {t.myRoutes}
       </a>
+      <a className="user-menu-action" href="/sets">
+        <Package size={19} />
+        {locale === "ru" ? "Мои наборы" : "My sets"}
+      </a>
       <AccountSettings
         showLabel
         locale={locale}
@@ -900,13 +907,14 @@ function Workspace({
       <SpeedometerLink locale={locale} />
       <button
         className="user-menu-action user-menu-signout"
-        onClick={() => {
+        onClick={async () => {
           if (
-            !confirm(
+            !(await confirm(
               locale === "ru"
                 ? "Выйти из аккаунта?"
                 : "Sign out of your account?",
-            )
+              "signout",
+            ))
           )
             return;
           run(async () => {
@@ -1693,8 +1701,8 @@ function Workspace({
                           <button
                             className="danger-link"
                             disabled={busy || autoSaving}
-                            onClick={() => {
-                              if (confirm(t.deleteConfirm))
+                            onClick={async () => {
+                              if (await confirm(t.deleteConfirm))
                                 run(async () => {
                                   await api("routes/" + route.id, "DELETE");
                                   setRoute(null);
