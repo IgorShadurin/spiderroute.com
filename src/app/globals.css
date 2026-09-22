@@ -4013,14 +4013,15 @@ html:has(.route-place-dialog[open]) { scrollbar-gutter:stable; }
 
 /* One sharing pattern for public pages, editors and place details. */
 .share-kit { align-items:center; gap:24px; }
-.share-kit-visual { flex:0 0 176px; display:flex; flex-direction:column; align-items:center; gap:8px; }
-.share-kit-code { width:160px; height:160px; flex:none; }
+.share-kit-visual { --qr-size:208px; flex:0 0 var(--qr-size); width:var(--qr-size); max-width:100%; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.share-kit-code { width:100%; height:auto; aspect-ratio:1; flex:none; }
 .share-kit-hint { font-size:13px; color:var(--muted); margin:6px 0 14px; }
 .share-link-field { position:relative; }
 .share-link-field input { width:100%; min-width:0; padding:12px 48px 12px 12px; font-size:13px; text-overflow:ellipsis; }
 .share-link-field .icon-button { position:absolute; right:5px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:8px; }
-.qr-download { display:flex; position:relative; width:max-content; max-width:100%; }
-.qr-download > .button:first-child { border-radius:10px 0 0 10px; white-space:nowrap; padding:9px 10px; }
+/* Match the controls to the QR artwork, excluding its 64 / 1024 quiet zone. */
+.qr-download { display:flex; position:relative; width:87.5%; max-width:100%; }
+.qr-download > .button:first-child { flex:1; min-width:0; justify-content:center; border-radius:10px 0 0 10px; white-space:nowrap; padding:9px 10px; }
 .qr-download .qr-format-toggle { border-radius:0 10px 10px 0; border-left:0; padding:9px 6px; }
 .qr-format-menu { position:absolute; z-index:5; top:calc(100% + 6px); left:0; right:0; padding:5px; border:1px solid var(--line); background:var(--white); box-shadow:0 8px 24px #0002; border-radius:12px; animation:qr-menu-in 160ms ease-out; }
 .qr-format-menu a { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:7px; font-size:13px; }
@@ -4057,7 +4058,7 @@ html:has(.public-share-dialog[open]) { scrollbar-gutter:stable; }
 .public-share-dialog { width:min(560px,calc(100vw - 32px)); }
 .public-share-dialog > .share-kit { padding:20px; }
 .share-kit { align-items:flex-start; gap:20px; }
-.share-kit-content { padding-top:8px; }
+.share-kit-content { padding-top:13px; }
 .share-kit-hint { margin:6px 0 12px; font-size:12px; }
 .qr-format-menu { top:auto; bottom:calc(100% + 6px); }
 .qr-loading { border-radius:14px; background:var(--paper); color:var(--muted); }

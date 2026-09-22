@@ -116,8 +116,8 @@ export function ShareLink({
           {image ? (
             <img
               src={image}
-              width={160}
-              height={160}
+              width={208}
+              height={208}
               alt={ru ? "QR-код публичной ссылки" : "Public link QR code"}
             />
           ) : (
