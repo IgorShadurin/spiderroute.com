@@ -1,16 +1,23 @@
 "use client";
 import { routeEndpoints, type RouteEndpoints } from "@/lib/endpoints";
+import { placeIcon } from "@/lib/place-icons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CirclePlay, Flag, Maximize2, Minimize2, Route } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import type { Map as MapType, Marker, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Annotation, Geometry, MapConfig, Point } from "@/lib/types";
+import type {
+  Annotation,
+  Geometry,
+  MapConfig,
+  Point,
+  RoutePlace,
+} from "@/lib/types";
 import { privacyCircle } from "@/lib/geo";
 maplibregl.setWorkerUrl("/maplibre/6.9.0/maplibre-gl-worker.mjs");
 export type MapMode =
-  "view" | "select" | "move" | "insert" | "segment" | "pin" | "draw";
+  "place" | "view" | "select" | "move" | "insert" | "segment" | "pin" | "draw";
 function focusMapNote(
   map: MapType,
   geometry: Geometry,
@@ -48,6 +55,9 @@ export default function RouteMap({
   onExitFullscreen,
   geometry,
   annotations = [],
+  places = [],
+  selectedPlace,
+  onPlaceSelect,
   endpoints,
   segmentColors,
   privacyPreview,
@@ -74,6 +84,9 @@ export default function RouteMap({
     endRadius: number;
   };
   annotations?: Annotation[];
+  places?: RoutePlace[];
+  selectedPlace?: string;
+  onPlaceSelect?: (id: string) => void;
   endpoints?: RouteEndpoints;
   segmentColors?: string[];
   focusAnnotation?: { id: string };
@@ -114,9 +127,64 @@ export default function RouteMap({
     onCoordinate,
     onVideoSeek,
   };
-  const noteMarkers = useRef<Map<string, maplibregl.Marker>>(new Map());
   const [ready, setReady] = useState(false),
     [failed, setFailed] = useState(false);
+  const placeSelection = useRef(onPlaceSelect);
+  placeSelection.current = onPlaceSelect;
+  const placeMarkers = useRef<Map<string, HTMLElement>>(new Map());
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    const markers = places.map((p) => {
+      const button = document.createElement("button");
+      button.className = "route-place-marker";
+      placeMarkers.current.set(p.id, button);
+      button.innerHTML = `<span class="place-marker-bubble"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${placeIcon(
+        p.icon,
+      )
+        .paths.map((d) => `<path d="${d}"/>`)
+        .join(
+          "",
+        )}</svg></span><span class="place-marker-stem"></span><span class="place-marker-anchor"></span>`;
+      button.title = p.title;
+      button.setAttribute(
+        "aria-label",
+        `${locale === "ru" ? "Место" : "Place"}: ${p.title}`,
+      );
+      button.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!placeSelection.current) return;
+        const target = new URL(location.href);
+        target.hash = "place-" + p.id;
+        history.pushState(null, "", target);
+        placeSelection.current?.(p.id);
+      });
+      return new maplibregl.Marker({ element: button, anchor: "bottom" })
+        .setLngLat([p.lon, p.lat])
+        .addTo(m);
+    });
+    return () => {
+      markers.forEach((marker) => marker.remove());
+      placeMarkers.current.clear();
+    };
+  }, [places, locale, ready]);
+  useEffect(() => {
+    placeMarkers.current.forEach((element, id) =>
+      element.classList.toggle("selected", id === selectedPlace),
+    );
+  }, [selectedPlace, places, ready]);
+  useEffect(() => {
+    const p = places.find((p) => p.id === selectedPlace);
+    if (ready && p)
+      map.current?.easeTo({
+        center: [p.lon, p.lat],
+        zoom: 15,
+        duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? 0
+          : 180,
+      });
+  }, [selectedPlace, places, ready]);
+  const noteMarkers = useRef<Map<string, maplibregl.Marker>>(new Map());
   const fit = () => {
     const m = map.current,
       g = props.current.privacyPreview?.original ?? props.current.geometry;
@@ -193,7 +261,7 @@ export default function RouteMap({
         });
         m.on("click", (e) => {
           const p = props.current;
-          if (p.mode === "draw" || p.mode === "pin") {
+          if (p.mode === "draw" || p.mode === "pin" || p.mode === "place") {
             p.onCoordinate?.(e.lngLat.lat, e.lngLat.lng);
             return;
           }
@@ -741,6 +809,9 @@ export default function RouteMap({
               endpoints={endpoints}
               segmentColors={segmentColors}
               annotations={annotations}
+              places={places}
+              selectedPlace={selectedPlace}
+              onPlaceSelect={onPlaceSelect}
               privacyPreview={privacyPreview}
               focusAnnotation={focusAnnotation}
               selected={selected}

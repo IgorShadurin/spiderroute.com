@@ -18,6 +18,15 @@ export type Annotation = {
   videoSeconds?: number;
   videoEndSeconds?: number;
 };
+export type RoutePlace = {
+  icon?: import("./place-icons").PlaceIconKey;
+  id: string;
+  title: string;
+  description: string;
+  lat: number;
+  lon: number;
+  photo: string | null;
+};
 export type Stats = {
   distance: number;
   points: number;
@@ -32,6 +41,7 @@ export type RouteData = {
   endpoints?: { startId: string; endId: string };
   geometry: Geometry;
   annotations: Annotation[];
+  places?: RoutePlace[];
   stats: Stats;
   revision: number;
   privacyStart: number;
@@ -49,6 +59,7 @@ export type PublicRoute = {
   endpoints?: { startId: string; endId: string };
   geometry: Geometry;
   annotations: Annotation[];
+  places?: RoutePlace[];
   stats: Stats;
   revision: number;
   protected: boolean;

@@ -110,7 +110,10 @@ export async function saveAvatar(id: string, bytes: Buffer) {
     throw Error("fileTooLarge");
   let output: Buffer;
   try {
-    const source = sharp(bytes, { limitInputPixels: 25_000_000 });
+    const source = sharp(bytes, {
+      limitInputPixels: 25_000_000,
+      animated: false,
+    });
     const meta = await source.metadata();
     if (!["jpeg", "png", "webp", "avif", "heif"].includes(meta.format || ""))
       throw Error();
@@ -122,22 +125,28 @@ export async function saveAvatar(id: string, bytes: Buffer) {
   } catch {
     throw Error("invalidImage");
   }
-  const current = row(id);
-  if (!current) throw Error("notFound");
+  let previousAvatar: string | null = null;
   const name = randomUUID() + ".webp";
   mkdirSync(dir, { recursive: true, mode: 0o700 });
-  writeFileSync(join(dir, name), output, { mode: 0o600, flag: "wx" });
   try {
+    writeFileSync(join(dir, name), output, { mode: 0o600, flag: "wx" });
     sql
-      .prepare(
-        "UPDATE user_profiles SET avatar=?,avatar_custom=1 WHERE user_id=?",
-      )
-      .run(name, id);
+      .transaction(() => {
+        const current = row(id);
+        if (!current) throw Error("notFound");
+        previousAvatar = current.avatar;
+        sql
+          .prepare(
+            "UPDATE user_profiles SET avatar=?,avatar_custom=1 WHERE user_id=?",
+          )
+          .run(name, id);
+      })
+      .immediate();
   } catch (e) {
     remove(name);
     throw e;
   }
-  remove(current.avatar);
+  remove(previousAvatar);
   return getProfile(id);
 }
 export function deleteAvatar(id: string) {

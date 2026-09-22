@@ -1,3 +1,4 @@
+import { routePlaces, removePlacePhoto } from "@/server/route-place-store";
 import { notifyCreation } from "@/server/creation-notifications";
 import { detectChannel } from "@/server/youtube-channel";
 import { NextRequest, NextResponse } from "next/server";
@@ -257,9 +258,11 @@ async function handler(
         if (method === "PUT")
           return json(saveRoute(p[1], user, JSON.parse(await body(req))));
         if (method === "DELETE") {
+          const photos = routePlaces(p[1]).map((p) => p.photo);
           sql
             .prepare("DELETE FROM routes WHERE id=? AND user_id=?")
             .run(p[1], user);
+          photos.forEach(removePlacePhoto);
           return json({ ok: true });
         }
       }

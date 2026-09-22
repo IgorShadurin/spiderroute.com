@@ -52,3 +52,7 @@ Items support one WB SKU/URL, Ozon SKU/URL, Amazon ASIN/URL, and eBay item numbe
 ### Public author profiles
 
 `user_profiles` is an additive table keyed to the existing account ID. Names start from the account name; the Google avatar is initialized once from the existing session/sign-in. Profile changes remain authoritative on later OAuth sign-ins. Login emails are separate from the optional public contact email. Avatar uploads are normalized to 512px WebP in `${DATA_DIR}/avatars`; include this directory in persistent-volume backups together with SQLite and `set-photos`. Replacing/removing an avatar cleans up the previous uploaded file. `/settings` is private; only saved public profile fields appear beside published collections.
+
+### Route places and sharing QR codes
+
+Route places use the additive `route_places` table with an idempotent `icon` column migration (default `pin` for older data). Photos live in `/data/place-photos` and must be included in volume backups. Public place snapshots follow route privacy and revocation; cloning copies photo files and icon categories. QR PNG/JPEG/SVG files are generated in the browser and consume no server disk space.

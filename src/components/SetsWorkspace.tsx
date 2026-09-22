@@ -1,4 +1,5 @@
 "use client";
+import { ShareLink } from "./ShareLink";
 import { MarketplaceLabel } from "./MarketplaceLabel";
 import { useConfirm } from "./ConfirmationProvider";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -6,7 +7,6 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Check,
-  Copy,
   Globe,
   ImagePlus,
   MoreHorizontal,
@@ -428,7 +428,6 @@ function SetEditor({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
-    [copied, setCopied] = useState(false),
     [item, setItem] = useState<SetItem | null | undefined>(undefined);
   const field = (key: keyof SetInput, value: string) => {
     setForm({ ...form, [key]: value });
@@ -584,33 +583,7 @@ function SetEditor({
         </button>
       </div>
       {set.token && (
-        <div className="set-share-link">
-          <a href={shareUrl} target="_blank" rel="noopener noreferrer">
-            {ru ? "Открыть публичную страницу" : "Open public page"}
-            <ArrowUpRight size={15} />
-          </a>
-          <button
-            className="text-link"
-            onClick={() =>
-              void act(async () => {
-                await navigator.clipboard.writeText(
-                  new URL(shareUrl, location.origin).href,
-                );
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              })
-            }
-          >
-            {copied ? <Check size={15} /> : <Copy size={15} />}{" "}
-            {copied
-              ? ru
-                ? "Скопировано"
-                : "Copied"
-              : ru
-                ? "Копировать ссылку"
-                : "Copy link"}
-          </button>
-        </div>
+        <ShareLink url={shareUrl} locale={ru ? "ru" : "en"} name={set.title} />
       )}
       {error && (
         <p role="alert" className="sets-error">

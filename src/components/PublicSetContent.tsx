@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Package, X } from "lucide-react";
+import { ShareButton } from "./ShareButton";
+import { ShareLink } from "./ShareLink";
 import { FeedbackToast } from "./FeedbackToast";
 import { ItemDescription } from "./ItemDescription";
 import { Brand } from "./Brand";
@@ -190,7 +192,14 @@ export function PublicSetContent({
         <div className="sets-eyebrow">
           {ru ? "ПОДБОРКА ВЕЩЕЙ" : "A COLLECTION OF FINDS"}
         </div>
-        <h1>{set.title}</h1>
+        <div className="public-set-title-row">
+          <h1>{set.title}</h1>
+          <ShareButton
+            url={`/sets/shared/${set.token}?lang=${locale}`}
+            locale={locale}
+            name={set.title}
+          />
+        </div>
         {set.description && (
           <p className="public-set-description">{set.description}</p>
         )}
@@ -341,6 +350,11 @@ export function PublicSetContent({
                 </h2>
                 {shown.description && <p>{shown.description}</p>}
                 {links(shown)}
+                <ShareLink
+                  url={`/sets/shared/${set.token}?lang=${locale}#item-${shown.id}`}
+                  locale={locale}
+                  name={shown.title}
+                />
               </div>
             </div>
           </>

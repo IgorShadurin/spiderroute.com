@@ -1,3 +1,11 @@
+import { copyFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  placePhotoDir,
+  removePlacePhoto,
+  routePlaces,
+  visiblePlaces,
+} from "./route-place-store";
 import { subscription } from "@/lib/youtube-channel";
 import { routeEndpoints, validateEndpoints } from "@/lib/endpoints";
 import { normalizeYoutube } from "@/lib/route-details";
@@ -36,6 +44,7 @@ export function routeView(row: any) {
       row.endpoints ? JSON.parse(row.endpoints) : undefined,
     ),
     annotations: JSON.parse(row.annotations),
+    places: routePlaces(row.id),
     stats: JSON.parse(row.stats),
     revision: row.revision,
     privacyStart: row.privacy_start,
@@ -107,6 +116,13 @@ export function snapshot(row: any, overrides?: any): PublicRoute {
   );
   return {
     ...visible,
+    places: visiblePlaces(
+      routePlaces(row.id),
+      original[0][0],
+      original.at(-1)!.at(-1)!,
+      overrides?.privacyStart ?? row.privacy_start,
+      overrides?.privacyEnd ?? row.privacy_end,
+    ),
     subscription: subscription(
       overrides?.subscription ??
         (row.subscription ? JSON.parse(row.subscription) : undefined),
@@ -286,16 +302,49 @@ export function readShare(token: string) {
   return { routeId: row.route_id as string, payload: cached.payload };
 }
 export function cloneRoute(token: string, user: string) {
-  return sql.transaction(() => {
-    const { payload } = readShare(token);
-    return createRoute(
-      user,
-      payload.title,
-      structuredClone(payload.geometry),
-      structuredClone(payload.annotations),
-      payload.youtubeUrl,
-      payload.endpoints,
-      payload.subscription,
-    );
-  })();
+  const copiedPhotos: string[] = [];
+  try {
+    return sql.transaction(() => {
+      const { payload } = readShare(token);
+      const clone = createRoute(
+        user,
+        payload.title,
+        structuredClone(payload.geometry),
+        structuredClone(payload.annotations),
+        payload.youtubeUrl,
+        payload.endpoints,
+        payload.subscription,
+      );
+      for (const place of payload.places ?? []) {
+        let photo: string | null = null;
+        if (place.photo) {
+          photo = randomUUID() + ".webp";
+          copiedPhotos.push(photo);
+          copyFileSync(
+            join(/* turbopackIgnore: true */ placePhotoDir, place.photo),
+            join(/* turbopackIgnore: true */ placePhotoDir, photo),
+          );
+        }
+        sql
+          .prepare(
+            "INSERT INTO route_places(id,route_id,title,description,lat,lon,photo,created_at,icon) VALUES(?,?,?,?,?,?,?,?,?)",
+          )
+          .run(
+            randomUUID(),
+            clone.id,
+            place.title,
+            place.description,
+            place.lat,
+            place.lon,
+            photo,
+            new Date().toISOString(),
+            place.icon ?? "pin",
+          );
+      }
+      return routeView(owned(clone.id, user));
+    })();
+  } catch (error) {
+    copiedPhotos.forEach(removePlacePhoto);
+    throw error;
+  }
 }

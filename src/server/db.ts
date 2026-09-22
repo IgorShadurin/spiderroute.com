@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,
 CREATE TABLE IF NOT EXISTS identities(provider TEXT NOT NULL,subject TEXT NOT NULL,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,PRIMARY KEY(provider,subject));
 CREATE TABLE IF NOT EXISTS routes(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,title TEXT NOT NULL,geometry TEXT NOT NULL,original TEXT NOT NULL,annotations TEXT NOT NULL DEFAULT '[]',stats TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,privacy_start INTEGER NOT NULL DEFAULT 500,privacy_end INTEGER NOT NULL DEFAULT 500,updated_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS routes_owner ON routes(user_id,updated_at DESC);
+CREATE TABLE IF NOT EXISTS route_places(id TEXT PRIMARY KEY,route_id TEXT NOT NULL REFERENCES routes(id) ON DELETE CASCADE,title TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',lat REAL NOT NULL,lon REAL NOT NULL,photo TEXT,created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS route_places_route ON route_places(route_id,created_at);
 CREATE TABLE IF NOT EXISTS shares(token TEXT PRIMARY KEY,route_id TEXT NOT NULL UNIQUE REFERENCES routes(id) ON DELETE CASCADE,payload TEXT NOT NULL,revision INTEGER NOT NULL,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS favorites(user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,route_id TEXT NOT NULL REFERENCES routes(id) ON DELETE CASCADE,PRIMARY KEY(user_id,route_id));
 CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY,count INTEGER NOT NULL,expires INTEGER NOT NULL);
@@ -58,6 +60,20 @@ sql
 sql.exec(
   "CREATE TABLE IF NOT EXISTS youtube_channels(video_id TEXT PRIMARY KEY,channel_id TEXT NOT NULL,verified_at INTEGER NOT NULL)",
 );
+sql
+  .transaction(() => {
+    if (
+      !(
+        sql.prepare("PRAGMA table_info(route_places)").all() as {
+          name: string;
+        }[]
+      ).some((c) => c.name === "icon")
+    )
+      sql.exec(
+        "ALTER TABLE route_places ADD COLUMN icon TEXT NOT NULL DEFAULT 'pin'",
+      );
+  })
+  .immediate();
 migrateShortShares(sql);
 migratePreferences(sql);
 export function rateLimit(key: string, limit: number, window = 60): boolean {

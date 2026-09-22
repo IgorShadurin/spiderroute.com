@@ -263,25 +263,31 @@ export async function saveItemPhoto(
     throw Error("invalidImage");
   }
   // Re-check after decoding: a concurrent delete/replacement may have happened.
-  const current = ownedSet(setId, user).items.find((item) => item.id === id);
-  if (!current) throw Error("notFound");
+  let previousPhoto: string | null = null;
   mkdirSync(photoDir, { recursive: true, mode: 0o700 });
   const name = randomUUID() + ".webp";
-  writeFileSync(join(photoDir, name), output, { flag: "wx", mode: 0o600 });
   try {
-    sql.transaction(() => {
-      sql
-        .prepare("UPDATE set_items SET photo=? WHERE id=? AND set_id=?")
-        .run(name, id, setId);
-      sql
-        .prepare("UPDATE item_sets SET updated_at=? WHERE id=?")
-        .run(new Date().toISOString(), setId);
-    })();
+    writeFileSync(join(photoDir, name), output, { flag: "wx", mode: 0o600 });
+    sql
+      .transaction(() => {
+        const current = ownedSet(setId, user).items.find(
+          (item) => item.id === id,
+        );
+        if (!current) throw Error("notFound");
+        previousPhoto = current.photo;
+        sql
+          .prepare("UPDATE set_items SET photo=? WHERE id=? AND set_id=?")
+          .run(name, id, setId);
+        sql
+          .prepare("UPDATE item_sets SET updated_at=? WHERE id=?")
+          .run(new Date().toISOString(), setId);
+      })
+      .immediate();
   } catch (error) {
     removePhoto(name);
     throw error;
   }
-  removePhoto(current.photo);
+  removePhoto(previousPhoto);
   return ownedSet(setId, user);
 }
 export function deleteItemPhoto(setId: string, user: string, id: string) {

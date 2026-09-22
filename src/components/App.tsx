@@ -1,4 +1,8 @@
 "use client";
+import { RoutePlaces } from "./RoutePlaces";
+import { ShareButton } from "./ShareButton";
+import { ShareLink } from "./ShareLink";
+import { HelpDisclosure } from "./HelpDisclosure";
 import { useConfirm } from "./ConfirmationProvider";
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -201,6 +205,8 @@ function Workspace({
     return () => document.removeEventListener("keydown", cancel);
   }, [mode]);
   const insertionMenu = useRef<HTMLDetailsElement>(null);
+  const [selectedPlace, setSelectedPlace] = useState<string>();
+  const [placeDraft, setPlaceDraft] = useState<{ lat: number; lon: number }>();
   const routeRef = useRef<RouteData | null>(null);
   const dirtyRef = useRef(false);
   const saveFlight = useRef<Promise<void> | null>(null);
@@ -670,6 +676,11 @@ function Workspace({
   const coordinate = (lat: number, lon: number, anchorId?: string) => {
     lon = ((lon + 540) % 360) - 180;
     if (!route) return;
+    if (mode === "place") {
+      setPlaceDraft({ lat, lon });
+      setMode("view");
+      return;
+    }
     if (mode === "segment") {
       if (!anchorId) return;
       if (!segmentStart) {
@@ -803,18 +814,30 @@ function Workspace({
       setBusy(false);
     }
   };
-  const previewShare = async () => {
-    const current = routeRef.current;
-    if (!current) return;
-    setPreview(await api("routes/" + current.id + "/preview", "POST", current));
-  };
+  useEffect(() => {
+    if (!shareOpen || !route) return;
+    let cancelled = false;
+    setPreview(null);
+    const timer = setTimeout(() => {
+      void api("routes/" + route.id + "/preview", "POST", route)
+        .then((value) => {
+          if (!cancelled) setPreview(value);
+        })
+        .catch(() => {
+          if (!cancelled) notify("error");
+        });
+    }, 180);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [shareOpen, route]);
   const startShare = () => {
     if (!route) return;
     run(async () => {
       await save();
       setShareOpen(true);
       setPreview(null);
-      await previewShare();
     });
   };
   const publicAction = (action: string) =>
@@ -986,6 +1009,7 @@ function Workspace({
             <div className="public-title">
               <div>
                 <h1>{publicRoute.title}</h1>
+
                 <div className="public-stats">
                   <span>
                     {(publicRoute.stats.distance / 1000).toFixed(1)}{" "}
@@ -997,6 +1021,11 @@ function Workspace({
                 </div>
               </div>
               <div className="action-row">
+                <ShareButton
+                  url={sharePath(token!, locale)}
+                  locale={locale}
+                  name={publicRoute.title}
+                />
                 <FavoriteButton
                   key={`${token}-${session?.user?.email ?? "guest"}`}
                   token={token!}
@@ -1027,6 +1056,9 @@ function Workspace({
                   locale={locale}
                   geometry={publicRoute.geometry}
                   annotations={publicRoute.annotations}
+                  places={publicRoute.places}
+                  selectedPlace={selectedPlace}
+                  onPlaceSelect={setSelectedPlace}
                   focusAnnotation={focusedAnnotation}
                   onVideoSeek={publicRoute.youtubeUrl ? seekVideo : undefined}
                   activeAnnotationIds={activeAnnotations}
@@ -1051,6 +1083,14 @@ function Workspace({
                 </div>
               )}
             </div>
+            <RoutePlaces
+              key={token}
+              places={publicRoute.places}
+              locale={locale}
+              token={token}
+              selectedId={selectedPlace}
+              onSelect={setSelectedPlace}
+            />
             {publicRoute.annotations.length > 0 && (
               <section className="public-notes">
                 <h2>{t.annotations}</h2>
@@ -1731,6 +1771,9 @@ function Workspace({
                   geometry={shownGeometry}
                   focusAnnotation={focusedAnnotation}
                   annotations={route.annotations}
+                  places={route.places}
+                  selectedPlace={selectedPlace}
+                  onPlaceSelect={setSelectedPlace}
                   selected={selected}
                   endSelected={end}
                   mode={mode}
@@ -1742,6 +1785,20 @@ function Workspace({
                   fitKey={route.id}
                   errorLabel={t.mapUnavailable}
                 />
+                {mode === "place" && (
+                  <div className="place-pick-banner">
+                    <MapPin size={17} />
+                    {locale === "ru"
+                      ? "Нажмите на карту, чтобы добавить место"
+                      : "Click the map to add a place"}
+                    <button
+                      className="button light small"
+                      onClick={() => setMode("view")}
+                    >
+                      {t.cancel}
+                    </button>
+                  </div>
+                )}
                 <div className="map-toolbar">
                   {mode === "draw" ? (
                     <>
@@ -2146,6 +2203,32 @@ function Workspace({
                     });
                   }}
                 />
+                {route.id !== "new" && (
+                  <RoutePlaces
+                    key={`places-${route.id}`}
+                    routeId={route.id}
+                    places={route.places}
+                    locale={locale}
+                    token={route.shareToken}
+                    selectedId={selectedPlace}
+                    onSelect={setSelectedPlace}
+                    draft={placeDraft}
+                    onDraftClear={() => setPlaceDraft(undefined)}
+                    beforeSave={() => save()}
+                    onSaved={(r) => accept(r, false)}
+                    onPick={() => {
+                      void run(async () => {
+                        await save();
+                        setSelectedPlace(undefined);
+                        setMode("place");
+                        editorMapRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                      });
+                    }}
+                  />
+                )}
                 <section className="notes-section">
                   <div className="notes-heading">
                     <h3>
@@ -2201,15 +2284,19 @@ function Workspace({
                 <X />
               </button>
             </div>
-            <details className="share-help">
-              <summary>
-                <CircleHelp size={16} />
-                {locale === "ru"
-                  ? "Скрыть начало и конец"
-                  : "Hide start and finish"}
-              </summary>
+            <HelpDisclosure
+              className=""
+              title={
+                <>
+                  <CircleHelp size={16} />
+                  {locale === "ru"
+                    ? "Скрыть начало и конец"
+                    : "Hide start and finish"}
+                </>
+              }
+            >
               <p>{t.privacyHelp}</p>
-            </details>
+            </HelpDisclosure>
             <div className="privacy-controls">
               {[
                 ["privacyStart", locale === "ru" ? "Начало" : "Start"],
@@ -2245,20 +2332,13 @@ function Workspace({
             </div>
             <div className="share-preview-heading">
               <span>{locale === "ru" ? "Предпросмотр" : "Preview"}</span>
-              <button
-                className="button light small"
-                disabled={busy}
-                onClick={() => run(previewShare)}
-              >
-                <Redo2 size={14} />
-                {locale === "ru" ? "Обновить" : "Refresh"}
-              </button>
             </div>
             <div className="share-preview-map">
               <RouteMap
                 locale={locale}
                 geometry={preview?.geometry ?? []}
                 annotations={preview?.annotations ?? []}
+                places={preview?.places ?? []}
                 privacyPreview={{
                   original: route.geometry,
                   start: route.privacyCenters?.start ?? route.geometry[0][0],
@@ -2282,11 +2362,15 @@ function Workspace({
                     ? "Загрузка…"
                     : "Loading…"}
               </span>
-              <details className="share-help map-help">
-                <summary>
-                  <CircleHelp size={16} />
-                  {locale === "ru" ? "Что видно на карте?" : "Map key"}
-                </summary>
+              <HelpDisclosure
+                className="map-help"
+                title={
+                  <>
+                    <CircleHelp size={16} />
+                    {locale === "ru" ? "Что видно на карте?" : "Map key"}
+                  </>
+                }
+              >
                 <div className="privacy-legend">
                   <span>
                     <i className="legend-original" />
@@ -2306,43 +2390,33 @@ function Workspace({
                   </span>
                 </div>
                 <p>{t.ownerPreview}</p>
-              </details>
+              </HelpDisclosure>
             </div>
-            <details className="share-help sharing-help">
-              <summary>
-                <CircleHelp size={16} />
-                {locale === "ru"
-                  ? "Доступно всем, у кого есть ссылка"
-                  : "Anyone with the link can view"}
-              </summary>
+            <HelpDisclosure
+              className="sharing-help"
+              title={
+                <>
+                  <CircleHelp size={16} />
+                  {locale === "ru"
+                    ? "Доступно всем, у кого есть ссылка"
+                    : "Anyone with the link can view"}
+                </>
+              }
+            >
               <p>{t.publishWarning}</p>
               {route.shared && <p>{t.liveShare}</p>}
-            </details>
-            {route.shared && (
-              <div className="share-link share-link-reveal">
-                <input
-                  aria-label="Share URL"
-                  readOnly
-                  value={
-                    typeof location === "undefined"
-                      ? ""
-                      : shareUrl(route.shareToken!, locale)
-                  }
-                />
-                <button
-                  className="button dark small"
-                  onClick={() =>
-                    run(async () => {
-                      await navigator.clipboard.writeText(
-                        shareUrl(route.shareToken!, locale),
-                      );
-                      notify("copied");
-                    })
-                  }
-                >
-                  {t.copy}
-                </button>
-              </div>
+            </HelpDisclosure>
+            {route.shared && route.shareToken && (
+              <ShareLink
+                url={
+                  typeof location !== "undefined" &&
+                  location.hostname === "localhost"
+                    ? location.origin + sharePath(route.shareToken, locale)
+                    : shareUrl(route.shareToken, locale)
+                }
+                locale={locale}
+                name={route.title}
+              />
             )}
             <div className="action-row">
               {dirty ? (

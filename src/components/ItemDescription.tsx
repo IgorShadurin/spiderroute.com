@@ -6,7 +6,9 @@ export function ItemDescription({
   id,
   ru,
   onOpen,
+  prefix = "item",
 }: {
+  prefix?: string;
   text: string;
   id: string;
   ru: boolean;
@@ -40,7 +42,7 @@ export function ItemDescription({
       {truncated && (
         <a
           className="item-description-more"
-          href={`#item-${id}`}
+          href={`#${prefix}-${id}`}
           onClick={(event) => {
             event.preventDefault();
             onOpen();
