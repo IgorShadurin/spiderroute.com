@@ -4004,7 +4004,8 @@ html:has(.public-collection) { scrollbar-gutter:stable; }
 .place-editor-actions > .danger-link { margin-right:auto; }
 .place-detail-photo { width:100%; max-height:340px; object-fit:cover; border-radius:12px; }
 .place-detail-description { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
-.place-detail-coordinates { display:flex; gap:6px; align-items:center; font-size:12px; color:var(--muted); }
+.place-coordinate-field { margin-top:14px; }
+.copy-field-label { display:block; margin-bottom:8px; font-size:13px; font-weight:700; }
 html:has(.route-place-dialog[open]) { scrollbar-gutter:stable; }
 @media(max-width:560px) { .places-heading { align-items:flex-start; flex-direction:column; } .place-editor,.place-detail { padding:16px; } .place-photo-preview { width:72px;height:72px; } .place-editor-actions { flex-wrap:wrap; } }
 .place-card-photo { overflow:hidden; flex-shrink:0; }

@@ -6,6 +6,7 @@ import { MapPin, Plus, Pencil, Trash2, X, ImagePlus } from "lucide-react";
 import type { Locale, RouteData, RoutePlace } from "@/lib/types";
 import { placeInput, placePhotoUrl } from "@/lib/route-places";
 import { sharePath, shareUrl } from "@/lib/sharing";
+import { CopyField } from "./CopyField";
 import { ShareLink } from "./ShareLink";
 import { ItemDescription } from "./ItemDescription";
 import { useConfirm } from "./ConfirmationProvider";
@@ -53,6 +54,18 @@ export function RoutePlaces({
   const selected = places.find((p) => p.id === selectedId);
   const [lastSelected, setLastSelected] = useState<RoutePlace>();
   const shown = selected || lastSelected;
+  const coordinates = shown && (
+    <div className="place-coordinate-field">
+      <CopyField
+        value={`${shown.lat.toFixed(5)}, ${shown.lon.toFixed(5)}`}
+        label={ru ? "Координаты" : "Coordinates"}
+        copyLabel={ru ? "Копировать координаты" : "Copy coordinates"}
+        copiedMessage={ru ? "Координаты скопированы" : "Coordinates copied"}
+        locale={locale}
+        showLabel
+      />
+    </div>
+  );
   useEffect(() => {
     if (selected) setLastSelected(selected);
   }, [selected]);
@@ -598,22 +611,23 @@ export function RoutePlaces({
                 />
               )}
               <p className="place-detail-description">{shown.description}</p>
-              <p className="place-detail-coordinates">
-                <MapPin size={15} />
-                {shown.lat.toFixed(5)}, {shown.lon.toFixed(5)}
-              </p>
               {base ? (
                 <ShareLink
                   url={`${base}#place-${shown.id}`}
                   locale={locale}
                   name={shown.title}
-                />
+                >
+                  {coordinates}
+                </ShareLink>
               ) : (
-                <p className="subtle">
-                  {ru
-                    ? "Опубликуйте маршрут, чтобы получить ссылку и QR-код места."
-                    : "Share the route to get this place’s link and QR code."}
-                </p>
+                <>
+                  {coordinates}
+                  <p className="subtle">
+                    {ru
+                      ? "Опубликуйте маршрут, чтобы получить ссылку и QR-код места."
+                      : "Share the route to get this place’s link and QR code."}
+                  </p>
+                </>
               )}
               {routeId && (
                 <button

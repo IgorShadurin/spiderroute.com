@@ -1,24 +1,20 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import {
-  Copy,
-  Download,
-  LoaderCircle,
-  CircleAlert,
-  ChevronDown,
-} from "lucide-react";
-import { FeedbackToast } from "./FeedbackToast";
+import { useEffect, useState, useRef, type ReactNode } from "react";
+import { Download, LoaderCircle, CircleAlert, ChevronDown } from "lucide-react";
+import { CopyField } from "./CopyField";
 
 /** Shared publishing controls: the copy, open and QR actions use one URL. */
 export function ShareLink({
   url,
   locale,
   name = "spiderroute",
+  children,
 }: {
   url: string;
   locale: "ru" | "en";
   name?: string;
+  children?: ReactNode;
 }) {
   const ru = locale === "ru";
   const [absolute, setAbsolute] = useState("");
@@ -48,13 +44,6 @@ export function ShareLink({
       document.removeEventListener("keydown", escape, true);
     };
   }, [menu]);
-  const [feedback, setFeedback] = useState<{
-    id: number;
-    message: string;
-    error?: boolean;
-  }>();
-  const report = (message: string, error = false) =>
-    setFeedback({ id: Date.now(), message, error });
   useEffect(() => {
     let cancelled = false;
     let objectUrl = "";
@@ -213,45 +202,16 @@ export function ShareLink({
             ? "Отправьте ссылку или сохраните QR-код."
             : "Send the link or save the QR code."}
         </p>
-        <div className="share-link-field">
-          <input
-            readOnly
-            value={absolute || url}
-            aria-label={ru ? "Ссылка для публикации" : "Sharing link"}
-            onFocus={(e) => e.currentTarget.select()}
-          />
-          <button
-            className="icon-button"
-            disabled={!absolute}
-            aria-label={ru ? "Копировать ссылку" : "Copy link"}
-            title={ru ? "Копировать ссылку" : "Copy link"}
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(absolute);
-                report(ru ? "Ссылка скопирована" : "Link copied");
-              } catch {
-                report(
-                  ru
-                    ? "Не удалось скопировать. Выделите ссылку и скопируйте вручную."
-                    : "Could not copy. Select the link and copy manually.",
-                  true,
-                );
-              }
-            }}
-          >
-            <Copy size={18} />
-          </button>
-        </div>
-      </div>
-      {feedback && (
-        <FeedbackToast
-          key={feedback.id}
-          message={feedback.message}
-          error={feedback.error}
-          dismissLabel={ru ? "Закрыть уведомление" : "Dismiss notification"}
-          onDismiss={() => setFeedback(undefined)}
+        <CopyField
+          value={absolute || url}
+          label={ru ? "Ссылка для публикации" : "Sharing link"}
+          copyLabel={ru ? "Копировать ссылку" : "Copy link"}
+          copiedMessage={ru ? "Ссылка скопирована" : "Link copied"}
+          locale={locale}
+          disabled={!absolute}
         />
-      )}
+        {children}
+      </div>
     </section>
   );
 }
