@@ -215,6 +215,7 @@ export function RoutePlaces({
   const photo =
     preview ||
     (!removePhoto && edit?.photo ? placePhotoUrl(edit as RoutePlace) : "");
+  if (!routeId && !places.length) return null;
   return (
     <section className="route-places-section">
       <div className="places-heading">

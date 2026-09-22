@@ -6,12 +6,15 @@ export function ShareButton({
   url,
   locale,
   name,
+  compact = true,
 }: {
   url: string;
   locale: "ru" | "en";
   name: string;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [activated, setActivated] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const id = useId();
@@ -29,7 +32,13 @@ export function ShareButton({
   }, [open]);
   return (
     <>
-      <button className="button light small" onClick={() => setOpen(true)}>
+      <button
+        className={`button light${compact ? " small" : ""}`}
+        onClick={() => {
+          setActivated(true);
+          setOpen(true);
+        }}
+      >
         <Share2 size={17} />
         {ru ? "Поделиться" : "Share"}
       </button>
@@ -66,7 +75,7 @@ export function ShareButton({
             <X size={21} />
           </button>
         </header>
-        {open && <ShareLink url={url} locale={locale} name={name} />}
+        {activated && <ShareLink url={url} locale={locale} name={name} />}
       </dialog>
     </>
   );

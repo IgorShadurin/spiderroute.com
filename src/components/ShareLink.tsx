@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Copy, Download, QrCode, ChevronDown } from "lucide-react";
+import {
+  Copy,
+  Download,
+  LoaderCircle,
+  CircleAlert,
+  ChevronDown,
+} from "lucide-react";
 import { FeedbackToast } from "./FeedbackToast";
 
 /** Shared publishing controls: the copy, open and QR actions use one URL. */
@@ -85,14 +91,20 @@ export function ShareLink({
       const blob = await code.getRawData("svg");
       if (cancelled || !(blob instanceof Blob)) return;
       objectUrl = URL.createObjectURL(blob);
-      setImage(objectUrl);
+
       const pngBlob = await code.getRawData("png");
       if (cancelled || !(pngBlob instanceof Blob)) return;
       pngUrl = URL.createObjectURL(pngBlob);
-      setPng(pngUrl);
+
       const jpegBlob = await code.getRawData("jpeg");
       if (cancelled || !(jpegBlob instanceof Blob)) return;
       jpegUrl = URL.createObjectURL(jpegBlob);
+      const decoded = new Image();
+      decoded.src = objectUrl;
+      await decoded.decode();
+      if (cancelled) return;
+      setImage(objectUrl);
+      setPng(pngUrl);
       setJpeg(jpegUrl);
     })().catch(() => {
       if (!cancelled) setFailed(true);
@@ -120,8 +132,16 @@ export function ShareLink({
               alt={ru ? "QR-код публичной ссылки" : "Public link QR code"}
             />
           ) : (
-            <div role="status">
-              <QrCode size={32} />
+            <div role="status" className="qr-loading" aria-busy={!failed}>
+              {failed ? (
+                <CircleAlert size={26} />
+              ) : (
+                <LoaderCircle
+                  className="loading-spinner"
+                  size={26}
+                  aria-hidden="true"
+                />
+              )}
               <span>
                 {failed
                   ? ru
@@ -187,7 +207,7 @@ export function ShareLink({
         </div>
       </div>
       <div className="share-kit-content">
-        <strong>{ru ? "Поделиться" : "Share"}</strong>
+        <strong>{ru ? "Ссылка" : "Link"}</strong>
         <p className="share-kit-hint">
           {ru
             ? "Отправьте ссылку или сохраните QR-код."

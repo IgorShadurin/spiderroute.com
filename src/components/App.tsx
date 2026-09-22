@@ -1,4 +1,5 @@
 "use client";
+import { RouteSignInDialog } from "./RouteSignInDialog";
 import { RoutePlaces } from "./RoutePlaces";
 import { ShareButton } from "./ShareButton";
 import { ShareLink } from "./ShareLink";
@@ -206,6 +207,8 @@ function Workspace({
   }, [mode]);
   const insertionMenu = useRef<HTMLDetailsElement>(null);
   const [selectedPlace, setSelectedPlace] = useState<string>();
+  const [loginIntent, setLoginIntent] = useState<"favorite" | "clone">();
+  const [favoriteVersion, setFavoriteVersion] = useState(0);
   const [placeDraft, setPlaceDraft] = useState<{ lat: number; lon: number }>();
   const routeRef = useRef<RouteData | null>(null);
   const dirtyRef = useRef(false);
@@ -470,6 +473,8 @@ function Workspace({
     if (!shareOpen && !noteOpen && !cloneOpen) return;
     const dialog = document.querySelector<HTMLElement>("[role=dialog]");
     const previous = document.activeElement as HTMLElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const items = () =>
       Array.from(
         dialog?.querySelectorAll<HTMLElement>(
@@ -499,7 +504,8 @@ function Workspace({
     document.addEventListener("keydown", key);
     return () => {
       document.removeEventListener("keydown", key);
-      previous?.focus();
+      document.body.style.overflow = previousOverflow;
+      previous?.focus({preventScroll:true});
     };
   }, [shareOpen, noteOpen, cloneOpen]);
   const saveAccountLanguage = async (l: Locale, nextTheme?: Theme) => {
@@ -840,13 +846,36 @@ function Workspace({
       setPreview(null);
     });
   };
+  useEffect(() => {
+    if (!session || !token) return;
+    const pending = sessionStorage.getItem("route-signin-intent");
+    let intent = loginIntent;
+    if (pending) {
+      try {
+        const saved = JSON.parse(pending);
+        if (
+          saved.token === token &&
+          Date.now() - saved.at < 10 * 60 * 1000 &&
+          ["favorite", "clone"].includes(saved.action)
+        )
+          intent = saved.action;
+      } catch {}
+      sessionStorage.removeItem("route-signin-intent");
+    }
+    if (!intent) return;
+    setLoginIntent(undefined);
+    if (intent === "clone") {
+      setCloneOpen(true);
+      return;
+    }
+    void api("favorites/shared/" + token, "POST", {})
+      .then(() => setFavoriteVersion((v) => v + 1))
+      .catch(() => notify("favoriteError"));
+  }, [session, token, loginIntent]);
   const publicAction = (action: string) =>
     run(async () => {
       if (!session) {
-        location.href =
-          homeHref +
-          "?returnTo=" +
-          encodeURIComponent(sharePath(token!, locale));
+        setLoginIntent(action === "clone" ? "clone" : "favorite");
         return;
       }
       const r = await api("public/" + token + "/" + action, "POST", {});
@@ -1025,29 +1054,58 @@ function Workspace({
                   url={sharePath(token!, locale)}
                   locale={locale}
                   name={publicRoute.title}
+                  compact={false}
                 />
                 <FavoriteButton
-                  key={`${token}-${session?.user?.email ?? "guest"}`}
+                  key={`${token}-${session?.user?.email ?? "guest"}-${favoriteVersion}`}
                   token={token!}
                   authenticated={!!session}
                   locale={locale}
                   onError={() => notify("favoriteError")}
-                  onSignIn={() => {
-                    location.href =
-                      homeHref +
-                      "?returnTo=" +
-                      encodeURIComponent(sharePath(token!, locale));
-                  }}
+                  onSignIn={() => setLoginIntent("favorite")}
                 />
-                {downloadMenu}
-                <button
-                  className="button dark"
-                  disabled={busy}
-                  onClick={() => setCloneOpen(true)}
-                >
-                  <Plus size={17} />
-                  {t.clone}
-                </button>
+                <details ref={routeMenuRef} className="public-route-menu">
+                  <summary
+                    className="button light"
+                    aria-label={
+                      locale === "ru" ? "Другие действия" : "More actions"
+                    }
+                  >
+                    <MoreHorizontal size={20} />
+                  </summary>
+                  <div>
+                    <button
+                      onClick={() => {
+                        if (routeMenuRef.current)
+                          routeMenuRef.current.open = false;
+                        if (session) setCloneOpen(true);
+                        else setLoginIntent("clone");
+                      }}
+                    >
+                      <Plus size={17} />
+                      {t.clone}
+                    </button>
+                    <span className="public-menu-label">{t.export}</span>
+                    {["gpx", "kml", "geojson", "csv"].map((format) => (
+                      <a
+                        key={format}
+                        href={exportLink(format)}
+                        onClick={() => {
+                          if (routeMenuRef.current)
+                            routeMenuRef.current.open = false;
+                        }}
+                      >
+                        <Download size={16} />
+                        {format === "geojson"
+                          ? "GeoJSON"
+                          : format.toUpperCase()}
+                        {format === "gpx" && (
+                          <span className="format-badge">{t.recommended}</span>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                </details>
               </div>
             </div>
             <div className="public-media">
@@ -1083,33 +1141,49 @@ function Workspace({
                 </div>
               )}
             </div>
-            <RoutePlaces
-              key={token}
-              places={publicRoute.places}
-              locale={locale}
-              token={token}
-              selectedId={selectedPlace}
-              onSelect={setSelectedPlace}
-            />
-            {publicRoute.annotations.length > 0 && (
-              <section className="public-notes">
-                <h2>{t.annotations}</h2>
-                <AnnotationList
-                  locale={locale}
-                  annotations={publicRoute.annotations}
-                  label={t.annotations}
-                  onSelect={(a) => {
-                    setFocusedAnnotation({ id: a.id });
-                    publicMapRef.current?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "center",
-                    });
-                  }}
-                />
-              </section>
-            )}
+            <div className="public-route-details">
+              <RoutePlaces
+                key={token}
+                places={publicRoute.places}
+                locale={locale}
+                token={token}
+                selectedId={selectedPlace}
+                onSelect={setSelectedPlace}
+              />
+              {publicRoute.annotations.length > 0 && (
+                <section className="public-notes">
+                  <h2>{t.annotations}</h2>
+                  <AnnotationList
+                    locale={locale}
+                    annotations={publicRoute.annotations}
+                    label={t.annotations}
+                    onSelect={(a) => {
+                      setFocusedAnnotation({ id: a.id });
+                      publicMapRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }}
+                  />
+                </section>
+              )}
+            </div>
           </>
         )}
+        <RouteSignInDialog
+          open={!!loginIntent && !session}
+          intent={loginIntent || "favorite"}
+          locale={locale}
+          providers={providers}
+          onClose={() => setLoginIntent(undefined)}
+          onOAuth={(provider) => {
+            sessionStorage.setItem(
+              "route-signin-intent",
+              JSON.stringify({ token, action: loginIntent, at: Date.now() }),
+            );
+            void startOAuth(provider);
+          }}
+        />
         {cloneOpen && publicRoute && (
           <div className="modal-backdrop">
             <section
