@@ -102,6 +102,17 @@ export function ConfirmationProvider({ children }: { children: ReactNode }) {
           event.preventDefault();
           finish(false);
         }}
+        onClick={(event) => {
+          if (event.target !== event.currentTarget) return;
+          const rect = event.currentTarget.getBoundingClientRect();
+          if (
+            event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom
+          )
+            finish(false);
+        }}
       >
         {request && (
           <div className="app-confirm-content" lang={request.ru ? "ru" : "en"}>

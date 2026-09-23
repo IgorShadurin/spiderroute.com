@@ -906,7 +906,18 @@ function ItemEditor({
       aria-labelledby="item-editor-title"
       onCancel={(e) => {
         e.preventDefault();
-        close();
+        void close();
+      }}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        )
+          void close();
       }}
     >
       <form onSubmit={save}>
@@ -1252,6 +1263,17 @@ function SetSeoDialog({
       onCancel={(event) => {
         event.preventDefault();
         void close();
+      }}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        )
+          void close();
       }}
     >
       <form

@@ -1185,7 +1185,12 @@ function Workspace({
           }}
         />
         {cloneOpen && publicRoute && (
-          <div className="modal-backdrop">
+          <div
+            className="modal-backdrop"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setCloneOpen(false);
+            }}
+          >
             <section
               className="modal clone-modal"
               role="dialog"
@@ -2336,7 +2341,15 @@ function Workspace({
       </div>
       {notifyNode}
       {shareOpen && route && (
-        <div className="modal-backdrop">
+        <div
+          className="modal-backdrop"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setShareOpen(false);
+              setPreview(null);
+            }
+          }}
+        >
           <section
             className="modal share-modal"
             role="dialog"
@@ -2600,7 +2613,12 @@ function Workspace({
         </div>
       )}
       {noteOpen && route && (
-        <div className="modal-backdrop">
+        <div
+          className="modal-backdrop"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setNoteOpen(false);
+          }}
+        >
           <section
             className="modal compact"
             role="dialog"

@@ -863,6 +863,17 @@ function FullscreenMapDialog({
         event.preventDefault();
         onClose();
       }}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        )
+          onClose();
+      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") event.stopPropagation();
       }}
