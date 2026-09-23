@@ -1,7 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { channelId, subscription } from "../src/lib/youtube-channel";
-import { authorPath, detectChannel } from "../src/server/youtube-channel";
+import {
+  authorPath,
+  detectChannel,
+  videoChannel,
+} from "../src/server/youtube-channel";
 const id = "UC_x5XG1OV2P6uZZ5FSM9Ttw";
 test("channel and widget settings validate without allowing arbitrary URLs", () => {
   assert.equal(channelId(id), id);
@@ -48,13 +52,38 @@ test("automatic channel resolution uses only YouTube author metadata and handles
   };
   try {
     assert.equal(await detectChannel("testVideo01"), id);
-    assert.equal(urls.length, 2);
-    assert.equal(urls[1], "https://www.youtube.com/@creator");
+    assert.equal(urls.length, 3);
+    assert.equal(urls[2], "https://www.youtube.com/@creator");
     assert.equal(await detectChannel("testVideo01"), id);
-    assert.equal(urls.length, 2);
+    assert.equal(urls.length, 3);
     global.fetch = async () => new Response("unavailable", { status: 404 });
     assert.equal(await detectChannel("testVideo02"), null);
     await assert.rejects(() => detectChannel("bad"));
+  } finally {
+    global.fetch = original;
+  }
+});
+
+test("video metadata wins over unrelated channels and fills the current video's channel", async () => {
+  const video = "testVideo04";
+  const html = `"channelId":"UCaaaaaaaaaaaaaaaaaaaaaa"\n"videoDetails":{"videoId":"${video}","title":"Ride","channelId":"${id}"}`;
+  assert.equal(videoChannel(html, video), id);
+  assert.equal(videoChannel(html, "otherVideo1"), null);
+  const consentPage =
+    `"videoId":"${video}"` +
+    "x".repeat(1200) +
+    `"videoOwnerRenderer":{"title":{"runs":[{"navigationEndpoint":{"browseEndpoint":{"browseId":"${id}"}}}]}}`;
+  assert.equal(videoChannel(consentPage, video), id);
+  assert.equal(videoChannel(consentPage, "otherVideo1"), null);
+  const original = global.fetch;
+  const urls: string[] = [];
+  global.fetch = async (input) => {
+    urls.push(String(input));
+    return new Response(html);
+  };
+  try {
+    assert.equal(await detectChannel(video), id);
+    assert.deepEqual(urls, ["https://www.youtube.com/watch?v=" + video]);
   } finally {
     global.fetch = original;
   }

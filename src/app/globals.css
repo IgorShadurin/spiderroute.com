@@ -3566,12 +3566,11 @@ html[data-theme] .toast.toast-success button {
 .map-actions { flex-wrap:wrap; }
 .map-actions { max-width:calc(100% - 20px); justify-content:flex-end; }
 .youtube-subscribe { margin-top:16px; }
-.youtube-subscribe-widget { margin-top:14px; min-height:48px; overflow:auto; }
-.youtube-subscribe-widget a { display:inline-flex; align-items:center; gap:8px; }
+.youtube-subscribe-widget { margin-top:14px; }
+.youtube-subscribe-link svg { color:#ff0033; }
 .subscription-channel { max-width:860px; margin:8px 0; }
 .subscription-channel summary { cursor:pointer; font-size:13px; color:var(--ink); margin-bottom:8px; }
 .subscription-channel small,.youtube-subscribe>small { display:block; margin-top:6px; color:var(--muted); font-size:12px; }
-.subscribe-heading { margin:0 0 8px; font-size:14px; font-weight:600; }
 .route-loading { padding:28px; width:100%; }
 .route-loading-heading { height:28px; width:min(360px,65%); border-radius:8px; background:var(--line); margin-bottom:24px; opacity:.65; }
 .route-loading-map { min-height:440px; height:55vh; border-radius:20px; background:var(--white); border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; color:var(--ink); }

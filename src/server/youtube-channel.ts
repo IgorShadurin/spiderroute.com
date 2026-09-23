@@ -43,6 +43,30 @@ export function authorPath(value: unknown): string | null {
     return null;
   }
 }
+/** Read the owner from this video's own metadata, not a recommended video. */
+export function videoChannel(html: string, video: string): string | null {
+  const start = html.indexOf('"videoDetails":{"videoId":"' + video + '"');
+  if (start >= 0) {
+    const match = /"channelId":"(UC[A-Za-z0-9_-]{22})"/.exec(
+      html.slice(start, start + 4000),
+    );
+    if (match) return channelId(match[1]);
+  }
+  // The consent-limited watch page can omit player details while retaining
+  // the current video's owner in the visible watch data.
+  const owner = html.indexOf('"videoOwnerRenderer":{');
+  if (
+    owner < 0 ||
+    !html
+      .slice(Math.max(0, owner - 25000), owner)
+      .includes('"videoId":"' + video + '"')
+  )
+    return null;
+  const match = /"browseId":"(UC[A-Za-z0-9_-]{22})"/.exec(
+    html.slice(owner, owner + 8000),
+  );
+  return match ? channelId(match[1]) : null;
+}
 export async function detectChannel(
   video: string,
   db?: Database.Database,
@@ -60,20 +84,28 @@ export async function detectChannel(
     return hit.id ?? saved?.channel_id ?? null;
   let id: string | null = null;
   try {
-    const data = JSON.parse(
-      await youtubeText(
-        "https://www.youtube.com/oembed?format=json&url=" +
-          encodeURIComponent("https://www.youtube.com/watch?v=" + video),
-      ),
+    id = videoChannel(
+      await youtubeText("https://www.youtube.com/watch?v=" + video),
+      video,
     );
-    const path = authorPath(data.author_url);
-    if (path?.startsWith("/channel/")) id = channelId(path.slice(9));
-    else if (path) {
-      const html = await youtubeText("https://www.youtube.com" + path);
-      const match = /"externalId"\s*:\s*"(UC[A-Za-z0-9_-]{22})"/.exec(html);
-      if (match) id = channelId(match[1]);
-    }
   } catch {}
+  // Some videos expose no player details. Their oEmbed author may still resolve.
+  if (!id)
+    try {
+      const data = JSON.parse(
+        await youtubeText(
+          "https://www.youtube.com/oembed?format=json&url=" +
+            encodeURIComponent("https://www.youtube.com/watch?v=" + video),
+        ),
+      );
+      const path = authorPath(data.author_url);
+      if (path?.startsWith("/channel/")) id = channelId(path.slice(9));
+      else if (path) {
+        const html = await youtubeText("https://www.youtube.com" + path);
+        const match = /"externalId"\s*:\s*"(UC[A-Za-z0-9_-]{22})"/.exec(html);
+        if (match) id = channelId(match[1]);
+      }
+    } catch {}
   if (id && db)
     db.prepare(
       "INSERT INTO youtube_channels VALUES(?,?,?) ON CONFLICT(video_id) DO UPDATE SET channel_id=excluded.channel_id,verified_at=excluded.verified_at",
