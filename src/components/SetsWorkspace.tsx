@@ -538,7 +538,7 @@ function SetEditor({
           </span>
         </div>
         <button
-          className="button light"
+          className={`button ${set.token ? "coral" : "light"}`}
           disabled={busy || (!set.token && (dirty || !set.items.length))}
           title={
             !set.items.length

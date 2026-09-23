@@ -2567,10 +2567,19 @@ function Workspace({
               ) : null}
               {route.shared && (
                 <button
-                  className="button light full"
+                  className="button coral full"
                   disabled={busy}
-                  onClick={() =>
-                    run(async () => {
+                  onClick={async () => {
+                    if (
+                      !(await confirm(
+                        locale === "ru"
+                          ? "Отозвать ссылку? Доступ к маршруту будет закрыт."
+                          : "Revoke the link? Public access to this route will be closed.",
+                        "revoke",
+                      ))
+                    )
+                      return;
+                    void run(async () => {
                       await api("routes/" + route.id + "/share", "DELETE");
                       setRoute({
                         ...route,
@@ -2580,8 +2589,8 @@ function Workspace({
                       await refresh();
                       setShareOpen(false);
                       notify("shareRevoked");
-                    })
-                  }
+                    });
+                  }}
                 >
                   {t.unshare}
                 </button>
