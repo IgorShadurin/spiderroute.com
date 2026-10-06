@@ -50,7 +50,7 @@ export const landingCopy = {
     sourceLink: "View the source on GitHub",
     formatsTitle: "Use the track you already recorded.",
     formatsIntro:
-      "Export your ride from Speedometer GPS or another recording app, then upload the file to SpiderRoute. You can download your edited route in these formats too.",
+      "Export your ride from Bike Tracker SpiderRoute or another recording app, then upload the file to SpiderRoute. You can download your edited route in these formats too.",
     formats: [
       {
         name: "GPX",
@@ -147,7 +147,7 @@ export const landingCopy = {
     sourceLink: "Посмотреть код на GitHub",
     formatsTitle: "Используйте уже записанный трек.",
     formatsIntro:
-      "Экспортируйте поездку из Speedometer GPS или другого приложения для записи маршрутов и загрузите файл в SpiderRoute. Отредактированный маршрут можно скачать в этих же форматах.",
+      "Экспортируйте поездку из Bike Tracker SpiderRoute или другого приложения для записи маршрутов и загрузите файл в SpiderRoute. Отредактированный маршрут можно скачать в этих же форматах.",
     formats: [
       {
         name: "GPX",

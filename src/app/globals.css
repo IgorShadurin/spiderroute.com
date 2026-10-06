@@ -4104,3 +4104,11 @@ select:not([multiple]):not([size]) { appearance:none; -webkit-appearance:none; b
 .qr-download .qr-format-toggle { min-width:40px; padding:10px; }
 .route-signin-body .demo-access { margin-top:20px; }
 @media(forced-colors:active) { select:not([multiple]):not([size]) { appearance:auto; background-image:none; padding-right:12px; } }
+
+/* Branded website and iPhone QR links share the publishing controls. */
+.landing footer { flex-wrap:wrap; }
+.footer-qr-links { flex:0 0 100%; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.footer-qr-links .share-kit { margin:0; color:var(--ink); }
+.footer-qr-links .share-kit-content > a { margin-top:14px; font-size:12px; }
+@media(max-width:1100px) { .footer-qr-links .share-kit { flex-direction:column; align-items:center; } .footer-qr-links .share-kit-visual { flex:auto; } .footer-qr-links .share-kit-content { width:100%; padding-top:0; } }
+@media(max-width:600px) { .footer-qr-links { grid-template-columns:minmax(0,1fr); gap:17px; } }

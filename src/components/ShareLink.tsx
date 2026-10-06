@@ -10,11 +10,15 @@ export function ShareLink({
   locale,
   name = "spiderroute",
   children,
+  title,
+  description,
 }: {
   url: string;
   locale: "ru" | "en";
   name?: string;
   children?: ReactNode;
+  title?: string;
+  description?: string;
 }) {
   const ru = locale === "ru";
   const [absolute, setAbsolute] = useState("");
@@ -109,7 +113,7 @@ export function ShareLink({
   return (
     <section
       className="share-kit"
-      aria-label={ru ? "Ссылка и QR-код" : "Link and QR code"}
+      aria-label={title || (ru ? "Ссылка и QR-код" : "Link and QR code")}
     >
       <div className="share-kit-visual">
         <div className="share-kit-code">
@@ -118,7 +122,13 @@ export function ShareLink({
               src={image}
               width={208}
               height={208}
-              alt={ru ? "QR-код публичной ссылки" : "Public link QR code"}
+              alt={
+                title
+                  ? `${title} — QR`
+                  : ru
+                    ? "QR-код публичной ссылки"
+                    : "Public link QR code"
+              }
             />
           ) : (
             <div role="status" className="qr-loading" aria-busy={!failed}>
@@ -196,11 +206,12 @@ export function ShareLink({
         </div>
       </div>
       <div className="share-kit-content">
-        <strong>{ru ? "Ссылка" : "Link"}</strong>
+        <strong>{title || (ru ? "Ссылка" : "Link")}</strong>
         <p className="share-kit-hint">
-          {ru
-            ? "Отправьте ссылку или сохраните QR-код."
-            : "Send the link or save the QR code."}
+          {description ||
+            (ru
+              ? "Отправьте ссылку или сохраните QR-код."
+              : "Send the link or save the QR code.")}
         </p>
         <CopyField
           value={absolute || url}
