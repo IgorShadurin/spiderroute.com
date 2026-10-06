@@ -18,7 +18,7 @@ import { SpeedometerLink } from "@/components/SpeedometerLink";
 import { ThemeToggle } from "@/components/ThemeProvider";
 import { LandingLanguage } from "@/components/LandingLanguage";
 import { ShareLink } from "@/components/ShareLink";
-import { APP_STORE_URL, WEBSITE_URL } from "@/lib/links";
+import { APP_STORE_URL } from "@/lib/links";
 import { Brand } from "@/components/Brand";
 import { landingCopy } from "@/lib/landing";
 
@@ -304,7 +304,7 @@ export default async function Home({ searchParams }: Props) {
       <footer>
         <div className="footer-qr-links">
           <ShareLink
-            url={WEBSITE_URL}
+            url={`${url}/`}
             locale={locale}
             name="spiderroute-website"
             title={ru ? "SpiderRoute в браузере" : "SpiderRoute on the web"}
@@ -314,8 +314,9 @@ export default async function Home({ searchParams }: Props) {
                 : "Scan to open the website on another device."
             }
           >
-            <a className="text-link" href={WEBSITE_URL}>
-              spiderroute.com <ArrowUpRight size={15} aria-hidden="true" />
+            <a className="text-link" href={`${url}/`}>
+              {ru ? "ru.spiderroute.com" : "spiderroute.com"}{" "}
+              <ArrowUpRight size={15} aria-hidden="true" />
             </a>
           </ShareLink>
           <ShareLink
